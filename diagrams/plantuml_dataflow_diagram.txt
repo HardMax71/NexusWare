@@ -1,0 +1,35 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+Person(user, "User")
+Container(client, "NexusWare Client", "Python, Flet")
+Container(api, "NexusWare API", "FastAPI")
+Container(auth, "Authentication Service", "FastAPI, Pydantic")
+Container(inventory, "Inventory Service", "FastAPI, Pydantic")
+Container(order, "Order Service", "FastAPI, Pydantic")
+Container(reporting, "Reporting Service", "FastAPI, Pydantic")
+ContainerDb(db, "Database", "SQLite")
+
+Rel(user, client, "Interacts with")
+Rel(client, api, "Sends requests", "HTTP/REST")
+Rel(api, auth, "Authenticates")
+Rel(api, inventory, "Manages inventory")
+Rel(api, order, "Processes orders")
+Rel(api, reporting, "Generates reports")
+
+Rel(auth, db, "Verifies credentials")
+Rel(inventory, db, "CRUD operations")
+Rel(order, db, "CRUD operations")
+Rel(reporting, db, "Queries data")
+
+Rel(db, auth, "User data")
+Rel(db, inventory, "Inventory data")
+Rel(db, order, "Order data")
+Rel(db, reporting, "Report data")
+
+Rel(api, client, "Sends responses", "HTTP/REST")
+Rel(client, user, "Displays results")
+
+@enduml

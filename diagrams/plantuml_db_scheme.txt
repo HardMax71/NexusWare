@@ -1,0 +1,50 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+
+class User {
+  +id: INTEGER [PK]
+  username: TEXT
+  email: TEXT
+  password_hash: TEXT
+  role: TEXT
+}
+
+class Inventory {
+  +id: INTEGER [PK]
+  sku: TEXT
+  name: TEXT
+  description: TEXT
+  quantity: INTEGER
+  location: TEXT
+}
+
+class Order {
+  +id: INTEGER [PK]
+  user_id: INTEGER [FK]
+  status: TEXT
+  created_at: DATETIME
+  updated_at: DATETIME
+}
+
+class OrderItem {
+  +id: INTEGER [PK]
+  order_id: INTEGER [FK]
+  inventory_id: INTEGER [FK]
+  quantity: INTEGER
+}
+
+class Shipment {
+  +id: INTEGER [PK]
+  order_id: INTEGER [FK]
+  status: TEXT
+  tracking_number: TEXT
+  shipped_at: DATETIME
+}
+
+User ||--o{ Order
+Order ||--o{ OrderItem
+OrderItem }|--|| Inventory
+Order ||--o| Shipment
+
+@enduml

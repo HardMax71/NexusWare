@@ -1,0 +1,39 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+Container(server, "NexusWare Server", "Python, FastAPI")
+Container(client, "NexusWare Client", "Python, Flet")
+
+Container_Boundary(server_boundary, "NexusWare Server") {
+    Component(api, "API", "FastAPI")
+    Component(auth_service, "Authentication Service", "FastAPI, Pydantic")
+    Component(inventory_service, "Inventory Service", "FastAPI, Pydantic")
+    Component(order_service, "Order Service", "FastAPI, Pydantic")
+    Component(reporting_service, "Reporting Service", "FastAPI, Pydantic")
+    ComponentDb(database, "Database", "SQLite")
+}
+
+Container_Boundary(client_boundary, "NexusWare Client") {
+    Component(ui, "User Interface", "Flet")
+    Component(api_client, "API Client", "Python Requests")
+    Component(local_storage, "Local Storage", "SQLite")
+}
+
+Rel(client, api, "Uses", "HTTP/REST")
+
+Rel(api, auth_service, "Routes to")
+Rel(api, inventory_service, "Routes to")
+Rel(api, order_service, "Routes to")
+Rel(api, reporting_service, "Routes to")
+
+Rel(auth_service, database, "Reads/Writes")
+Rel(inventory_service, database, "Reads/Writes")
+Rel(order_service, database, "Reads/Writes")
+Rel(reporting_service, database, "Reads")
+
+Rel(ui, api_client, "Uses")
+Rel(api_client, local_storage, "Reads/Writes")
+
+@enduml

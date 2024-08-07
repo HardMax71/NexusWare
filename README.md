@@ -72,6 +72,10 @@ across mobile, web, and desktop environments.
 | Training Mode               | -      | -   | ✅       |
 | Customization Tools         | -      | -   | ✅       |
 
+## Architecture
+
+For a detailed description of the system architecture, please refer to the [ARCHITECTURE.md](./ARCHITECTURE.md) file.
+
 ## Getting Started
 
 (Instructions for setting up development environment, installing dependencies, and running the application will be added
