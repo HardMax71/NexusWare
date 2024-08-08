@@ -79,3 +79,44 @@ class Carrier(Base):
     carrier_id = Column(Integer, primary_key=True, index=True)
     name = Column(String(50), nullable=False)
     contact_info = Column(Text)
+
+
+class LocationInventory(Base):
+    __tablename__ = "location_inventory"
+
+    location_id = Column(Integer, ForeignKey("locations.location_id"), primary_key=True)
+    product_id = Column(Integer, ForeignKey("products.product_id"), primary_key=True)
+    quantity = Column(Integer, nullable=False)
+
+    location = relationship("Location")
+    product = relationship("Product")
+
+
+class InventoryMovement(Base):
+    __tablename__ = "inventory_movements"
+
+    movement_id = Column(Integer, primary_key=True, index=True)
+    product_id = Column(Integer, ForeignKey("products.product_id"))
+    from_location_id = Column(Integer, ForeignKey("locations.location_id"))
+    to_location_id = Column(Integer, ForeignKey("locations.location_id"))
+    quantity = Column(Integer, nullable=False)
+    reason = Column(String(255))
+    timestamp = Column(DateTime, server_default=func.now())
+
+    product = relationship("Product")
+    from_location = relationship("Location", foreign_keys=[from_location_id])
+    to_location = relationship("Location", foreign_keys=[to_location_id])
+
+
+class InventoryAdjustment(Base):
+    __tablename__ = "inventory_adjustments"
+
+    adjustment_id = Column(Integer, primary_key=True, index=True)
+    product_id = Column(Integer, ForeignKey("products.product_id"))
+    location_id = Column(Integer, ForeignKey("locations.location_id"))
+    quantity_change = Column(Integer, nullable=False)
+    reason = Column(String(255))
+    timestamp = Column(DateTime, server_default=func.now())
+
+    product = relationship("Product")
+    location = relationship("Location")

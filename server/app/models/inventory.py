@@ -18,6 +18,7 @@ class Product(Base):
     weight = Column(Numeric(10, 2))
     dimensions = Column(String(50))
     barcode = Column(String(50))
+    price = Column(Numeric(10, 2), nullable=False)
 
     category = relationship("ProductCategory", back_populates="products")
     inventory_items = relationship("Inventory", back_populates="product")

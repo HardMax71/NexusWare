@@ -18,6 +18,9 @@ class User(Base):
     last_login = Column(DateTime)
 
     role = relationship("Role", back_populates="users")
+    assigned_tasks = relationship("Task", back_populates="assigned_user")
+    task_comments = relationship("TaskComment", back_populates="user")
+    audit_logs = relationship("AuditLog", back_populates="user")
 
 
 class Role(Base):

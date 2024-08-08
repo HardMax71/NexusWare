@@ -12,6 +12,7 @@ class YardLocation(Base):
     name = Column(String(50), nullable=False)
     type = Column(String(20))
     status = Column(String(20))
+    capacity = Column(Integer, default=1)
 
     appointments = relationship("DockAppointment", back_populates="yard_location")
 
@@ -25,6 +26,8 @@ class DockAppointment(Base):
     carrier_id = Column(Integer, ForeignKey("carriers.carrier_id"))
     type = Column(String(20))
     status = Column(String(20))
+    actual_arrival_time = Column(DateTime)
+    actual_departure_time = Column(DateTime)
 
     yard_location = relationship("YardLocation", back_populates="appointments")
     carrier = relationship("Carrier")

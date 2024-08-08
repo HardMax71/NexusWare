@@ -2,7 +2,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, constr
 
 
 class ProductCategoryBase(BaseModel):
@@ -141,3 +141,109 @@ class LocationWithInventory(Location):
 
 class ZoneWithLocations(Zone):
     locations: list[Location] = []
+
+
+class ProductFilter(BaseModel):
+    name: Optional[str] = None
+    category_id: Optional[int] = None
+    sku: Optional[str] = None
+    barcode: Optional[str] = None
+
+
+class InventoryFilter(BaseModel):
+    product_id: Optional[int] = None
+    location_id: Optional[int] = None
+    quantity_min: Optional[int] = None
+    quantity_max: Optional[int] = None
+
+
+class LocationFilter(BaseModel):
+    zone_id: Optional[int] = None
+    aisle: Optional[str] = None
+    rack: Optional[str] = None
+    shelf: Optional[str] = None
+    bin: Optional[str] = None
+
+
+class ZoneFilter(BaseModel):
+    name: Optional[str] = None
+
+
+class InventoryAdjustment(BaseModel):
+    quantity: int
+    reason: str
+
+
+class BarcodeData(BaseModel):
+    barcode: constr(min_length=1, max_length=50)
+
+
+class InventoryTransfer(BaseModel):
+    from_location_id: int
+    to_location_id: int
+    quantity: int
+
+
+class ProductWithCategoryAndInventory(ProductWithInventory):
+    category: ProductCategory
+
+
+class InventoryReport(BaseModel):
+    total_products: int
+    total_quantity: int
+    low_stock_items: list[ProductWithInventory]
+    out_of_stock_items: list[Product]
+
+
+class WarehouseLayout(BaseModel):
+    zones: list[ZoneWithLocations]
+
+
+class InventoryMovement(BaseModel):
+    product_id: int
+    location_id: int
+    quantity_change: int
+    movement_type: str
+    timestamp: datetime
+
+
+class StocktakeItem(BaseModel):
+    product_id: int
+    counted_quantity: int
+
+
+class StocktakeCreate(BaseModel):
+    location_id: int
+    items: list[StocktakeItem]
+
+
+class StocktakeDiscrepancy(BaseModel):
+    product_id: int
+    expected_quantity: int
+    counted_quantity: int
+    discrepancy: int
+
+
+class StocktakeResult(BaseModel):
+    location_id: int
+    total_items: int
+    discrepancies: list[StocktakeDiscrepancy]
+    accuracy_percentage: float
+
+
+class ABCCategory(BaseModel):
+    category: str
+    products: list[Product]
+    value_percentage: float
+    item_percentage: float
+
+
+class ABCAnalysisResult(BaseModel):
+    categories: list[ABCCategory]
+
+
+class InventoryLocationSuggestion(BaseModel):
+    product_id: int
+    current_location_id: int
+    suggested_location_id: int
+    reason: str

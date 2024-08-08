@@ -17,4 +17,4 @@ class AuditLog(Base):
     new_value = Column(Text)
     timestamp = Column(DateTime, server_default=func.now())
 
-    user = relationship("User")
+    user = relationship("User", back_populates="audit_logs")

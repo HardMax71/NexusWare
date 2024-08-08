@@ -150,3 +150,44 @@ class Carrier(CarrierBase):
 
     class Config:
         from_attributes = True
+
+
+class PickListFilter(BaseModel):
+    status: Optional[str] = None
+    order_id: Optional[int] = None
+    date_from: Optional[datetime] = None
+    date_to: Optional[datetime] = None
+
+
+class ReceiptFilter(BaseModel):
+    status: Optional[str] = None
+    po_id: Optional[int] = None
+    date_from: Optional[datetime] = None
+    date_to: Optional[datetime] = None
+
+
+class ShipmentFilter(BaseModel):
+    status: Optional[str] = None
+    order_id: Optional[int] = None
+    carrier_id: Optional[int] = None
+    date_from: Optional[datetime] = None
+    date_to: Optional[datetime] = None
+
+
+class WarehouseStats(BaseModel):
+    total_pick_lists: int
+    completed_pick_lists: int
+    total_receipts: int
+    completed_receipts: int
+    total_shipments: int
+    completed_shipments: int
+
+
+class LocationInventory(BaseModel):
+    location_id: int
+    product_id: int
+    quantity: int
+
+
+class LocationInventoryUpdate(BaseModel):
+    quantity: int
