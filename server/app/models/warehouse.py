@@ -1,3 +1,4 @@
+# /server/app/models/warehouse.py
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func, Text
 from sqlalchemy.orm import relationship
 

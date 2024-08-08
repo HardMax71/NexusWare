@@ -1,3 +1,4 @@
+# /server/app/models/__init__.py
 from .base import Base
 from .user import User, Role, Permission, RolePermission
 from .inventory import Product, ProductCategory, Inventory, Location, Zone

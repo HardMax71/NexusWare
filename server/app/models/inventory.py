@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Numeric, Text, DateTime, func
+# /server/app/models/inventory.py
+from sqlalchemy import (Column, Integer, String,
+                        ForeignKey, Numeric, Text, DateTime, func)
 from sqlalchemy.orm import relationship
 
 from .base import Base

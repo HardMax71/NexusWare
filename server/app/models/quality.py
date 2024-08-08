@@ -1,3 +1,4 @@
+# /server/app/models/quality.py
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, func
 from sqlalchemy.orm import relationship
 

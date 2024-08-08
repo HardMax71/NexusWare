@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Numeric, DateTime, Text, func
+# /server/app/models/order.py
+from sqlalchemy import (Column, Integer, String, ForeignKey,
+                        Numeric, DateTime, Text, func)
 from sqlalchemy.orm import relationship
 
 from .base import Base

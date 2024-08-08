@@ -1,3 +1,4 @@
+# /server/app/models/asset.py
 from sqlalchemy import Column, Integer, String, Date, ForeignKey, Text
 from sqlalchemy.orm import relationship
 
