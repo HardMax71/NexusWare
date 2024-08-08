@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from fastapi import HTTPException
 from sqlalchemy import func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from server.app.models import (Product, ProductCategory,
                                Inventory, Location, Zone)
@@ -15,12 +15,39 @@ from server.app.schemas import (ProductCreate, ProductUpdate,
                                 LocationUpdate, ZoneCreate, ZoneUpdate, InventoryAdjustment, InventoryTransfer,
                                 InventoryReport, ProductWithInventory, LocationWithInventory, InventoryMovement,
                                 StocktakeCreate, StocktakeResult, ABCAnalysisResult, InventoryLocationSuggestion,
-                                StocktakeDiscrepancy, ABCCategory)
+                                StocktakeDiscrepancy, ABCCategory, ProductFilter, LocationFilter)
 from .base import CRUDBase
 
 
 class CRUDProduct(CRUDBase[Product, ProductCreate, ProductUpdate]):
-    pass
+    def get_with_category_and_inventory(self, db: Session, id: int) -> Optional[Product]:
+        return db.query(Product).filter(Product.product_id == id).options(
+            joinedload(Product.category),
+            joinedload(Product.inventory_items)
+        ).first()
+
+    def get_multi_with_category_and_inventory(
+            self, db: Session, skip: int = 0, limit: int = 100, filter_params: Optional[ProductFilter] = None
+    ) -> List[Product]:
+        query = db.query(Product).options(
+            joinedload(Product.category),
+            joinedload(Product.inventory_items)
+        )
+
+        if filter_params:
+            if filter_params.name:
+                query = query.filter(Product.name.ilike(f"%{filter_params.name}%"))
+            if filter_params.category_id:
+                query = query.filter(Product.category_id == filter_params.category_id)
+            if filter_params.sku:
+                query = query.filter(Product.sku == filter_params.sku)
+            if filter_params.barcode:
+                query = query.filter(Product.barcode == filter_params.barcode)
+
+        return query.offset(skip).limit(limit).all()
+
+    def get_by_barcode(self, db: Session, barcode: str) -> Optional[Product]:
+        return db.query(Product).filter(Product.barcode == barcode).first()
 
 
 class CRUDProductCategory(CRUDBase[ProductCategory, ProductCategoryCreate, ProductCategoryUpdate]):
@@ -263,11 +290,29 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
 
 
 class CRUDLocation(CRUDBase[Location, LocationCreate, LocationUpdate]):
-    pass
+    def get_multi_with_inventory(
+            self, db: Session, skip: int = 0, limit: int = 100, filter_params: Optional[LocationFilter] = None
+    ) -> List[Location]:
+        query = db.query(Location).options(joinedload(Location.inventory_items))
+
+        if filter_params:
+            if filter_params.zone_id:
+                query = query.filter(Location.zone_id == filter_params.zone_id)
+            if filter_params.aisle:
+                query = query.filter(Location.aisle == filter_params.aisle)
+            if filter_params.rack:
+                query = query.filter(Location.rack == filter_params.rack)
+            if filter_params.shelf:
+                query = query.filter(Location.shelf == filter_params.shelf)
+            if filter_params.bin:
+                query = query.filter(Location.bin == filter_params.bin)
+
+        return query.offset(skip).limit(limit).all()
 
 
 class CRUDZone(CRUDBase[Zone, ZoneCreate, ZoneUpdate]):
-    pass
+    def get_warehouse_layout(self, db: Session) -> List[Zone]:
+        return db.query(Zone).options(joinedload(Zone.locations)).all()
 
 
 product = CRUDProduct(Product)

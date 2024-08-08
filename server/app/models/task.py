@@ -18,6 +18,7 @@ class Task(Base):
     created_at = Column(DateTime, server_default=func.now())
 
     assigned_user = relationship("User")
+    comments = relationship("TaskComment", back_populates="task")
 
 
 class TaskComment(Base):

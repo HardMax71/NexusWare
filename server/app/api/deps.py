@@ -6,7 +6,6 @@ from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from server.app import crud, models, schemas
-from server.app.core import security
 from server.app.core.config import settings
 from server.app.db.database import get_db
 
@@ -19,7 +18,7 @@ def get_current_user(
 ) -> models.User:
     try:
         payload = jwt.decode(
-            token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
+            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
         )
         token_data = schemas.TokenData(**payload)
     except (jwt.JWTError, ValidationError):
@@ -27,7 +26,7 @@ def get_current_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Could not validate credentials",
         )
-    user = crud.user.get_by_email(db, email=token_data.username)
+    user = crud.user.get_by_username(db, username=token_data.username)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
