@@ -1,50 +1,79 @@
 @startuml
-!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!define Table(name,desc) class name as "desc" << (T,#FFAAAA) >>
+!define primary_key(x) <u>x</u>
+!define foreign_key(x) <i>x</i>
+left to right direction
+hide methods
+hide stereotypes
 
+Table(User, "User")
+Table(Role, "Role")
+Table(Permission, "Permission")
+Table(RolePermission, "RolePermission")
+Table(Product, "Product")
+Table(ProductCategory, "ProductCategory")
+Table(Inventory, "Inventory")
+Table(Location, "Location")
+Table(Zone, "Zone")
+Table(Order, "Order")
+Table(OrderItem, "OrderItem")
+Table(Customer, "Customer")
+Table(PurchaseOrder, "PurchaseOrder")
+Table(POItem, "POItem")
+Table(Supplier, "Supplier")
+Table(QualityCheck, "QualityCheck")
+Table(QualityStandard, "QualityStandard")
+Table(QualityAlert, "QualityAlert")
+Table(Task, "Task")
+Table(TaskComment, "TaskComment")
+Table(YardLocation, "YardLocation")
+Table(DockAppointment, "DockAppointment")
+Table(Asset, "Asset")
+Table(AssetMaintenance, "AssetMaintenance")
+Table(AuditLog, "AuditLog")
+Table(PickList, "PickList")
+Table(PickListItem, "PickListItem")
+Table(Receipt, "Receipt")
+Table(ReceiptItem, "ReceiptItem")
+Table(Shipment, "Shipment")
+Table(Carrier, "Carrier")
+Table(LocationInventory, "LocationInventory")
+Table(InventoryMovement, "InventoryMovement")
+Table(InventoryAdjustment, "InventoryAdjustment")
 
-class User {
-  +id: INTEGER [PK]
-  username: TEXT
-  email: TEXT
-  password_hash: TEXT
-  role: TEXT
-}
+Inventory "1" -- "*" InventoryAdjustment
+Inventory "1" -- "*" InventoryMovement
+LocationInventory "*" -- "1" Location
+Permission "1" -- "1" RolePermission
+User "1" -- "0..*" Order
+User "1" -- "0..*" Task
+User "1" -- "0..*" TaskComment
+User "1" -- "0..*" AuditLog
+User "1" -- "0..*" PickList
+User "1" -- "0..*" Receipt
 
-class Inventory {
-  +id: INTEGER [PK]
-  sku: TEXT
-  name: TEXT
-  description: TEXT
-  quantity: INTEGER
-  location: TEXT
-}
-
-class Order {
-  +id: INTEGER [PK]
-  user_id: INTEGER [FK]
-  status: TEXT
-  created_at: DATETIME
-  updated_at: DATETIME
-}
-
-class OrderItem {
-  +id: INTEGER [PK]
-  order_id: INTEGER [FK]
-  inventory_id: INTEGER [FK]
-  quantity: INTEGER
-}
-
-class Shipment {
-  +id: INTEGER [PK]
-  order_id: INTEGER [FK]
-  status: TEXT
-  tracking_number: TEXT
-  shipped_at: DATETIME
-}
-
-User ||--o{ Order
-Order ||--o{ OrderItem
-OrderItem }|--|| Inventory
-Order ||--o| Shipment
+User "1" -- "0..*" AssetMaintenance
+Role "1" -- "0..*" User
+Role "0..*" -- "0..*" RolePermission
+Product "1" -- "0..*" Inventory
+Product "1" -- "0..*" OrderItem
+Product "1" -- "0..*" POItem
+Product "1" -- "0..*" QualityCheck
+Product "1" -- "0..*" QualityStandard
+Product "1" -- "0..*" QualityAlert
+ProductCategory "1" -- "0..*" Product
+Location "1" -- "0..*" Inventory
+Zone "1" -- "0..*" Location
+Order "1" -- "0..*" OrderItem
+Order "1" -- "0..*" Shipment
+Customer "1" -- "0..*" Order
+PurchaseOrder "1" -- "0..*" POItem
+Supplier "1" -- "0..*" PurchaseOrder
+YardLocation "1" -- "0..*" DockAppointment
+Asset "1" -- "0..*" AssetMaintenance
+PickList "1" -- "0..*" PickListItem
+Receipt "1" -- "0..*" ReceiptItem
+Carrier "1" -- "0..*" Shipment
+Carrier "1" -- "0..*" DockAppointment
 
 @enduml
