@@ -49,7 +49,7 @@ class OrderUpdate(BaseModel):
 class Order(OrderBase):
     order_id: int
     order_date: datetime
-    items: list[OrderItem] = []
+    order_items: list[OrderItem] = []
 
     class Config:
         from_attributes = True
@@ -189,7 +189,7 @@ class SupplierFilter(BaseModel):
 
 class OrderWithDetails(Order):
     customer: Customer
-    items: list[OrderItem]
+    order_items: list[OrderItem]
 
 
 class PurchaseOrderWithDetails(PurchaseOrder):
@@ -205,3 +205,19 @@ class ShippingInfo(BaseModel):
 class POItemReceive(BaseModel):
     po_item_id: int
     received_quantity: int
+
+
+class OrderProcessingTimes(BaseModel):
+    average_processing_time: float
+    min_processing_time: float
+    max_processing_time: float
+
+
+class BulkOrderImportData(BaseModel):
+    orders: list[OrderCreate]
+
+
+class BulkOrderImportResult(BaseModel):
+    success_count: int
+    failure_count: int
+    errors: list[str]

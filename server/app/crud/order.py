@@ -4,7 +4,7 @@ from typing import List, Optional
 
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy import func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from server.app.models import Order, OrderItem, Customer, PurchaseOrder, POItem, Supplier
 from server.app.schemas import (OrderCreate, OrderUpdate, OrderItemCreate, OrderItemUpdate,
@@ -27,9 +27,13 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
         db.refresh(db_obj)
         return db_obj
 
-    def get_multi_with_details(self, db: Session, *, skip: int = 0, limit: int = 100, filter_params: OrderFilter) -> \
-            List[Order]:
-        query = db.query(self.model).join(Customer)
+    def get_multi_with_details(self, db: Session, *,
+                               skip: int = 0, limit: int = 100,
+                               filter_params: OrderFilter) -> List[Order]:
+        query = db.query(self.model).options(
+            joinedload(Order.customer),
+            joinedload(Order.order_items).joinedload(OrderItem.product)
+        )
         if filter_params.customer_id:
             query = query.filter(Order.customer_id == filter_params.customer_id)
         if filter_params.status:
@@ -41,7 +45,10 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
         return query.offset(skip).limit(limit).all()
 
     def get_with_details(self, db: Session, id: int) -> Optional[Order]:
-        return db.query(self.model).filter(self.model.order_id == id).join(Customer).first()
+        return db.query(self.model).options(
+            joinedload(Order.customer),
+            joinedload(Order.order_items).joinedload(OrderItem.product)
+        ).filter(self.model.order_id == id).first()
 
     def get_summary(self, db: Session, date_from: Optional[datetime], date_to: Optional[datetime]) -> OrderSummary:
         query = db.query(func.count(Order.order_id).label("total_orders"),

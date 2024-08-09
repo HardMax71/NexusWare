@@ -1,13 +1,14 @@
 # /server/app/api/v1/endpoints/users.py
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Body
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from .... import crud, models, schemas
 from ....api import deps
 from ....core import security
+from ....core.email import send_reset_password_email
 
 router = APIRouter()
 
@@ -35,6 +36,22 @@ def register_user(
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     return crud.user.create(db=db, obj_in=user)
+
+
+@router.post("/reset-password", response_model=schemas.Message)
+def reset_password(
+        email: str = Body(..., embed=True),
+        db: Session = Depends(deps.get_db)
+):
+    user = crud.user.get_by_email(db, email=email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    token = security.generate_password_reset_token(email=email)
+    crud.user.set_reset_password_token(db, user=user, token=token)
+
+    result = send_reset_password_email(email=email, token=token)
+    return {"message": result}
 
 
 @router.get("/me", response_model=schemas.User)

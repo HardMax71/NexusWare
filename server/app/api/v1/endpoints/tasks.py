@@ -10,7 +10,7 @@ from ....api import deps
 router = APIRouter()
 
 
-@router.post("/tasks", response_model=schemas.Task)
+@router.post("/", response_model=schemas.Task)
 def create_task(
         task: schemas.TaskCreate,
         db: Session = Depends(deps.get_db),
@@ -19,7 +19,7 @@ def create_task(
     return crud.task.create(db=db, obj_in=task)
 
 
-@router.get("/tasks", response_model=List[schemas.TaskWithAssignee])
+@router.get("/", response_model=List[schemas.TaskWithAssignee])
 def read_tasks(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
@@ -30,7 +30,7 @@ def read_tasks(
     return crud.task.get_multi_with_filter(db, skip=skip, limit=limit, filter_params=filter_params)
 
 
-@router.get("/tasks/{task_id}", response_model=schemas.TaskWithAssignee)
+@router.get("/{task_id}", response_model=schemas.TaskWithAssignee)
 def read_task(
         task_id: int = Path(..., title="The ID of the task to get"),
         db: Session = Depends(deps.get_db),
@@ -42,7 +42,7 @@ def read_task(
     return task
 
 
-@router.put("/tasks/{task_id}", response_model=schemas.Task)
+@router.put("/{task_id}", response_model=schemas.Task)
 def update_task(
         task_id: int = Path(..., title="The ID of the task to update"),
         task_in: schemas.TaskUpdate = Body(..., title="Task update data"),
@@ -55,7 +55,7 @@ def update_task(
     return crud.task.update(db, db_obj=task, obj_in=task_in)
 
 
-@router.delete("/tasks/{task_id}", response_model=schemas.Task)
+@router.delete("/{task_id}", response_model=schemas.Task)
 def delete_task(
         task_id: int = Path(..., title="The ID of the task to delete"),
         db: Session = Depends(deps.get_db),
@@ -67,7 +67,7 @@ def delete_task(
     return crud.task.remove(db, id=task_id)
 
 
-@router.post("/tasks/{task_id}/complete", response_model=schemas.Task)
+@router.post("/{task_id}/complete", response_model=schemas.Task)
 def complete_task(
         task_id: int = Path(..., title="The ID of the task to complete"),
         db: Session = Depends(deps.get_db),
@@ -79,7 +79,7 @@ def complete_task(
     return crud.task.complete(db, db_obj=task)
 
 
-@router.post("/tasks/{task_id}/comment", response_model=schemas.TaskComment)
+@router.post("/{task_id}/comment", response_model=schemas.TaskComment)
 def add_task_comment(
         task_id: int = Path(..., title="The ID of the task to comment on"),
         comment: schemas.TaskCommentCreate = Body(..., title="Task comment data"),
@@ -89,7 +89,7 @@ def add_task_comment(
     return crud.task.add_comment(db, task_id=task_id, comment=comment, user_id=current_user.user_id)
 
 
-@router.get("/tasks/{task_id}/comments", response_model=List[schemas.TaskComment])
+@router.get("/{task_id}/comments", response_model=List[schemas.TaskComment])
 def get_task_comments(
         task_id: int = Path(..., title="The ID of the task to get comments for"),
         db: Session = Depends(deps.get_db),
@@ -100,7 +100,7 @@ def get_task_comments(
     return crud.task.get_comments(db, task_id=task_id, skip=skip, limit=limit)
 
 
-@router.get("/tasks/statistics", response_model=schemas.TaskStatistics)
+@router.get("/statistics", response_model=schemas.TaskStatistics)
 def get_task_statistics(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
@@ -108,7 +108,7 @@ def get_task_statistics(
     return crud.task.get_statistics(db)
 
 
-@router.get("/tasks/user-summary", response_model=List[schemas.UserTaskSummary])
+@router.get("/user-summary", response_model=List[schemas.UserTaskSummary])
 def get_user_task_summary(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
@@ -116,7 +116,7 @@ def get_user_task_summary(
     return crud.task.get_user_summary(db)
 
 
-@router.get("/tasks/overdue", response_model=List[schemas.TaskWithAssignee])
+@router.get("/overdue", response_model=List[schemas.TaskWithAssignee])
 def get_overdue_tasks(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
@@ -126,7 +126,7 @@ def get_overdue_tasks(
     return crud.task.get_overdue(db, skip=skip, limit=limit)
 
 
-@router.post("/tasks/batch-create", response_model=List[schemas.Task])
+@router.post("/batch-create", response_model=List[schemas.Task])
 def create_batch_tasks(
         tasks: List[schemas.TaskCreate],
         db: Session = Depends(deps.get_db),
@@ -135,7 +135,7 @@ def create_batch_tasks(
     return crud.task.create_batch(db=db, obj_in_list=tasks)
 
 
-@router.get("/tasks/my-tasks", response_model=List[schemas.Task])
+@router.get("/my-tasks", response_model=List[schemas.Task])
 def get_my_tasks(
         db: Session = Depends(deps.get_db),
         skip: int = 0,

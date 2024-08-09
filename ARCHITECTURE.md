@@ -109,12 +109,12 @@ The NexusWare API follows RESTful principles and is organized into the following
 - `POST /inventory/optimize-locations`: Optimize inventory locations
 
 ### Orders
-- `POST /orders/orders`: Create a new order
-- `GET /orders/orders`: Retrieve orders
-- `GET /orders/orders/{order_id}`: Retrieve a specific order
-- `PUT /orders/orders/{order_id}`: Update an order
-- `DELETE /orders/orders/{order_id}`: Delete an order
-- `GET /orders/orders/summary`: Get order summary
+- `POST /orders`: Create a new order
+- `GET /orders`: Retrieve orders
+- `GET /orders/{order_id}`: Retrieve a specific order
+- `PUT /orders/{order_id}`: Update an order
+- `DELETE /orders/{order_id}`: Delete an order
+- `GET /orders/summary`: Get order summary
 - `POST /orders/customers`: Create a new customer
 - `GET /orders/customers`: Retrieve customers
 - `GET /orders/customers/{customer_id}`: Retrieve a specific customer
@@ -130,8 +130,8 @@ The NexusWare API follows RESTful principles and is organized into the following
 - `GET /orders/suppliers/{supplier_id}`: Retrieve a specific supplier
 - `PUT /orders/suppliers/{supplier_id}`: Update a supplier
 - `DELETE /orders/suppliers/{supplier_id}`: Delete a supplier
-- `POST /orders/orders/{order_id}/cancel`: Cancel an order
-- `POST /orders/orders/{order_id}/ship`: Ship an order
+- `POST /orders/{order_id}/cancel`: Cancel an order
+- `POST /orders/{order_id}/ship`: Ship an order
 - `GET /orders/customers/{customer_id}/orders`: Get orders for a customer
 - `POST /orders/purchase-orders/{po_id}/receive`: Receive a purchase order
 - `GET /orders/suppliers/{supplier_id}/purchase-orders`: Get purchase orders for a supplier
@@ -175,19 +175,19 @@ The NexusWare API follows RESTful principles and is organized into the following
 - `GET /search/orders`: Search orders
 
 ### Tasks
-- `POST /tasks/tasks`: Create a new task
-- `GET /tasks/tasks`: Retrieve tasks
-- `GET /tasks/tasks/{task_id}`: Retrieve a specific task
-- `PUT /tasks/tasks/{task_id}`: Update a task
-- `DELETE /tasks/tasks/{task_id}`: Delete a task
-- `POST /tasks/tasks/{task_id}/complete`: Complete a task
-- `POST /tasks/tasks/{task_id}/comment`: Add a comment to a task
-- `GET /tasks/tasks/{task_id}/comments`: Get comments for a task
-- `GET /tasks/tasks/statistics`: Get task statistics
-- `GET /tasks/tasks/user-summary`: Get user task summary
-- `GET /tasks/tasks/overdue`: Get overdue tasks
-- `POST /tasks/tasks/batch-create`: Create batch tasks
-- `GET /tasks/tasks/my-tasks`: Get tasks for the current user
+- `POST /tasks`: Create a new task
+- `GET /tasks`: Retrieve tasks
+- `GET /tasks/{task_id}`: Retrieve a specific task
+- `PUT /tasks/{task_id}`: Update a task
+- `DELETE /tasks/{task_id}`: Delete a task
+- `POST /tasks/{task_id}/complete`: Complete a task
+- `POST /tasks/{task_id}/comment`: Add a comment to a task
+- `GET /tasks/{task_id}/comments`: Get comments for a task
+- `GET /tasks/statistics`: Get task statistics
+- `GET /tasks/user-summary`: Get user task summary
+- `GET /tasks/overdue`: Get overdue tasks
+- `POST /tasks/batch-create`: Create batch tasks
+- `GET /tasks/my-tasks`: Get tasks for the current user
 
 ### Users
 - `POST /users/login`: User login

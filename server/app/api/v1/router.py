@@ -1,7 +1,7 @@
 # /server/app/api/v1/router.py
 from fastapi import APIRouter
 
-from .endpoints import users, inventory, orders, warehouse, yard, assets, quality, tasks, audit, reports
+from .endpoints import users, inventory, orders, warehouse, yard, assets, quality, tasks, audit, reports, search
 
 api_router = APIRouter()
 
@@ -15,3 +15,4 @@ api_router.include_router(quality.router, prefix="/quality", tags=["quality"])
 api_router.include_router(tasks.router, prefix="/tasks", tags=["tasks"])
 api_router.include_router(audit.router, prefix="/audit", tags=["audit"])
 api_router.include_router(reports.router, prefix="/reports", tags=["reports"])
+api_router.include_router(search.router, prefix="/search", tags=["search"])

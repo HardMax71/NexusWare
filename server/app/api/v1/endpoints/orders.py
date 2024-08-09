@@ -12,7 +12,7 @@ router = APIRouter()
 
 
 # Order routes
-@router.post("/orders", response_model=schemas.Order)
+@router.post("/", response_model=schemas.Order)
 def create_order(
         order: schemas.OrderCreate,
         db: Session = Depends(deps.get_db),
@@ -21,7 +21,7 @@ def create_order(
     return crud.order.create(db=db, obj_in=order)
 
 
-@router.get("/orders", response_model=List[schemas.OrderWithDetails])
+@router.get("/", response_model=List[schemas.OrderWithDetails])
 def read_orders(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
@@ -32,7 +32,7 @@ def read_orders(
     return crud.order.get_multi_with_details(db, skip=skip, limit=limit, filter_params=order_filter)
 
 
-@router.get("/orders/{order_id}", response_model=schemas.OrderWithDetails)
+@router.get("/{order_id}", response_model=schemas.OrderWithDetails)
 def read_order(
         order_id: int,
         db: Session = Depends(deps.get_db),
@@ -44,7 +44,7 @@ def read_order(
     return order
 
 
-@router.put("/orders/{order_id}", response_model=schemas.Order)
+@router.put("/{order_id}", response_model=schemas.Order)
 def update_order(
         order_id: int,
         order_in: schemas.OrderUpdate,
@@ -57,7 +57,7 @@ def update_order(
     return crud.order.update(db, db_obj=order, obj_in=order_in)
 
 
-@router.delete("/orders/{order_id}", response_model=schemas.Order)
+@router.delete("/{order_id}", response_model=schemas.Order)
 def delete_order(
         order_id: int,
         db: Session = Depends(deps.get_db),
@@ -69,7 +69,7 @@ def delete_order(
     return crud.order.remove(db, id=order_id)
 
 
-@router.get("/orders/summary", response_model=schemas.OrderSummary)
+@router.get("/summary", response_model=schemas.OrderSummary)
 def get_order_summary(
         db: Session = Depends(deps.get_db),
         date_from: datetime = Query(None),
@@ -371,3 +371,50 @@ def read_pending_receipt_po_items(
 ):
     po_items = crud.po_item.get_pending_receipt(db, skip=skip, limit=limit)
     return po_items
+
+
+@router.post("/{order_id}/cancel-item", response_model=schemas.Order)
+def cancel_order_item(
+        order_id: int,
+        item_id: int = Body(..., embed=True),
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.order.cancel_item(db, order_id=order_id, item_id=item_id)
+
+
+@router.post("/{order_id}/add-item", response_model=schemas.Order)
+def add_order_item(
+        order_id: int,
+        item: schemas.OrderItemCreate,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.order.add_item(db, order_id=order_id, item=item)
+
+
+@router.get("/backorders", response_model=List[schemas.Order])
+def get_backorders(
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.order.get_backorders(db)
+
+
+@router.post("/bulk-import", response_model=schemas.BulkImportResult)
+def bulk_import_orders(
+        import_data: schemas.BulkImportData,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_superuser)
+):
+    return crud.order.bulk_import(db, import_data=import_data)
+
+
+@router.get("/processing-times", response_model=schemas.OrderProcessingTimes)
+def get_order_processing_times(
+        start_date: datetime = Query(...),
+        end_date: datetime = Query(...),
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.order.get_processing_times(db, start_date=start_date, end_date=end_date)
