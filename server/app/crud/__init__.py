@@ -7,5 +7,5 @@ from .quality import quality_check, quality_standard, quality_alert
 from .reports import reports
 from .task import task
 from .user import user, role, permission
-from .warehouse import pick_list, pick_list_item, receipt, receipt_item, shipment, carrier
+from .warehouse import pick_list, receipt, shipment, carrier, whole_warehouse, pick_list_item, receipt_item
 from .yard import yard_location, dock_appointment

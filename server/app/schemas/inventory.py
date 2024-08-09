@@ -247,3 +247,19 @@ class InventoryLocationSuggestion(BaseModel):
     current_location_id: int
     suggested_location_id: int
     reason: str
+
+
+class BulkImportData(BaseModel):
+    items: list[InventoryCreate]
+
+
+class BulkImportResult(BaseModel):
+    success_count: int
+    failure_count: int
+    errors: list[str]
+
+
+class StorageUtilization(BaseModel):
+    total_capacity: float
+    used_capacity: float
+    utilization_percentage: float

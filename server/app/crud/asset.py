@@ -1,11 +1,12 @@
 # /server/app/crud/asset.py
+from datetime import date, datetime
 from typing import Optional
 
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from server.app.models import Asset, AssetMaintenance
 from server.app.schemas import AssetCreate, AssetUpdate, AssetFilter, AssetMaintenanceCreate, AssetMaintenanceUpdate, \
-    AssetMaintenanceFilter
+    AssetMaintenanceFilter, AssetLocation, AssetMaintenance, Location, Asset
 from .base import CRUDBase
 
 
@@ -71,6 +72,34 @@ class CRUDAssetMaintenance(CRUDBase[AssetMaintenance, AssetMaintenanceCreate, As
 
     def get_all_types(self, db: Session) -> list[str]:
         return db.query(self.model.maintenance_type).distinct().all()
+
+    def get_current_location(self, db: Session, asset_id: int) -> Optional[Location]:
+        return db.query(Location).join(AssetLocation).filter(AssetLocation.asset_id == asset_id).order_by(
+            AssetLocation.timestamp.desc()).first()
+
+    def transfer(self, db: Session, asset_id: int, new_location_id: int) -> Asset:
+        asset = self.get(db, id=asset_id)
+        if not asset:
+            raise HTTPException(status_code=404, detail="Asset not found")
+
+        new_location = db.query(Location).get(new_location_id)
+        if not new_location:
+            raise HTTPException(status_code=404, detail="Location not found")
+
+        asset_location = AssetLocation(asset_id=asset_id,
+                                       location_id=new_location_id,
+                                       timestamp=datetime.utcnow())
+        db.add(asset_location)
+        db.commit()
+        db.refresh(asset)
+        return asset
+
+    def get_due_for_maintenance(self, db: Session) -> list[Asset]:
+        today = date.today()
+        return db.query(Asset).join(AssetMaintenance).filter(
+            AssetMaintenance.scheduled_date <= today,
+            AssetMaintenance.completed_date is None
+        ).all()
 
 
 asset = CRUDAsset(Asset)

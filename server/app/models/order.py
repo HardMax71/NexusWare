@@ -14,6 +14,13 @@ class Order(Base):
     order_date = Column(DateTime, server_default=func.now())
     status = Column(String(20))
     total_amount = Column(Numeric(10, 2))
+    shipping_name = Column(String(100))
+    shipping_address_line1 = Column(String(255))
+    shipping_city = Column(String(100))
+    shipping_state = Column(String(100))
+    shipping_postal_code = Column(String(20))
+    shipping_country = Column(String(100))
+    shipping_phone = Column(String(20))
 
     customer = relationship("Customer", back_populates="orders")
     order_items = relationship("OrderItem", back_populates="order")

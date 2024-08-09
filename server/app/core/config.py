@@ -11,6 +11,18 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     DATABASE_URL: str = "sqlite:///./nexusware.db"
 
+    # SMTP Configuration
+    SMTP_SERVER: str = "smtp.example.com"
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: str = "your-username"
+    SMTP_PASSWORD: str = "your-password"
+    EMAIL_FROM: str = "your-email@example.com"
+    EMAIL_FROM_NAME: str = "NexusWare WMS"
+
+    # ShipEngine API configuration
+    SHIPENGINE_API_KEY: str = "SHIPENGINE_API_KEY"
+    SHIPENGINE_API_URL: str = "https://api.shipengine.com/v1"
+
     class Config:
         env_file = ".env"
 

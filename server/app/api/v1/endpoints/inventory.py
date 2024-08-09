@@ -2,7 +2,7 @@
 from datetime import datetime
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from sqlalchemy.orm import Session
 
 from .... import crud, models, schemas
@@ -424,3 +424,48 @@ def optimize_inventory_locations(
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.inventory.optimize_locations(db)
+
+
+@router.get("/products/{product_id}/substitutes", response_model=List[schemas.Product])
+def get_product_substitutes(
+        product_id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.product.get_substitutes(db, product_id=product_id)
+
+
+@router.post("/products/{product_id}/substitutes", response_model=schemas.Product)
+def add_product_substitute(
+        product_id: int,
+        substitute_id: int = Body(..., embed=True),
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.product.add_substitute(db, product_id=product_id, substitute_id=substitute_id)
+
+
+@router.get("/expiring-soon", response_model=List[schemas.ProductWithInventory])
+def get_expiring_soon_inventory(
+        days: int = Query(30, description="Number of days to consider for expiration"),
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.inventory.get_expiring_soon(db, days=days)
+
+
+@router.post("/bulk-import", response_model=schemas.BulkImportResult)
+def bulk_import_inventory(
+        import_data: schemas.BulkImportData,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_superuser)
+):
+    return crud.inventory.bulk_import(db, import_data=import_data)
+
+
+@router.get("/storage-utilization", response_model=schemas.StorageUtilization)
+def get_storage_utilization(
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.inventory.get_storage_utilization(db)

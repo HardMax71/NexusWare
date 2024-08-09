@@ -68,6 +68,8 @@ class Shipment(Base):
     tracking_number = Column(String(50))
     ship_date = Column(DateTime)
     status = Column(String(20))
+    label_id = Column(String(100))
+    label_download_url = Column(String(255))
 
     order = relationship("Order")
     carrier = relationship("Carrier")

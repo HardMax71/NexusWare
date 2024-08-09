@@ -190,3 +190,36 @@ def complete_asset_maintenance(
     completion_data.completed_date = date.today()
     completion_data.performed_by = current_user.user_id
     return crud.asset_maintenance.update(db, db_obj=maintenance, obj_in=completion_data)
+
+
+@router.get("/{asset_id}/current-location", response_model=schemas.Location)
+def get_asset_current_location(
+        asset_id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    location = crud.asset.get_current_location(db, asset_id=asset_id)
+    if location is None:
+        raise HTTPException(status_code=404, detail="Asset location not found")
+    return location
+
+
+@router.post("/{asset_id}/transfer", response_model=schemas.Asset)
+def transfer_asset(
+        asset_id: int,
+        transfer: schemas.AssetTransfer,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    asset = crud.asset.transfer(db, asset_id=asset_id, new_location_id=transfer.new_location_id)
+    if asset is None:
+        raise HTTPException(status_code=404, detail="Asset not found")
+    return asset
+
+
+@router.get("/due-for-maintenance", response_model=list[schemas.AssetWithMaintenance])
+def get_assets_due_for_maintenance(
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.asset.get_due_for_maintenance(db)

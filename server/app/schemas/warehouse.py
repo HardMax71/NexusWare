@@ -1,6 +1,6 @@
 # /server/app/schemas/warehouse.py
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -37,20 +37,20 @@ class PickListBase(BaseModel):
 
 
 class PickListCreate(PickListBase):
-    items: List[PickListItemCreate]
+    items: list[PickListItemCreate]
 
 
 class PickListUpdate(BaseModel):
     order_id: Optional[int] = None
     status: Optional[str] = None
-    items: Optional[List[PickListItemUpdate]] = None
+    items: Optional[list[PickListItemUpdate]] = None
 
 
 class PickList(PickListBase):
     pick_list_id: int
     created_at: datetime
     completed_at: Optional[datetime] = None
-    items: List[PickListItem] = []
+    items: list[PickListItem] = []
 
     class Config:
         from_attributes = True
@@ -86,19 +86,19 @@ class ReceiptBase(BaseModel):
 
 
 class ReceiptCreate(ReceiptBase):
-    items: List[ReceiptItemCreate]
+    items: list[ReceiptItemCreate]
 
 
 class ReceiptUpdate(BaseModel):
     po_id: Optional[int] = None
     status: Optional[str] = None
-    items: Optional[List[ReceiptItemUpdate]] = None
+    items: Optional[list[ReceiptItemUpdate]] = None
 
 
 class Receipt(ReceiptBase):
     receipt_id: int
     received_date: datetime
-    items: List[ReceiptItem] = []
+    items: list[ReceiptItem] = []
 
     class Config:
         from_attributes = True
@@ -191,3 +191,88 @@ class LocationInventory(BaseModel):
 
 class LocationInventoryUpdate(BaseModel):
     quantity: int
+
+
+class OptimizedPickingRoute(BaseModel):
+    pick_list_id: int
+    optimized_route: list[PickListItem]
+
+
+class PickingPerformance(BaseModel):
+    average_picking_time: float
+    items_picked_per_hour: float
+    accuracy_rate: float
+
+
+class QualityCheckCreate(BaseModel):
+    product_id: int
+    result: str
+    notes: Optional[str] = None
+
+
+class ReceiptDiscrepancy(BaseModel):
+    product_id: int
+    expected_quantity: int
+    received_quantity: int
+    discrepancy: int
+
+
+class ShippingLabel(BaseModel):
+    shipment_id: int
+    tracking_number: str
+    label_id: str
+    label_download_url: str
+
+
+class CarrierRate(BaseModel):
+    carrier_id: int
+    carrier_name: str
+    rate: float
+    estimated_delivery_time: str
+
+
+class ShipmentTracking(BaseModel):
+    shipment_id: int
+    tracking_number: str
+    current_status: str
+    estimated_delivery_date: Optional[datetime]
+    tracking_history: list[dict]
+
+
+class InventoryMovementBase(BaseModel):
+    product_id: int
+    from_location_id: int
+    to_location_id: int
+    quantity: int
+    reason: str
+
+
+class InventoryMovementCreate(InventoryMovementBase):
+    pass
+
+
+class InventoryMovement(InventoryMovementBase):
+    movement_id: int
+    timestamp: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class InventoryAdjustmentBase(BaseModel):
+    product_id: int
+    location_id: int
+    quantity_change: int
+    reason: str
+
+
+class InventoryAdjustmentCreate(InventoryAdjustmentBase):
+    pass
+
+
+class InventoryAdjustment(InventoryAdjustmentBase):
+    adjustment_id: int
+    timestamp: datetime
+
+    class Config:
+        from_attributes = True

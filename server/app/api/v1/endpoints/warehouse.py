@@ -1,7 +1,8 @@
 # /server/app/api/v1/endpoints/warehouse.py
+from datetime import datetime
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Body
+from fastapi import APIRouter, Depends, HTTPException, Path, Body, Query
 from sqlalchemy.orm import Session
 
 from .... import crud, models, schemas
@@ -247,7 +248,7 @@ def get_warehouse_stats(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    return crud.warehouse.get_stats(db)
+    return crud.whole_warehouse.get_stats(db)
 
 
 @router.get("/inventory/{location_id}", response_model=List[schemas.LocationInventory])
@@ -256,7 +257,7 @@ def get_location_inventory(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    return crud.warehouse.get_location_inventory(db, location_id=location_id)
+    return crud.whole_warehouse.get_location_inventory(db, location_id=location_id)
 
 
 @router.put("/inventory/{location_id}/{product_id}", response_model=schemas.LocationInventory)
@@ -267,8 +268,8 @@ def update_location_inventory(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    return crud.warehouse.update_location_inventory(db, location_id=location_id, product_id=product_id,
-                                                    quantity=inventory_update.quantity)
+    return crud.whole_warehouse.update_location_inventory(db, location_id=location_id, product_id=product_id,
+                                                          quantity=inventory_update.quantity)
 
 
 @router.post("/inventory/move", response_model=schemas.InventoryMovement)
@@ -277,7 +278,7 @@ def move_inventory(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    return crud.warehouse.move_inventory(db, movement=movement)
+    return crud.whole_warehouse.move_inventory(db, movement=movement)
 
 
 @router.post("/inventory/adjust", response_model=schemas.InventoryAdjustment)
@@ -286,4 +287,98 @@ def adjust_inventory(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    return crud.warehouse.adjust_inventory(db, adjustment=adjustment)
+    return crud.whole_warehouse.adjust_inventory(db, adjustment=adjustment)
+
+
+@router.get("/pick-lists/optimize-route", response_model=schemas.OptimizedPickingRoute)
+def optimize_picking_route(
+        pick_list_id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.pick_list.optimize_route(db, pick_list_id=pick_list_id)
+
+
+@router.post("/pick-lists/{pick_list_id}/start", response_model=schemas.PickList)
+def start_pick_list(
+        pick_list_id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.pick_list.start(db, pick_list_id=pick_list_id, user_id=current_user.user_id)
+
+
+@router.post("/pick-lists/{pick_list_id}/complete", response_model=schemas.PickList)
+def complete_pick_list(
+        pick_list_id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.pick_list.complete(db, pick_list_id=pick_list_id, user_id=current_user.user_id)
+
+
+@router.get("/pick-lists/performance", response_model=schemas.PickingPerformance)
+def get_picking_performance(
+        start_date: datetime = Query(...),
+        end_date: datetime = Query(...),
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.pick_list.get_performance(db, start_date=start_date, end_date=end_date)
+
+
+@router.post("/receipts/{receipt_id}/quality-check", response_model=schemas.Receipt)
+def perform_receipt_quality_check(
+        receipt_id: int,
+        quality_check: schemas.QualityCheckCreate,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.receipt.perform_quality_check(db, receipt_id=receipt_id, quality_check=quality_check)
+
+
+@router.get("/receipts/expected-today", response_model=List[schemas.Receipt])
+def get_expected_receipts_today(
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.receipt.get_expected_today(db)
+
+
+@router.post("/receipts/{receipt_id}/discrepancy", response_model=schemas.Receipt)
+def report_receipt_discrepancy(
+        receipt_id: int,
+        discrepancy: schemas.ReceiptDiscrepancy,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.receipt.report_discrepancy(db, receipt_id=receipt_id, discrepancy=discrepancy)
+
+
+@router.post("/shipments/{shipment_id}/generate-label", response_model=schemas.ShippingLabel)
+def generate_shipping_label(
+        shipment_id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.shipment.generate_label(db, shipment_id=shipment_id)
+
+
+@router.get("/shipments/carrier-rates", response_model=List[schemas.CarrierRate])
+def get_carrier_rates(
+        weight: float = Query(...),
+        dimensions: str = Query(...),
+        destination_zip: str = Query(...),
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.shipment.get_carrier_rates(db, weight=weight, dimensions=dimensions, destination_zip=destination_zip)
+
+
+@router.post("/shipments/{shipment_id}/track", response_model=schemas.ShipmentTracking)
+def track_shipment(
+        shipment_id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.shipment.track(db, shipment_id=shipment_id)

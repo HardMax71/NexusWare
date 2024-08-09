@@ -1,5 +1,5 @@
 # /server/app/schemas/asset.py
-from datetime import date
+from datetime import date, datetime
 from typing import Optional
 
 from pydantic import BaseModel
@@ -84,3 +84,13 @@ class AssetMaintenanceFilter(BaseModel):
 class AssetWithMaintenanceList(BaseModel):
     assets: list[AssetWithMaintenance]
     total: int
+
+
+class AssetTransfer(BaseModel):
+    new_location_id: int
+
+
+class AssetLocation(BaseModel):
+    asset_id: int
+    location_id: int
+    timestamp: datetime

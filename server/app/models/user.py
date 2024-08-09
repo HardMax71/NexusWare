@@ -16,6 +16,8 @@ class User(Base):
     role_id = Column(Integer, ForeignKey("roles.role_id"))
     created_at = Column(DateTime, server_default=func.now())
     last_login = Column(DateTime)
+    password_reset_token = Column(String(255))
+    password_reset_expiration = Column(DateTime)
 
     role = relationship("Role", back_populates="users")
     assigned_tasks = relationship("Task", back_populates="assigned_user")
@@ -30,7 +32,7 @@ class Role(Base):
     role_name = Column(String(50), unique=True, nullable=False)
 
     users = relationship("User", back_populates="role")
-    permissions = relationship("Permission", secondary="role_permissions")
+    permissions = relationship("Permission", secondary="role_permissions", back_populates="roles")
 
 
 class Permission(Base):
@@ -39,13 +41,11 @@ class Permission(Base):
     permission_id = Column(Integer, primary_key=True, index=True)
     permission_name = Column(String(50), unique=True, nullable=False)
 
+    roles = relationship("Role", secondary="role_permissions", back_populates="permissions")
+
 
 class RolePermission(Base):
     __tablename__ = "role_permissions"
 
-    role_id = Column(Integer,
-                     ForeignKey("roles.role_id"),
-                     primary_key=True)
-    permission_id = Column(Integer,
-                           ForeignKey("permissions.permission_id"),
-                           primary_key=True)
+    role_id = Column(Integer, ForeignKey("roles.role_id"), primary_key=True)
+    permission_id = Column(Integer, ForeignKey("permissions.permission_id"), primary_key=True)
