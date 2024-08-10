@@ -1,22 +1,27 @@
 # /server/app/crud/yard.py
 from datetime import datetime, timedelta
-from typing import List, Optional
+from typing import Optional, List
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session, selectinload
 
 from server.app.models import YardLocation, DockAppointment, Carrier
-from server.app.schemas import (YardLocationCreate, YardLocationUpdate,
-                                DockAppointmentCreate, DockAppointmentUpdate,
-                                YardLocationFilter, DockAppointmentFilter,
-                                YardStats, AppointmentConflict, YardUtilizationReport,
-                                CarrierPerformance, YardLocationCapacity)
+from server.app.schemas import (
+    YardLocation as YardLocationSchema,
+    DockAppointment as DockAppointmentSchema,
+    YardLocationCreate, YardLocationUpdate,
+    DockAppointmentCreate, DockAppointmentUpdate,
+    YardLocationFilter, DockAppointmentFilter,
+    YardStats, AppointmentConflict, YardUtilizationReport,
+    CarrierPerformance, YardLocationCapacity,
+    YardLocationWithAppointments
+)
 from .base import CRUDBase
 
 
 class CRUDYardLocation(CRUDBase[YardLocation, YardLocationCreate, YardLocationUpdate]):
     def get_multi_with_filter(self, db: Session, *, skip: int = 0, limit: int = 100,
-                              filter_params: YardLocationFilter) -> List[YardLocation]:
+                              filter_params: YardLocationFilter) -> List[YardLocationSchema]:
         query = db.query(self.model)
         if filter_params.name:
             query = query.filter(YardLocation.name.ilike(f"%{filter_params.name}%"))
@@ -24,16 +29,20 @@ class CRUDYardLocation(CRUDBase[YardLocation, YardLocationCreate, YardLocationUp
             query = query.filter(YardLocation.type == filter_params.type)
         if filter_params.status:
             query = query.filter(YardLocation.status == filter_params.status)
-        return query.offset(skip).limit(limit).all()
+        locations = query.offset(skip).limit(limit).all()
+        return [YardLocationSchema.model_validate(location) for location in locations]
 
-    def get_with_appointments(self, db: Session, id: int) -> Optional[YardLocation]:
-        return db.query(self.model).filter(self.model.yard_location_id == id).options(
-            selectinload(YardLocation.appointments)).first()
+    def get_with_appointments(self, db: Session, id: int) -> Optional[YardLocationWithAppointments]:
+        location = (db.query(self.model)
+                    .filter(self.model.yard_location_id == id)
+                    .options(selectinload(YardLocation.appointments))
+                    .first())
+        return YardLocationWithAppointments.model_validate(location) if location else None
 
 
 class CRUDDockAppointment(CRUDBase[DockAppointment, DockAppointmentCreate, DockAppointmentUpdate]):
     def get_multi_with_filter(self, db: Session, *, skip: int = 0, limit: int = 100,
-                              filter_params: DockAppointmentFilter) -> List[DockAppointment]:
+                              filter_params: DockAppointmentFilter) -> List[DockAppointmentSchema]:
         query = db.query(self.model)
         if filter_params.yard_location_id:
             query = query.filter(DockAppointment.yard_location_id == filter_params.yard_location_id)
@@ -47,10 +56,12 @@ class CRUDDockAppointment(CRUDBase[DockAppointment, DockAppointmentCreate, DockA
             query = query.filter(DockAppointment.appointment_time >= filter_params.date_from)
         if filter_params.date_to:
             query = query.filter(DockAppointment.appointment_time <= filter_params.date_to)
-        return query.offset(skip).limit(limit).all()
+        appointments = query.offset(skip).limit(limit).all()
+        return [DockAppointmentSchema.model_validate(appointment) for appointment in appointments]
 
-    def check_conflicts(self, db: Session, appointment: DockAppointmentCreate, exclude_id: Optional[int] = None) -> \
-            List[AppointmentConflict]:
+    def check_conflicts(self, db: Session,
+                        appointment: DockAppointmentCreate,
+                        exclude_id: Optional[int] = None) -> List[AppointmentConflict]:
         conflicts = []
         appointment_duration = timedelta(hours=1)  # Assume 1-hour appointments
         query = db.query(DockAppointment).filter(
@@ -65,7 +76,7 @@ class CRUDDockAppointment(CRUDBase[DockAppointment, DockAppointmentCreate, DockA
 
         for existing_appointment in query.all():
             conflicts.append(AppointmentConflict(
-                conflicting_appointment=existing_appointment,
+                conflicting_appointment=DockAppointmentSchema.model_validate(existing_appointment),
                 conflict_reason="Time overlap with existing appointment"
             ))
         return conflicts
@@ -117,8 +128,8 @@ class CRUDYard:
             location_breakdown=location_breakdown
         )
 
-    def get_carrier_performance(self, db: Session, start_date: datetime, end_date: datetime) -> List[
-        CarrierPerformance]:
+    def get_carrier_performance(self, db: Session,
+                                start_date: datetime, end_date: datetime) -> List[CarrierPerformance]:
         carriers = db.query(Carrier).all()
         performance_data = []
 

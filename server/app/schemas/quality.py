@@ -34,7 +34,7 @@ class QualityCheck(QualityCheckBase):
 
 
 class QualityCheckWithProduct(QualityCheck):
-    product: "Product"
+    product: Product
 
 
 class QualityCheckFilter(BaseModel):
@@ -51,41 +51,53 @@ class QualityMetrics(BaseModel):
     fail_rate: float
 
 
-class QualityStandard(BaseModel):
-    standard_id: int
+class QualityStandardBase(BaseModel):
     product_id: int
     criteria: str
     acceptable_range: str
 
 
-class QualityStandardCreate(BaseModel):
-    product_id: int
-    criteria: str
-    acceptable_range: str
+class QualityStandardCreate(QualityStandardBase):
+    pass
 
 
 class QualityStandardUpdate(BaseModel):
+    product_id: Optional[int] = None
     criteria: Optional[str] = None
     acceptable_range: Optional[str] = None
 
 
-class QualityAlert(BaseModel):
-    alert_id: int
+class QualityStandard(QualityStandardBase):
+    standard_id: int
+
+    class Config:
+        from_attributes = True
+
+
+class QualityAlertBase(BaseModel):
     product_id: int
     alert_type: str
     description: str
-    created_at: datetime
-    resolved_at: Optional[datetime] = None
 
 
-class QualityAlertCreate(BaseModel):
-    product_id: int
-    alert_type: str
-    description: str
+class QualityAlertCreate(QualityAlertBase):
+    pass
 
 
 class QualityAlertUpdate(BaseModel):
-    resolved_at: datetime
+    product_id: Optional[int] = None
+    alert_type: Optional[str] = None
+    description: Optional[str] = None
+    resolved_at: Optional[datetime] = None
+
+
+class QualityAlert(QualityAlertBase):
+    alert_id: int
+    created_at: datetime
+    resolved_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
 
 
 class QualityCheckComment(BaseModel):
@@ -97,6 +109,8 @@ class QualityCheckComment(BaseModel):
 
 
 class QualityCheckCommentCreate(BaseModel):
+    check_id: int
+    user_id: int
     comment: str
 
 
@@ -106,3 +120,41 @@ class ProductDefectRate(BaseModel):
     total_checks: int
     defect_count: int
     defect_rate: float
+
+
+class QualityStandardFilter(BaseModel):
+    product_id: Optional[int] = None
+
+
+class QualityAlertFilter(BaseModel):
+    product_id: Optional[int] = None
+    alert_type: Optional[str] = None
+    resolved: Optional[bool] = None
+    date_from: Optional[datetime] = None
+    date_to: Optional[datetime] = None
+
+
+class QualityCheckSummary(BaseModel):
+    total_checks: int
+    pass_count: int
+    fail_count: int
+    pass_rate: float
+
+
+class QualityTrend(BaseModel):
+    date: datetime
+    pass_rate: float
+
+
+class QualityPerformanceByProduct(BaseModel):
+    product_id: int
+    product_name: str
+    total_checks: int
+    pass_rate: float
+
+
+class QualityAlertSummary(BaseModel):
+    total_alerts: int
+    open_alerts: int
+    resolved_alerts: int
+    most_common_type: str

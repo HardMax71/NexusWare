@@ -1,6 +1,6 @@
 # /server/app/schemas/warehouse.py
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel
 
@@ -37,20 +37,20 @@ class PickListBase(BaseModel):
 
 
 class PickListCreate(PickListBase):
-    items: list[PickListItemCreate]
+    items: List[PickListItemCreate]
 
 
 class PickListUpdate(BaseModel):
     order_id: Optional[int] = None
     status: Optional[str] = None
-    items: Optional[list[PickListItemUpdate]] = None
+    items: Optional[List[PickListItemUpdate]] = None
 
 
 class PickList(PickListBase):
     pick_list_id: int
     created_at: datetime
     completed_at: Optional[datetime] = None
-    items: list[PickListItem] = []
+    items: List[PickListItem] = []
 
     class Config:
         from_attributes = True
@@ -86,19 +86,19 @@ class ReceiptBase(BaseModel):
 
 
 class ReceiptCreate(ReceiptBase):
-    items: list[ReceiptItemCreate]
+    items: List[ReceiptItemCreate]
 
 
 class ReceiptUpdate(BaseModel):
     po_id: Optional[int] = None
     status: Optional[str] = None
-    items: Optional[list[ReceiptItemUpdate]] = None
+    items: Optional[List[ReceiptItemUpdate]] = None
 
 
 class Receipt(ReceiptBase):
     receipt_id: int
     received_date: datetime
-    items: list[ReceiptItem] = []
+    items: List[ReceiptItem] = []
 
     class Config:
         from_attributes = True
@@ -109,6 +109,8 @@ class ShipmentBase(BaseModel):
     carrier_id: int
     tracking_number: Optional[str] = None
     status: str
+    label_id: Optional[str] = None
+    label_download_url: Optional[str] = None
 
 
 class ShipmentCreate(ShipmentBase):
@@ -121,6 +123,8 @@ class ShipmentUpdate(BaseModel):
     tracking_number: Optional[str] = None
     status: Optional[str] = None
     ship_date: Optional[datetime] = None
+    label_id: Optional[str] = None
+    label_download_url: Optional[str] = None
 
 
 class Shipment(ShipmentBase):
@@ -195,7 +199,7 @@ class LocationInventoryUpdate(BaseModel):
 
 class OptimizedPickingRoute(BaseModel):
     pick_list_id: int
-    optimized_route: list[PickListItem]
+    optimized_route: List[PickListItem]
 
 
 class PickingPerformance(BaseModel):
@@ -236,7 +240,7 @@ class ShipmentTracking(BaseModel):
     tracking_number: str
     current_status: str
     estimated_delivery_date: Optional[datetime]
-    tracking_history: list[dict]
+    tracking_history: List[dict]
 
 
 class InventoryMovementBase(BaseModel):
@@ -276,3 +280,81 @@ class InventoryAdjustment(InventoryAdjustmentBase):
 
     class Config:
         from_attributes = True
+
+
+class YardLocationBase(BaseModel):
+    name: str
+    type: str
+    status: str
+    capacity: int = 1
+
+
+class YardLocationCreate(YardLocationBase):
+    pass
+
+
+class YardLocationUpdate(BaseModel):
+    name: Optional[str] = None
+    type: Optional[str] = None
+    status: Optional[str] = None
+    capacity: Optional[int] = None
+
+
+class YardLocation(YardLocationBase):
+    yard_location_id: int
+
+    class Config:
+        from_attributes = True
+
+
+class DockAppointmentBase(BaseModel):
+    yard_location_id: int
+    appointment_time: datetime
+    carrier_id: int
+    type: str
+    status: str
+
+
+class DockAppointmentCreate(DockAppointmentBase):
+    pass
+
+
+class DockAppointmentUpdate(BaseModel):
+    yard_location_id: Optional[int] = None
+    appointment_time: Optional[datetime] = None
+    carrier_id: Optional[int] = None
+    type: Optional[str] = None
+    status: Optional[str] = None
+    actual_arrival_time: Optional[datetime] = None
+    actual_departure_time: Optional[datetime] = None
+
+
+class DockAppointment(DockAppointmentBase):
+    appointment_id: int
+    actual_arrival_time: Optional[datetime] = None
+    actual_departure_time: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+class YardLocationFilter(BaseModel):
+    type: Optional[str] = None
+    status: Optional[str] = None
+
+
+class DockAppointmentFilter(BaseModel):
+    yard_location_id: Optional[int] = None
+    carrier_id: Optional[int] = None
+    type: Optional[str] = None
+    status: Optional[str] = None
+    date_from: Optional[datetime] = None
+    date_to: Optional[datetime] = None
+
+
+class YardManagementStats(BaseModel):
+    total_yard_locations: int
+    occupied_yard_locations: int
+    total_appointments: int
+    on_time_appointments: int
+    delayed_appointments: int

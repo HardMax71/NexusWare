@@ -1,6 +1,6 @@
 # /server/app/schemas/task.py
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel
 
@@ -38,7 +38,7 @@ class Task(TaskBase):
 
 
 class TaskWithAssignee(Task):
-    assigned_user: "User"
+    assigned_user: User
 
 
 class TaskFilter(BaseModel):
@@ -50,16 +50,22 @@ class TaskFilter(BaseModel):
     due_date_to: Optional[datetime] = None
 
 
-class TaskComment(BaseModel):
-    comment_id: int
+class TaskCommentBase(BaseModel):
     task_id: int
     user_id: int
     comment: str
+
+
+class TaskCommentCreate(TaskCommentBase):
+    pass
+
+
+class TaskComment(TaskCommentBase):
+    comment_id: int
     created_at: datetime
 
-
-class TaskCommentCreate(BaseModel):
-    comment: str
+    class Config:
+        from_attributes = True
 
 
 class TaskStatistics(BaseModel):
@@ -75,3 +81,67 @@ class UserTaskSummary(BaseModel):
     assigned_tasks: int
     completed_tasks: int
     overdue_tasks: int
+
+
+class TaskWithComments(Task):
+    comments: List[TaskComment] = []
+
+
+class TaskPriorityUpdate(BaseModel):
+    priority: str
+
+
+class TaskAssignmentUpdate(BaseModel):
+    assigned_to: int
+
+
+class TaskStatusUpdate(BaseModel):
+    status: str
+
+
+class TaskDueDateUpdate(BaseModel):
+    due_date: datetime
+
+
+class TaskProgressUpdate(BaseModel):
+    progress: int  # Percentage of completion
+
+
+class TaskDependency(BaseModel):
+    task_id: int
+    dependent_task_id: int
+
+
+class TaskDependencyCreate(BaseModel):
+    dependent_task_id: int
+
+
+class TaskTimeline(BaseModel):
+    task_id: int
+    task_type: str
+    description: str
+    start_date: datetime
+    end_date: datetime
+
+
+class TaskTypeDistribution(BaseModel):
+    task_type: str
+    count: int
+    percentage: float
+
+
+class TaskAnalytics(BaseModel):
+    total_tasks: int
+    completion_rate: float
+    average_completion_time: float
+    type_distribution: List[TaskTypeDistribution]
+
+
+class BulkTaskCreate(BaseModel):
+    tasks: List[TaskCreate]
+
+
+class BulkTaskCreateResult(BaseModel):
+    success_count: int
+    failure_count: int
+    errors: List[str]

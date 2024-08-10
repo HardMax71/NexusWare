@@ -1,6 +1,6 @@
 # /server/app/schemas/yard.py
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel
 
@@ -9,6 +9,7 @@ class YardLocationBase(BaseModel):
     name: str
     type: str
     status: str
+    capacity: int = 1
 
 
 class YardLocationCreate(YardLocationBase):
@@ -19,6 +20,7 @@ class YardLocationUpdate(BaseModel):
     name: Optional[str] = None
     type: Optional[str] = None
     status: Optional[str] = None
+    capacity: Optional[int] = None
 
 
 class YardLocation(YardLocationBase):
@@ -60,7 +62,7 @@ class DockAppointment(DockAppointmentBase):
 
 
 class YardLocationWithAppointments(YardLocation):
-    appointments: list[DockAppointment] = []
+    appointments: List[DockAppointment] = []
 
 
 class YardLocationFilter(BaseModel):
@@ -102,7 +104,7 @@ class YardUtilizationReport(BaseModel):
     total_capacity: int
     total_utilization: int
     utilization_percentage: float
-    location_breakdown: list[YardLocationCapacity]
+    location_breakdown: List[YardLocationCapacity]
 
 
 class CarrierPerformance(BaseModel):
@@ -113,3 +115,53 @@ class CarrierPerformance(BaseModel):
     late_appointments: int
     missed_appointments: int
     average_dwell_time: float  # in minutes
+
+
+class YardLocationOccupancy(BaseModel):
+    yard_location_id: int
+    name: str
+    occupied: bool
+    current_appointment: Optional[DockAppointment] = None
+
+
+class YardOverview(BaseModel):
+    total_locations: int
+    occupied_locations: int
+    available_locations: int
+    utilization_percentage: float
+    locations: List[YardLocationOccupancy]
+
+
+class AppointmentScheduleConflict(BaseModel):
+    conflicting_appointments: List[DockAppointment]
+    suggested_time_slots: List[datetime]
+
+
+class CarrierSchedule(BaseModel):
+    carrier_id: int
+    carrier_name: str
+    appointments: List[DockAppointment]
+
+
+class YardLocationTypeDistribution(BaseModel):
+    type: str
+    count: int
+    percentage: float
+
+
+class YardAnalytics(BaseModel):
+    total_locations: int
+    average_utilization: float
+    peak_hours: List[int]
+    type_distribution: List[YardLocationTypeDistribution]
+    carrier_performance: List[CarrierPerformance]
+
+
+class BulkAppointmentCreate(BaseModel):
+    appointments: List[DockAppointmentCreate]
+
+
+class BulkAppointmentCreateResult(BaseModel):
+    success_count: int
+    failure_count: int
+    errors: List[str]

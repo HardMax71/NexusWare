@@ -1,21 +1,64 @@
 # /server/app/crud/asset.py
-from datetime import date, datetime
+from datetime import date
 from typing import Optional
 
-from fastapi import HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
-from server.app.schemas import AssetCreate, AssetUpdate, AssetFilter, AssetMaintenanceCreate, AssetMaintenanceUpdate, \
-    AssetMaintenanceFilter, AssetLocation, AssetMaintenance, Location, Asset
+from server.app.models import Asset, AssetMaintenance, Location
+from server.app.schemas import (
+    Asset as AssetSchema,
+    Location as LocationSchema,
+    AssetWithMaintenance as AssetWithMaintenanceSchema,
+    AssetCreate,
+    AssetUpdate,
+    AssetFilter,
+    AssetMaintenance as AssetMaintenanceSchema,
+    AssetMaintenanceCreate,
+    AssetMaintenanceUpdate,
+    AssetMaintenanceFilter
+)
 from .base import CRUDBase
 
 
 class CRUDAsset(CRUDBase[Asset, AssetCreate, AssetUpdate]):
-    def get_with_maintenance(self, db: Session, id: int) -> Optional[Asset]:
-        return db.query(self.model).filter(self.model.asset_id == id).outerjoin(AssetMaintenance).first()
 
-    def get_multi_with_filter(self, db: Session, *, skip: int = 0, limit: int = 100, filter_params: AssetFilter) -> \
-            list[Asset]:
+    def get_due_for_maintenance(self, db: Session) -> list[AssetWithMaintenanceSchema]:
+        today = date.today()
+        assets = db.query(self.model).join(AssetMaintenance).filter(
+            AssetMaintenance.scheduled_date <= today,
+            AssetMaintenance.completed_date is None
+        ).all()
+        return [AssetWithMaintenanceSchema.model_validate(asset) for asset in assets]
+
+    def transfer(self, db: Session, asset_id: int, new_location_id: int) -> Optional[AssetSchema]:
+        current_asset = db.query(self.model).filter(self.model.asset_id == asset_id).first()
+        if current_asset:
+            location = db.query(Location).filter(Location.location_id == new_location_id).first()
+            if location:
+                current_asset.location = location.name
+                db.commit()
+                db.refresh(current_asset)
+                return AssetSchema.model_validate(current_asset)
+        return None
+
+    def get_asset_location(self, db: Session, asset_id: int) -> Optional[LocationSchema]:
+        asset = db.query(self.model).filter(self.model.asset_id == asset_id).first()
+        if asset and asset.location:
+            location = db.query(Location).filter(Location.name == asset.location).first()
+            if location:
+                return LocationSchema.model_validate(location)
+        return None
+
+    def get_with_maintenance(self, db: Session, id: int) -> Optional[AssetWithMaintenanceSchema]:
+        asset = db.query(self.model).filter(self.model.asset_id == id).options(
+            joinedload(self.model.maintenance_records)
+        ).first()
+        if asset:
+            return AssetWithMaintenanceSchema.model_validate(asset)
+        return None
+
+    def get_multi_with_filter(self, db: Session, *,
+                              skip: int = 0, limit: int = 100, filter_params: AssetFilter) -> list[AssetSchema]:
         query = db.query(self.model)
         if filter_params.asset_type:
             query = query.filter(self.model.asset_type == filter_params.asset_type)
@@ -25,7 +68,9 @@ class CRUDAsset(CRUDBase[Asset, AssetCreate, AssetUpdate]):
             query = query.filter(self.model.purchase_date >= filter_params.purchase_date_from)
         if filter_params.purchase_date_to:
             query = query.filter(self.model.purchase_date <= filter_params.purchase_date_to)
-        return query.offset(skip).limit(limit).all()
+
+        assets = query.offset(skip).limit(limit).all()
+        return [AssetSchema.model_validate(asset) for asset in assets]
 
     def count_with_filter(self, db: Session, *, filter_params: AssetFilter) -> int:
         query = db.query(self.model)
@@ -37,18 +82,20 @@ class CRUDAsset(CRUDBase[Asset, AssetCreate, AssetUpdate]):
             query = query.filter(self.model.purchase_date >= filter_params.purchase_date_from)
         if filter_params.purchase_date_to:
             query = query.filter(self.model.purchase_date <= filter_params.purchase_date_to)
+
         return query.count()
 
     def get_all_types(self, db: Session) -> list[str]:
-        return db.query(self.model.asset_type).distinct().all()
+        return [asset_type for (asset_type,) in db.query(self.model.asset_type).distinct().all()]
 
     def get_all_statuses(self, db: Session) -> list[str]:
-        return db.query(self.model.status).distinct().all()
+        return [status for (status,) in db.query(self.model.status).distinct().all()]
 
 
 class CRUDAssetMaintenance(CRUDBase[AssetMaintenance, AssetMaintenanceCreate, AssetMaintenanceUpdate]):
-    def get_multi_with_filter(self, db: Session, *, skip: int = 0, limit: int = 100,
-                              filter_params: AssetMaintenanceFilter) -> list[AssetMaintenance]:
+    def get_multi_with_filter(self, db: Session, *,
+                              skip: int = 0, limit: int = 100,
+                              filter_params: AssetMaintenanceFilter) -> list[AssetMaintenanceSchema]:
         query = db.query(self.model)
         if filter_params.asset_id:
             query = query.filter(self.model.asset_id == filter_params.asset_id)
@@ -64,42 +111,21 @@ class CRUDAssetMaintenance(CRUDBase[AssetMaintenance, AssetMaintenanceCreate, As
             query = query.filter(self.model.completed_date <= filter_params.completed_date_to)
         if filter_params.performed_by:
             query = query.filter(self.model.performed_by == filter_params.performed_by)
-        return query.offset(skip).limit(limit).all()
 
-    def get_multi_by_asset(self, db: Session, *, asset_id: int, skip: int = 0, limit: int = 100) -> list[
-        AssetMaintenance]:
-        return db.query(self.model).filter(self.model.asset_id == asset_id).offset(skip).limit(limit).all()
+        maintenance_records = query.offset(skip).limit(limit).all()
+        return [AssetMaintenanceSchema.model_validate(record) for record in maintenance_records]
+
+    def get_multi_by_asset(self, db: Session, *,
+                           asset_id: int, skip: int = 0, limit: int = 100) -> list[AssetMaintenanceSchema]:
+        maintenance_records = (db.query(self.model)
+                               .filter(self.model.asset_id == asset_id)
+                               .offset(skip)
+                               .limit(limit)
+                               .all())
+        return [AssetMaintenanceSchema.model_validate(record) for record in maintenance_records]
 
     def get_all_types(self, db: Session) -> list[str]:
-        return db.query(self.model.maintenance_type).distinct().all()
-
-    def get_current_location(self, db: Session, asset_id: int) -> Optional[Location]:
-        return db.query(Location).join(AssetLocation).filter(AssetLocation.asset_id == asset_id).order_by(
-            AssetLocation.timestamp.desc()).first()
-
-    def transfer(self, db: Session, asset_id: int, new_location_id: int) -> Asset:
-        asset = self.get(db, id=asset_id)
-        if not asset:
-            raise HTTPException(status_code=404, detail="Asset not found")
-
-        new_location = db.query(Location).get(new_location_id)
-        if not new_location:
-            raise HTTPException(status_code=404, detail="Location not found")
-
-        asset_location = AssetLocation(asset_id=asset_id,
-                                       location_id=new_location_id,
-                                       timestamp=datetime.utcnow())
-        db.add(asset_location)
-        db.commit()
-        db.refresh(asset)
-        return asset
-
-    def get_due_for_maintenance(self, db: Session) -> list[Asset]:
-        today = date.today()
-        return db.query(Asset).join(AssetMaintenance).filter(
-            AssetMaintenance.scheduled_date <= today,
-            AssetMaintenance.completed_date is None
-        ).all()
+        return [maintenance_type for (maintenance_type,) in db.query(self.model.maintenance_type).distinct().all()]
 
 
 asset = CRUDAsset(Asset)

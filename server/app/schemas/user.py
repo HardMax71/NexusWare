@@ -1,6 +1,6 @@
 # /server/app/schemas/user.py
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel, EmailStr
 
@@ -29,17 +29,17 @@ class RoleBase(BaseModel):
 
 
 class RoleCreate(RoleBase):
-    permissions: list[int]
+    permissions: List[int]
 
 
 class RoleUpdate(BaseModel):
     role_name: Optional[str] = None
-    permissions: Optional[list[int]] = None
+    permissions: Optional[List[int]] = None
 
 
 class Role(RoleBase):
     role_id: int
-    permissions: list[Permission] = []
+    permissions: List[Permission] = []
 
     class Config:
         from_attributes = True
@@ -88,3 +88,59 @@ class TokenData(BaseModel):
 
 class Message(BaseModel):
     message: str
+
+
+class RolePermission(BaseModel):
+    role_id: int
+    permission_id: int
+
+    class Config:
+        from_attributes = True
+
+
+class UserWithRole(User):
+    role: Role
+
+
+class PasswordReset(BaseModel):
+    email: EmailStr
+
+
+class PasswordResetConfirm(BaseModel):
+    token: str
+    new_password: str
+
+
+class UserFilter(BaseModel):
+    username: Optional[str] = None
+    email: Optional[str] = None
+    is_active: Optional[bool] = None
+    role_id: Optional[int] = None
+
+
+class UserActivity(BaseModel):
+    user_id: int
+    username: str
+    last_login: Optional[datetime]
+    total_logins: int
+    total_actions: int
+
+
+class RoleWithUsers(Role):
+    users: List[User] = []
+
+
+class UserPermissions(BaseModel):
+    user_id: int
+    username: str
+    permissions: List[Permission]
+
+
+class BulkUserCreate(BaseModel):
+    users: List[UserCreate]
+
+
+class BulkUserCreateResult(BaseModel):
+    success_count: int
+    failure_count: int
+    errors: List[str]

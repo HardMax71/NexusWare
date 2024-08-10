@@ -6,15 +6,16 @@ from sqlalchemy.orm import sessionmaker
 
 from server.app.core.config import settings
 from server.app.core.security import get_password_hash
+from server.app.models import ProductCategory, Product, Location
 from server.app.models.asset import Asset, AssetMaintenance
 from server.app.models.base import Base
-from server.app.models.inventory import Product, ProductCategory, Inventory, Location, Zone
+from server.app.models.inventory import Inventory, Zone
 from server.app.models.order import Order, OrderItem, Customer, PurchaseOrder, POItem, Supplier
 from server.app.models.quality import QualityCheck
 from server.app.models.task import Task
 from server.app.models.user import User, Role, Permission
 from server.app.models.warehouse import PickList, Carrier
-from server.app.models.yard import YardLocation, DockAppointment
+from server.app.models.yard_location import YardLocation, DockAppointment
 
 # Establish the database connection
 engine = sa.create_engine(settings.DATABASE_URL)
@@ -44,13 +45,13 @@ def add_sample_data():
         username="admin",
         email="admin@gmail.com",
         password_hash=get_password_hash("admin"),
-        role=admin_role
+        role_id=admin_role.role_id
     )
     regular_user = User(
         username="user",
         email="user@gmail.com",
         password_hash=get_password_hash("user"),
-        role=user_role
+        role_id=user_role.role_id
     )
     db.add_all([admin_user, regular_user])
 
@@ -64,9 +65,9 @@ def add_sample_data():
 
     # Products
     products = [
-        Product(sku="SKU001", name="Smartphone", category=categories[0], price=599.99),
-        Product(sku="SKU002", name="T-shirt", category=categories[1], price=19.99),
-        Product(sku="SKU003", name="Garden Hose", category=categories[2], price=29.99),
+        Product(sku="SKU001", name="Smartphone", category_id=categories[0].category_id, price=599.99),
+        Product(sku="SKU002", name="T-shirt", category_id=categories[1].category_id, price=19.99),
+        Product(sku="SKU003", name="Garden Hose", category_id=categories[2].category_id, price=29.99),
     ]
     db.add_all(products)
 

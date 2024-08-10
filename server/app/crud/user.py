@@ -5,26 +5,28 @@ from typing import Optional, List, Any, Dict, Union
 from sqlalchemy.orm import Session
 
 from server.app.core.security import get_password_hash, verify_password
-from server.app.models import User, Role, Permission, RolePermission
-from server.app.schemas import (UserCreate, UserUpdate, RoleCreate,
-                                RoleUpdate, PermissionCreate, PermissionUpdate)
+from server.app.models import User
+from server.app.schemas import UserCreate, UserUpdate, User as UserSchema
 from .base import CRUDBase
 
 
 class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
-    def get_by_email(self, db: Session, *, email: str) -> Optional[User]:
-        return db.query(User).filter(User.email == email).first()
+    def get_by_email(self, db: Session, *, email: str) -> Optional[UserSchema]:
+        user = db.query(User).filter(User.email == email).first()
+        return UserSchema.model_validate(user) if user else None
 
-    def get_by_username(self, db: Session, *, username: str) -> Optional[User]:
-        return db.query(User).filter(User.username == username).first()
+    def get_by_username(self, db: Session, *, username: str) -> Optional[UserSchema]:
+        user = db.query(User).filter(User.username == username).first()
+        return UserSchema.model_validate(user) if user else None
 
-    def get_by_id(self, db: Session, *, user_id: int) -> Optional[User]:
-        return db.query(User).filter(User.user_id == user_id).first()
+    def get_by_id(self, db: Session, *, user_id: int) -> Optional[UserSchema]:
+        user = db.query(User).filter(User.user_id == user_id).first()
+        return UserSchema.model_validate(user) if user else None
 
-    def create(self, db: Session, *, obj_in: UserCreate) -> User:
+    def create(self, db: Session, *, obj_in: UserCreate) -> UserSchema:
         db_obj = User(
             email=obj_in.email,
-            password_hash=get_password_hash(obj_in.password),
+            password_hash=get_password_hash(obj_in.password_hash),
             username=obj_in.username,
             role_id=obj_in.role_id,
             is_active=obj_in.is_active
@@ -32,10 +34,9 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
-        return db_obj
+        return UserSchema.model_validate(db_obj)
 
-    def update(self, db: Session, *, db_obj: User,
-               obj_in: Union[UserUpdate, Dict[str, Any]]) -> User:
+    def update(self, db: Session, *, db_obj: User, obj_in: Union[UserUpdate, Dict[str, Any]]) -> UserSchema:
         if isinstance(obj_in, dict):
             update_data = obj_in
         else:
@@ -44,9 +45,10 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             hashed_password = get_password_hash(update_data["password"])
             del update_data["password"]
             update_data["password_hash"] = hashed_password
-        return super().update(db, db_obj=db_obj, obj_in=update_data)
+        updated_user = super().update(db, db_obj=db_obj, obj_in=update_data)
+        return UserSchema.model_validate(updated_user)
 
-    def authenticate(self, db: Session, *, email: str, password: str) -> Optional[User]:
+    def authenticate(self, db: Session, *, email: str, password: str) -> Optional[UserSchema]:
         user = self.get_by_email(db, email=email)
         if not user:
             return None
@@ -54,82 +56,31 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             return None
         return user
 
-    def is_active(self, user: User) -> bool:
+    def is_active(self, user: UserSchema) -> bool:
         return user.is_active
 
-    def is_superuser(self, user: User) -> bool:
+    def is_superuser(self, user: UserSchema) -> bool:
         return user.role.role_name == "superuser"
 
-    def get_multi_by_role(self, db: Session, *,
-                          role_id: int, skip: int = 0, limit: int = 100) -> List[User]:
-        return (db.query(User)
-                .filter(User.role_id == role_id)
-                .offset(skip)
-                .limit(limit)
-                .all())
+    def get_multi_by_role(self, db: Session, *, role_id: int, skip: int = 0, limit: int = 100) -> List[UserSchema]:
+        users = db.query(User).filter(User.role_id == role_id).offset(skip).limit(limit).all()
+        return [UserSchema.model_validate(user) for user in users]
 
-    def change_role(self, db: Session, *, user_id: int, new_role_id: int) -> User:
+    def change_role(self, db: Session, *, user_id: int, new_role_id: int) -> Optional[UserSchema]:
         user = self.get(db, id=user_id)
         if user:
             user.role_id = new_role_id
             db.commit()
             db.refresh(user)
-        return user
+        return UserSchema.model_validate(user) if user else None
 
-
-    def set_reset_password_token(self, db: Session, *, user: User, token: str):
+    def set_reset_password_token(self, db: Session, *, user: UserSchema, token: str) -> UserSchema:
         user.password_reset_token = token
         user.password_reset_expiration = datetime.utcnow() + timedelta(hours=1)
         db.add(user)
         db.commit()
         db.refresh(user)
-
-
-class CRUDRole(CRUDBase[Role, RoleCreate, RoleUpdate]):
-    def create(self, db: Session, *, obj_in: RoleCreate) -> Role:
-        db_obj = Role(role_name=obj_in.role_name)
-        db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
-
-        # Add permissions to the role
-        for permission_id in obj_in.permissions:
-            db.add(RolePermission(role_id=db_obj.role_id,
-                                  permission_id=permission_id))
-        db.commit()
-
-        return db_obj
-
-    def update(self, db: Session, *,
-               db_obj: Role,
-               obj_in: Union[RoleUpdate, Dict[str, Any]]) -> Role:
-        if isinstance(obj_in, dict):
-            update_data = obj_in
-        else:
-            update_data = obj_in.dict(exclude_unset=True)
-
-        # Update role permissions
-        if "permissions" in update_data:
-            # Remove existing permissions
-            db.query(RolePermission).filter(RolePermission.role_id == db_obj.role_id).delete()
-
-            # Add new permissions
-            for permission_id in update_data["permissions"]:
-                db.add(RolePermission(role_id=db_obj.role_id, permission_id=permission_id))
-
-            del update_data["permissions"]
-
-        return super().update(db, db_obj=db_obj, obj_in=update_data)
-
-    def get_by_name(self, db: Session, *, name: str) -> Optional[Role]:
-        return db.query(Role).filter(Role.role_name == name).first()
-
-
-class CRUDPermission(CRUDBase[Permission, PermissionCreate, PermissionUpdate]):
-    def get_by_name(self, db: Session, *, name: str) -> Optional[Permission]:
-        return db.query(Permission).filter(Permission.permission_name == name).first()
+        return UserSchema.model_validate(user)
 
 
 user = CRUDUser(User)
-role = CRUDRole(Role)
-permission = CRUDPermission(Permission)

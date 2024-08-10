@@ -1,8 +1,8 @@
 # /server/app/schemas/inventory.py
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
-from pydantic import BaseModel, constr
+from pydantic import BaseModel, constr, Field
 
 
 class ProductCategoryBase(BaseModel):
@@ -35,6 +35,7 @@ class ProductBase(BaseModel):
     weight: Optional[float] = None
     dimensions: Optional[str] = None
     barcode: Optional[str] = None
+    price: float
 
 
 class ProductCreate(ProductBase):
@@ -50,6 +51,7 @@ class ProductUpdate(BaseModel):
     weight: Optional[float] = None
     dimensions: Optional[str] = None
     barcode: Optional[str] = None
+    price: Optional[float] = None
 
 
 class Product(ProductBase):
@@ -63,6 +65,7 @@ class InventoryBase(BaseModel):
     product_id: int
     location_id: int
     quantity: int
+    expiration_date: Optional[datetime] = None
 
 
 class InventoryCreate(InventoryBase):
@@ -73,6 +76,7 @@ class InventoryUpdate(BaseModel):
     product_id: Optional[int] = None
     location_id: Optional[int] = None
     quantity: Optional[int] = None
+    expiration_date: Optional[datetime] = None
 
 
 class Inventory(InventoryBase):
@@ -84,11 +88,12 @@ class Inventory(InventoryBase):
 
 
 class LocationBase(BaseModel):
-    zone_id: int
-    aisle: Optional[str] = None
-    rack: Optional[str] = None
-    shelf: Optional[str] = None
-    bin: Optional[str] = None
+    name: str = Field(..., max_length=100)
+    zone_id: Optional[int] = None
+    aisle: Optional[str] = Field(None, max_length=50)
+    rack: Optional[str] = Field(None, max_length=50)
+    shelf: Optional[str] = Field(None, max_length=50)
+    bin: Optional[str] = Field(None, max_length=50)
 
 
 class LocationCreate(LocationBase):
@@ -96,11 +101,12 @@ class LocationCreate(LocationBase):
 
 
 class LocationUpdate(BaseModel):
+    name: Optional[str] = Field(None, max_length=100)
     zone_id: Optional[int] = None
-    aisle: Optional[str] = None
-    rack: Optional[str] = None
-    shelf: Optional[str] = None
-    bin: Optional[str] = None
+    aisle: Optional[str] = Field(None, max_length=50)
+    rack: Optional[str] = Field(None, max_length=50)
+    shelf: Optional[str] = Field(None, max_length=50)
+    bin: Optional[str] = Field(None, max_length=50)
 
 
 class Location(LocationBase):
@@ -132,15 +138,15 @@ class Zone(ZoneBase):
 
 
 class ProductWithInventory(Product):
-    inventory_items: list[Inventory] = []
+    inventory_items: List[Inventory] = []
 
 
 class LocationWithInventory(Location):
-    inventory_items: list[Inventory] = []
+    inventory_items: List[Inventory] = []
 
 
 class ZoneWithLocations(Zone):
-    locations: list[Location] = []
+    locations: List[Location] = []
 
 
 class ProductFilter(BaseModel):
@@ -158,6 +164,7 @@ class InventoryFilter(BaseModel):
 
 
 class LocationFilter(BaseModel):
+    name: Optional[str] = None
     zone_id: Optional[int] = None
     aisle: Optional[str] = None
     rack: Optional[str] = None
@@ -167,11 +174,6 @@ class LocationFilter(BaseModel):
 
 class ZoneFilter(BaseModel):
     name: Optional[str] = None
-
-
-class InventoryAdjustment(BaseModel):
-    quantity: int
-    reason: str
 
 
 class BarcodeData(BaseModel):
@@ -191,19 +193,28 @@ class ProductWithCategoryAndInventory(ProductWithInventory):
 class InventoryReport(BaseModel):
     total_products: int
     total_quantity: int
-    low_stock_items: list[ProductWithInventory]
-    out_of_stock_items: list[Product]
+    low_stock_items: List[ProductWithInventory]
+    out_of_stock_items: List[Product]
 
 
 class WarehouseLayout(BaseModel):
-    zones: list[ZoneWithLocations]
+    zones: List[ZoneWithLocations]
 
 
 class InventoryMovement(BaseModel):
     product_id: int
+    from_location_id: int
+    to_location_id: int
+    quantity: int
+    reason: str
+    timestamp: datetime
+
+
+class InventoryAdjustment(BaseModel):
+    product_id: int
     location_id: int
     quantity_change: int
-    movement_type: str
+    reason: str
     timestamp: datetime
 
 
@@ -214,7 +225,7 @@ class StocktakeItem(BaseModel):
 
 class StocktakeCreate(BaseModel):
     location_id: int
-    items: list[StocktakeItem]
+    items: List[StocktakeItem]
 
 
 class StocktakeDiscrepancy(BaseModel):
@@ -227,19 +238,19 @@ class StocktakeDiscrepancy(BaseModel):
 class StocktakeResult(BaseModel):
     location_id: int
     total_items: int
-    discrepancies: list[StocktakeDiscrepancy]
+    discrepancies: List[StocktakeDiscrepancy]
     accuracy_percentage: float
 
 
 class ABCCategory(BaseModel):
     category: str
-    products: list[Product]
+    products: List[Product]
     value_percentage: float
     item_percentage: float
 
 
 class ABCAnalysisResult(BaseModel):
-    categories: list[ABCCategory]
+    categories: List[ABCCategory]
 
 
 class InventoryLocationSuggestion(BaseModel):
@@ -250,13 +261,13 @@ class InventoryLocationSuggestion(BaseModel):
 
 
 class BulkImportData(BaseModel):
-    items: list[InventoryCreate]
+    items: List[InventoryCreate]
 
 
 class BulkImportResult(BaseModel):
     success_count: int
     failure_count: int
-    errors: list[str]
+    errors: List[str]
 
 
 class StorageUtilization(BaseModel):

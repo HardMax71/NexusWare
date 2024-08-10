@@ -14,8 +14,10 @@ class Asset(Base):
     serial_number = Column(String(50))
     purchase_date = Column(Date)
     status = Column(String(20))
+    location_id = Column(Integer, ForeignKey("locations.location_id"))
 
     maintenance_records = relationship("AssetMaintenance", back_populates="asset")
+    location = relationship("Location", back_populates="assets")
 
 
 class AssetMaintenance(Base):

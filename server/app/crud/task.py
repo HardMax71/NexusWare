@@ -1,18 +1,19 @@
 # /server/app/crud/task.py
 from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 
 from sqlalchemy import func, case
 from sqlalchemy.orm import Session
 
 from server.app.models import Task, User, TaskComment
-from server.app.schemas import TaskCreate, TaskUpdate, TaskFilter, TaskCommentCreate, TaskStatistics, UserTaskSummary
+from server.app.schemas import TaskCreate, TaskUpdate, TaskFilter, TaskCommentCreate, TaskStatistics, UserTaskSummary, \
+    Task as TaskSchema, TaskWithAssignee, TaskComment as TaskCommentSchema
 from .base import CRUDBase
 
 
 class CRUDTask(CRUDBase[Task, TaskCreate, TaskUpdate]):
-    def get_multi_with_filter(self, db: Session, *, skip: int = 0, limit: int = 100, filter_params: TaskFilter) -> List[
-        Task]:
+    def get_multi_with_filter(self, db: Session, *,
+                              skip: int = 0, limit: int = 100, filter_params: TaskFilter) -> list[TaskSchema]:
         query = db.query(self.model).join(User)
         if filter_params.task_type:
             query = query.filter(Task.task_type == filter_params.task_type)
@@ -26,19 +27,22 @@ class CRUDTask(CRUDBase[Task, TaskCreate, TaskUpdate]):
             query = query.filter(Task.due_date >= filter_params.due_date_from)
         if filter_params.due_date_to:
             query = query.filter(Task.due_date <= filter_params.due_date_to)
-        return query.offset(skip).limit(limit).all()
 
-    def get_with_assignee(self, db: Session, id: int) -> Optional[Task]:
-        return db.query(self.model).filter(self.model.task_id == id).join(User).first()
+        tasks = query.offset(skip).limit(limit).all()
+        return [TaskSchema.model_validate(x) for x in tasks]
 
-    def complete(self, db: Session, *, db_obj: Task) -> Task:
+    def get_with_assignee(self, db: Session, id: int) -> Optional[TaskWithAssignee]:
+        task = db.query(self.model).filter(self.model.task_id == id).join(User).first()
+        return TaskWithAssignee.model_validate(task) if task else None
+
+    def complete(self, db: Session, *, db_obj: Task) -> TaskSchema:
         db_obj.status = "completed"
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
-        return db_obj
+        return TaskSchema.model_validate(db_obj)
 
-    def add_comment(self, db: Session, *, task_id: int, comment: TaskCommentCreate, user_id: int) -> TaskComment:
+    def add_comment(self, db: Session, *, task_id: int, comment: TaskCommentCreate, user_id: int) -> TaskCommentSchema:
         db_comment = TaskComment(
             task_id=task_id,
             user_id=user_id,
@@ -47,10 +51,11 @@ class CRUDTask(CRUDBase[Task, TaskCreate, TaskUpdate]):
         db.add(db_comment)
         db.commit()
         db.refresh(db_comment)
-        return db_comment
+        return TaskCommentSchema.model_validate(db_comment)
 
-    def get_comments(self, db: Session, *, task_id: int, skip: int = 0, limit: int = 100) -> List[TaskComment]:
-        return db.query(TaskComment).filter(TaskComment.task_id == task_id).offset(skip).limit(limit).all()
+    def get_comments(self, db: Session, *, task_id: int, skip: int = 0, limit: int = 100) -> list[TaskCommentSchema]:
+        comments = db.query(TaskComment).filter(TaskComment.task_id == task_id).offset(skip).limit(limit).all()
+        return [TaskCommentSchema.model_validate(comment) for comment in comments]
 
     def get_statistics(self, db: Session) -> TaskStatistics:
         total_tasks = db.query(func.count(Task.task_id)).scalar()
@@ -66,18 +71,19 @@ class CRUDTask(CRUDBase[Task, TaskCreate, TaskUpdate]):
             high_priority_tasks=high_priority_tasks
         )
 
-    def get_user_summary(self, db: Session) -> List[UserTaskSummary]:
+    def get_user_summary(self, db: Session) -> list[UserTaskSummary]:
         query = db.query(
             User.user_id,
             User.username,
             func.count(Task.task_id).label("assigned_tasks"),
             func.sum(case((Task.status == "completed", 1), else_=0)).label("completed_tasks"),
-            func.sum(case((Task.due_date < func.now(), Task.status != "completed", 1), else_=0)).label("overdue_tasks")
+            func.sum(case((Task.due_date < func.now(), Task.status != "completed", 1),
+                          else_=0)).label("overdue_tasks")
         ).outerjoin(Task, User.user_id == Task.assigned_to).group_by(User.user_id)
 
         return [
             UserTaskSummary(
-                user_id=row.id,
+                user_id=row.user_id,
                 username=row.username,
                 assigned_tasks=row.assigned_tasks,
                 completed_tasks=row.completed_tasks,
@@ -86,21 +92,28 @@ class CRUDTask(CRUDBase[Task, TaskCreate, TaskUpdate]):
             for row in query.all()
         ]
 
-    def get_overdue(self, db: Session, *, skip: int = 0, limit: int = 100) -> List[Task]:
-        return db.query(self.model).filter(Task.due_date < datetime.utcnow(),
-                                           Task.status != "completed").offset(
-            skip).limit(limit).all()
+    def get_overdue(self, db: Session, *, skip: int = 0, limit: int = 100) -> list[TaskSchema]:
+        overdue_tasks = (db.query(self.model)
+                         .filter(Task.due_date < datetime.utcnow(),
+                                 Task.status != "completed")
+                         .offset(skip).limit(limit)
+                         .all())
+        return [TaskSchema.model_validate(task) for task in overdue_tasks]
 
-    def create_batch(self, db: Session, *, obj_in_list: List[TaskCreate]) -> List[Task]:
+    def create_batch(self, db: Session, *, obj_in_list: list[TaskCreate]) -> list[TaskSchema]:
         db_objs = [Task(**obj_in.dict()) for obj_in in obj_in_list]
         db.add_all(db_objs)
         db.commit()
         for obj in db_objs:
             db.refresh(obj)
-        return db_objs
+        return [TaskSchema.model_validate(obj) for obj in db_objs]
 
-    def get_user_tasks(self, db: Session, *, user_id: int, skip: int = 0, limit: int = 100) -> List[Task]:
-        return db.query(self.model).filter(Task.assigned_to == user_id).offset(skip).limit(limit).all()
+    def get_user_tasks(self, db: Session, *, user_id: int, skip: int = 0, limit: int = 100) -> list[TaskSchema]:
+        tasks = (db.query(self.model)
+                 .filter(Task.assigned_to == user_id)
+                 .offset(skip).limit(limit)
+                 .all())
+        return [TaskSchema.model_validate(task) for task in tasks]
 
 
 task = CRUDTask(Task)

@@ -1,6 +1,6 @@
 # /server/app/schemas/order.py
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel
 
@@ -33,23 +33,39 @@ class OrderBase(BaseModel):
     customer_id: int
     status: str
     total_amount: float
+    shipping_name: Optional[str] = None
+    shipping_address_line1: Optional[str] = None
+    shipping_city: Optional[str] = None
+    shipping_state: Optional[str] = None
+    shipping_postal_code: Optional[str] = None
+    shipping_country: Optional[str] = None
+    shipping_phone: Optional[str] = None
+    ship_date: Optional[datetime] = None
 
 
 class OrderCreate(OrderBase):
-    items: list[OrderItemCreate]
+    items: List[OrderItemCreate]
 
 
 class OrderUpdate(BaseModel):
     customer_id: Optional[int] = None
     status: Optional[str] = None
     total_amount: Optional[float] = None
-    items: Optional[list[OrderItemUpdate]] = None
+    shipping_name: Optional[str] = None
+    shipping_address_line1: Optional[str] = None
+    shipping_city: Optional[str] = None
+    shipping_state: Optional[str] = None
+    shipping_postal_code: Optional[str] = None
+    shipping_country: Optional[str] = None
+    shipping_phone: Optional[str] = None
+    ship_date: Optional[datetime] = None
+    items: Optional[List[OrderItemUpdate]] = None
 
 
 class Order(OrderBase):
     order_id: int
     order_date: datetime
-    order_items: list[OrderItem] = []
+    order_items: List[OrderItem] = []
 
     class Config:
         from_attributes = True
@@ -111,20 +127,20 @@ class PurchaseOrderBase(BaseModel):
 
 
 class PurchaseOrderCreate(PurchaseOrderBase):
-    items: list[POItemCreate]
+    items: List[POItemCreate]
 
 
 class PurchaseOrderUpdate(BaseModel):
     supplier_id: Optional[int] = None
     status: Optional[str] = None
     expected_delivery_date: Optional[datetime] = None
-    items: Optional[list[POItemUpdate]] = None
+    items: Optional[List[POItemUpdate]] = None
 
 
 class PurchaseOrder(PurchaseOrderBase):
     po_id: int
     order_date: datetime
-    items: list[POItem] = []
+    po_items: List[POItem] = []
 
     class Config:
         from_attributes = True
@@ -160,8 +176,10 @@ class Supplier(SupplierBase):
 class OrderFilter(BaseModel):
     customer_id: Optional[int] = None
     status: Optional[str] = None
-    date_from: Optional[datetime] = None
-    date_to: Optional[datetime] = None
+    order_date_from: Optional[datetime] = None
+    order_date_to: Optional[datetime] = None
+    ship_date_from: Optional[datetime] = None
+    ship_date_to: Optional[datetime] = None
 
 
 class OrderSummary(BaseModel):
@@ -189,12 +207,12 @@ class SupplierFilter(BaseModel):
 
 class OrderWithDetails(Order):
     customer: Customer
-    order_items: list[OrderItem]
+    order_items: List[OrderItem]
 
 
 class PurchaseOrderWithDetails(PurchaseOrder):
     supplier: Supplier
-    items: list[POItem]
+    po_items: List[POItem]
 
 
 class ShippingInfo(BaseModel):
@@ -211,13 +229,16 @@ class OrderProcessingTimes(BaseModel):
     average_processing_time: float
     min_processing_time: float
     max_processing_time: float
+    average_shipping_time: float
+    min_shipping_time: float
+    max_shipping_time: float
 
 
 class BulkOrderImportData(BaseModel):
-    orders: list[OrderCreate]
+    orders: List[OrderCreate]
 
 
 class BulkOrderImportResult(BaseModel):
     success_count: int
     failure_count: int
-    errors: list[str]
+    errors: List[str]

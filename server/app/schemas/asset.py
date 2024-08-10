@@ -1,6 +1,6 @@
 # /server/app/schemas/asset.py
 from datetime import date, datetime
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel
 
@@ -11,6 +11,7 @@ class AssetBase(BaseModel):
     serial_number: str
     purchase_date: date
     status: str
+    location_id: Optional[int] = None
 
 
 class AssetCreate(AssetBase):
@@ -23,6 +24,7 @@ class AssetUpdate(BaseModel):
     serial_number: Optional[str] = None
     purchase_date: Optional[date] = None
     status: Optional[str] = None
+    location_id: Optional[int] = None
 
 
 class Asset(AssetBase):
@@ -61,7 +63,10 @@ class AssetMaintenance(AssetMaintenanceBase):
 
 
 class AssetWithMaintenance(Asset):
-    maintenance_records: list[AssetMaintenance] = []
+    maintenance_records: List[AssetMaintenance] = []
+
+    class Config:
+        from_attributes = True
 
 
 class AssetFilter(BaseModel):
@@ -69,6 +74,7 @@ class AssetFilter(BaseModel):
     status: Optional[str] = None
     purchase_date_from: Optional[date] = None
     purchase_date_to: Optional[date] = None
+    location_id: Optional[int] = None
 
 
 class AssetMaintenanceFilter(BaseModel):
@@ -82,7 +88,7 @@ class AssetMaintenanceFilter(BaseModel):
 
 
 class AssetWithMaintenanceList(BaseModel):
-    assets: list[AssetWithMaintenance]
+    assets: List[AssetWithMaintenance]
     total: int
 
 

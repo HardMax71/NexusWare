@@ -198,7 +198,7 @@ def get_asset_current_location(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    location = crud.asset.get_current_location(db, asset_id=asset_id)
+    location = crud.asset.get_asset_location(db, asset_id=asset_id)
     if location is None:
         raise HTTPException(status_code=404, detail="Asset location not found")
     return location

@@ -1,4 +1,4 @@
-# /server/app/api/v1/endpoints/audit.py
+# /server/app/api/v1/endpoints/audit_log.py
 from datetime import datetime
 from typing import List
 

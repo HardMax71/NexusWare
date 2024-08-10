@@ -1,4 +1,4 @@
-# /server/app/models/audit.py
+# /server/app/models/audit_log.py
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, func
 from sqlalchemy.orm import relationship
 

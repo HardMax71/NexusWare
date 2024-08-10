@@ -1,6 +1,6 @@
-# /server/app/schemas/audit.py
+# /server/app/schemas/audit_log.py
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 from pydantic import BaseModel
 
@@ -12,8 +12,8 @@ class AuditLogBase(BaseModel):
     action_type: str
     table_name: str
     record_id: int
-    old_value: str
-    new_value: str
+    old_value: Optional[str] = None
+    new_value: Optional[str] = None
 
 
 class AuditLogCreate(AuditLogBase):
@@ -29,7 +29,10 @@ class AuditLog(AuditLogBase):
 
 
 class AuditLogWithUser(AuditLog):
-    user: "User"
+    user: User
+
+    class Config:
+        from_attributes = True
 
 
 class AuditLogFilter(BaseModel):
@@ -41,19 +44,24 @@ class AuditLogFilter(BaseModel):
     date_to: Optional[datetime] = None
 
 
-class AuditSummary(BaseModel):
-    total_logs: int
-    logs_by_action: dict
-    logs_by_table: dict
-    most_active_users: List["UserActivitySummary"]
-
-
 class UserActivitySummary(BaseModel):
     user_id: int
     username: str
     total_actions: int
 
 
+class AuditSummary(BaseModel):
+    total_logs: int
+    logs_by_action: Dict[str, int]
+    logs_by_table: Dict[str, int]
+    most_active_users: List[UserActivitySummary]
+
+
 class AuditLogExport(BaseModel):
     logs: List[AuditLog]
     export_timestamp: datetime
+
+
+class AuditLogList(BaseModel):
+    logs: List[AuditLog]
+    total: int

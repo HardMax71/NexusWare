@@ -136,14 +136,6 @@ def delete_dock_appointment(
 
 
 # Additional yard management operations
-@router.get("/stats", response_model=schemas.YardStats)
-def get_yard_stats(
-        db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_user)
-):
-    return crud.yard.get_stats(db)
-
-
 @router.get("/utilization", response_model=schemas.YardUtilizationReport)
 def get_yard_utilization(
         date: datetime = Query(None),

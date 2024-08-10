@@ -1,38 +1,9 @@
 # /server/app/models/inventory.py
 from sqlalchemy import (Column, Integer, String,
-                        ForeignKey, Numeric, Text, DateTime, func)
+                        ForeignKey, DateTime, func)
 from sqlalchemy.orm import relationship
 
 from .base import Base
-
-
-class Product(Base):
-    __tablename__ = "products"
-
-    product_id = Column(Integer, primary_key=True, index=True)
-    sku = Column(String(50), unique=True, nullable=False)
-    name = Column(String(100), nullable=False)
-    description = Column(Text)
-    category_id = Column(Integer, ForeignKey("product_categories.category_id"))
-    unit_of_measure = Column(String(20))
-    weight = Column(Numeric(10, 2))
-    dimensions = Column(String(50))
-    barcode = Column(String(50))
-    price = Column(Numeric(10, 2), nullable=False)
-
-    category = relationship("ProductCategory", back_populates="products")
-    inventory_items = relationship("Inventory", back_populates="product")
-
-
-class ProductCategory(Base):
-    __tablename__ = "product_categories"
-
-    category_id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(50), nullable=False)
-    parent_category_id = Column(Integer, ForeignKey("product_categories.category_id"))
-
-    products = relationship("Product", back_populates="category")
-    subcategories = relationship("ProductCategory")
 
 
 class Inventory(Base):
@@ -41,6 +12,7 @@ class Inventory(Base):
     inventory_id = Column(Integer, primary_key=True, index=True)
     product_id = Column(Integer, ForeignKey("products.product_id"))
     location_id = Column(Integer, ForeignKey("locations.location_id"))
+    expiration_date = Column(DateTime, server_default=func.now())
     quantity = Column(Integer, nullable=False)
     last_updated = Column(DateTime, server_default=func.now())
 
@@ -48,25 +20,42 @@ class Inventory(Base):
     location = relationship("Location", back_populates="inventory_items")
 
 
-class Location(Base):
-    __tablename__ = "locations"
+class LocationInventory(Base):
+    __tablename__ = "location_inventory"
 
-    location_id = Column(Integer, primary_key=True, index=True)
-    zone_id = Column(Integer, ForeignKey("zones.zone_id"))
-    aisle = Column(String(10))
-    rack = Column(String(10))
-    shelf = Column(String(10))
-    bin = Column(String(10))
+    location_id = Column(Integer, ForeignKey("locations.location_id"), primary_key=True)
+    product_id = Column(Integer, ForeignKey("products.product_id"), primary_key=True)
+    quantity = Column(Integer, nullable=False)
 
-    zone = relationship("Zone", back_populates="locations")
-    inventory_items = relationship("Inventory", back_populates="location")
+    location = relationship("Location")
+    product = relationship("Product")
 
 
-class Zone(Base):
-    __tablename__ = "zones"
+class InventoryMovement(Base):
+    __tablename__ = "inventory_movements"
 
-    zone_id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(50), nullable=False)
-    description = Column(Text)
+    movement_id = Column(Integer, primary_key=True, index=True)
+    product_id = Column(Integer, ForeignKey("products.product_id"))
+    from_location_id = Column(Integer, ForeignKey("locations.location_id"))
+    to_location_id = Column(Integer, ForeignKey("locations.location_id"))
+    quantity = Column(Integer, nullable=False)
+    reason = Column(String(255))
+    timestamp = Column(DateTime, server_default=func.now())
 
-    locations = relationship("Location", back_populates="zone")
+    product = relationship("Product")
+    from_location = relationship("Location", foreign_keys=[from_location_id])
+    to_location = relationship("Location", foreign_keys=[to_location_id])
+
+
+class InventoryAdjustment(Base):
+    __tablename__ = "inventory_adjustments"
+
+    adjustment_id = Column(Integer, primary_key=True, index=True)
+    product_id = Column(Integer, ForeignKey("products.product_id"))
+    location_id = Column(Integer, ForeignKey("locations.location_id"))
+    quantity_change = Column(Integer, nullable=False)
+    reason = Column(String(255))
+    timestamp = Column(DateTime, server_default=func.now())
+
+    product = relationship("Product")
+    location = relationship("Location")

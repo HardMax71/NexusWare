@@ -1,11 +1,20 @@
 # /server/app/models/__init__.py
-from .base import Base
-from .user import User, Role, Permission, RolePermission
-from .inventory import Product, ProductCategory, Inventory, Location, Zone
-from .order import Order, OrderItem, Customer, PurchaseOrder, POItem, Supplier
-from .warehouse import PickList, PickListItem, Receipt, ReceiptItem, Shipment, Carrier
 from .asset import Asset, AssetMaintenance
-from .task import Task, TaskComment
+from .audit_log import AuditLog
+from .base import Base
+from .inventory import Inventory, LocationInventory, InventoryMovement, InventoryAdjustment
+from .location import Location
+from .order import Order, OrderItem, PurchaseOrder, POItem
+from .supplier import Supplier
+from .customer import Customer
+from .product import Product, ProductCategory
 from .quality import QualityCheck, QualityAlert, QualityStandard
-from .yard import YardLocation, DockAppointment
-from .audit import AuditLog
+from .task import Task, TaskComment
+from .user import User, Role, Permission, RolePermission
+from .pick_list import PickList, PickListItem
+from .receipt import Receipt, ReceiptItem
+from .shipment import Shipment
+from .carrier import Carrier
+from .yard_location import YardLocation
+from .dock_appointment import DockAppointment
+from .zone import Zone
