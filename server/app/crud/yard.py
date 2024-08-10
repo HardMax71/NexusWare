@@ -1,85 +1,15 @@
 # /server/app/crud/yard.py
-from datetime import datetime, timedelta
-from typing import Optional, List
+from datetime import datetime
+from typing import List
 
 from sqlalchemy import func
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session
 
 from server.app.models import YardLocation, DockAppointment, Carrier
 from server.app.schemas import (
-    YardLocation as YardLocationSchema,
-    DockAppointment as DockAppointmentSchema,
-    YardLocationCreate, YardLocationUpdate,
-    DockAppointmentCreate, DockAppointmentUpdate,
-    YardLocationFilter, DockAppointmentFilter,
-    YardStats, AppointmentConflict, YardUtilizationReport,
-    CarrierPerformance, YardLocationCapacity,
-    YardLocationWithAppointments
+    YardStats, YardUtilizationReport,
+    CarrierPerformance, YardLocationCapacity
 )
-from .base import CRUDBase
-
-
-class CRUDYardLocation(CRUDBase[YardLocation, YardLocationCreate, YardLocationUpdate]):
-    def get_multi_with_filter(self, db: Session, *, skip: int = 0, limit: int = 100,
-                              filter_params: YardLocationFilter) -> List[YardLocationSchema]:
-        query = db.query(self.model)
-        if filter_params.name:
-            query = query.filter(YardLocation.name.ilike(f"%{filter_params.name}%"))
-        if filter_params.type:
-            query = query.filter(YardLocation.type == filter_params.type)
-        if filter_params.status:
-            query = query.filter(YardLocation.status == filter_params.status)
-        locations = query.offset(skip).limit(limit).all()
-        return [YardLocationSchema.model_validate(location) for location in locations]
-
-    def get_with_appointments(self, db: Session, id: int) -> Optional[YardLocationWithAppointments]:
-        location = (db.query(self.model)
-                    .filter(self.model.yard_location_id == id)
-                    .options(selectinload(YardLocation.appointments))
-                    .first())
-        return YardLocationWithAppointments.model_validate(location) if location else None
-
-
-class CRUDDockAppointment(CRUDBase[DockAppointment, DockAppointmentCreate, DockAppointmentUpdate]):
-    def get_multi_with_filter(self, db: Session, *, skip: int = 0, limit: int = 100,
-                              filter_params: DockAppointmentFilter) -> List[DockAppointmentSchema]:
-        query = db.query(self.model)
-        if filter_params.yard_location_id:
-            query = query.filter(DockAppointment.yard_location_id == filter_params.yard_location_id)
-        if filter_params.carrier_id:
-            query = query.filter(DockAppointment.carrier_id == filter_params.carrier_id)
-        if filter_params.type:
-            query = query.filter(DockAppointment.type == filter_params.type)
-        if filter_params.status:
-            query = query.filter(DockAppointment.status == filter_params.status)
-        if filter_params.date_from:
-            query = query.filter(DockAppointment.appointment_time >= filter_params.date_from)
-        if filter_params.date_to:
-            query = query.filter(DockAppointment.appointment_time <= filter_params.date_to)
-        appointments = query.offset(skip).limit(limit).all()
-        return [DockAppointmentSchema.model_validate(appointment) for appointment in appointments]
-
-    def check_conflicts(self, db: Session,
-                        appointment: DockAppointmentCreate,
-                        exclude_id: Optional[int] = None) -> List[AppointmentConflict]:
-        conflicts = []
-        appointment_duration = timedelta(hours=1)  # Assume 1-hour appointments
-        query = db.query(DockAppointment).filter(
-            DockAppointment.yard_location_id == appointment.yard_location_id,
-            DockAppointment.appointment_time.between(
-                appointment.appointment_time - appointment_duration,
-                appointment.appointment_time + appointment_duration
-            )
-        )
-        if exclude_id:
-            query = query.filter(DockAppointment.appointment_id != exclude_id)
-
-        for existing_appointment in query.all():
-            conflicts.append(AppointmentConflict(
-                conflicting_appointment=DockAppointmentSchema.model_validate(existing_appointment),
-                conflict_reason="Time overlap with existing appointment"
-            ))
-        return conflicts
 
 
 class CRUDYard:
@@ -166,6 +96,4 @@ class CRUDYard:
         return performance_data
 
 
-yard_location = CRUDYardLocation(YardLocation)
-dock_appointment = CRUDDockAppointment(DockAppointment)
 yard = CRUDYard()

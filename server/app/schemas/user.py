@@ -68,6 +68,9 @@ class User(UserBase):
     user_id: int
     created_at: datetime
     last_login: Optional[datetime] = None
+    password_hash: str
+    password_reset_token: Optional[str] = None
+    password_reset_expiration: Optional[datetime] = None
 
     class Config:
         from_attributes = True

@@ -47,12 +47,12 @@ class ProductDetailsScreen(ft.UserControl):
             self.product_name.value = product_data["name"]
             self.product_sku.value = f"SKU: {product_data['sku']}"
             self.product_quantity.value = f"Quantity: {product_data['quantity']}"
-            self.update()
+        self.update()
 
     def adjust_quantity(self, e):
-        # Implement adjust quantity logic here
+        # TODO: Implement adjust quantity logic here
         pass
 
     def move_item(self, e):
-        # Implement move item logic here
+        # TODO: Implement move item logic here
         pass

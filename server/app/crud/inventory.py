@@ -5,64 +5,22 @@ from typing import Optional
 
 from fastapi import HTTPException
 from sqlalchemy import func, or_
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 
 from server.app.models import (
-    Product, ProductCategory, Inventory, Location, Zone
+    Product, Inventory, Location, Zone
 )
 from server.app.schemas import (
     Product as ProductSchema,
     ProductWithInventory as ProductWithInventorySchema,
-    ProductCreate, ProductUpdate,
-    ProductCategoryCreate, ProductCategoryUpdate,
     Inventory as InventorySchema,
-    InventoryCreate, InventoryUpdate, LocationCreate,
-    LocationUpdate, ZoneCreate, ZoneUpdate, InventoryAdjustment, InventoryTransfer,
+    InventoryCreate, InventoryUpdate, InventoryAdjustment, InventoryTransfer,
     InventoryReport, LocationWithInventory as LocationWithInventorySchema, InventoryMovement,
     StocktakeCreate, StocktakeResult, ABCAnalysisResult, InventoryLocationSuggestion,
-    StocktakeDiscrepancy, ABCCategory, ProductFilter, LocationFilter, ZoneWithLocations, StorageUtilization,
+    StocktakeDiscrepancy, ABCCategory, StorageUtilization,
     BulkImportData, BulkImportResult
 )
 from .base import CRUDBase
-
-
-class CRUDProduct(CRUDBase[Product, ProductCreate, ProductUpdate]):
-    def get_with_category_and_inventory(self, db: Session, id: int) -> Optional[ProductWithInventorySchema]:
-        current_product = db.query(Product).filter(Product.product_id == id).options(
-            joinedload(Product.category),
-            joinedload(Product.inventory_items)
-        ).first()
-        return ProductWithInventorySchema.model_validate(current_product) if current_product else None
-
-    def get_multi_with_category_and_inventory(
-            self, db: Session,
-            skip: int = 0, limit: int = 100,
-            filter_params: Optional[ProductFilter] = None) -> list[ProductWithInventorySchema]:
-        query = db.query(Product).options(
-            joinedload(Product.category),
-            joinedload(Product.inventory_items)
-        )
-
-        if filter_params:
-            if filter_params.name:
-                query = query.filter(Product.name.ilike(f"%{filter_params.name}%"))
-            if filter_params.category_id:
-                query = query.filter(Product.category_id == filter_params.category_id)
-            if filter_params.sku:
-                query = query.filter(Product.sku == filter_params.sku)
-            if filter_params.barcode:
-                query = query.filter(Product.barcode == filter_params.barcode)
-
-        products = query.offset(skip).limit(limit).all()
-        return [ProductWithInventorySchema.model_validate(product) for product in products]
-
-    def get_by_barcode(self, db: Session, barcode: str) -> Optional[ProductSchema]:
-        current_product = db.query(Product).filter(Product.barcode == barcode).first()
-        return ProductSchema.model_validate(current_product) if current_product else None
-
-
-class CRUDProductCategory(CRUDBase[ProductCategory, ProductCategoryCreate, ProductCategoryUpdate]):
-    pass
 
 
 class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
@@ -419,59 +377,4 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
         return [ProductSchema.model_validate(product) for product in products]
 
 
-class CRUDLocation(CRUDBase[Location, LocationCreate, LocationUpdate]):
-    def get_multi_with_inventory(
-            self, db: Session,
-            skip: int = 0, limit: int = 100,
-            filter_params: Optional[LocationFilter] = None) -> list[LocationWithInventorySchema]:
-        query = db.query(Location).options(joinedload(Location.inventory_items))
-
-        if filter_params:
-            if filter_params.zone_id:
-                query = query.filter(Location.zone_id == filter_params.zone_id)
-            if filter_params.aisle:
-                query = query.filter(Location.aisle == filter_params.aisle)
-            if filter_params.rack:
-                query = query.filter(Location.rack == filter_params.rack)
-            if filter_params.shelf:
-                query = query.filter(Location.shelf == filter_params.shelf)
-            if filter_params.bin:
-                query = query.filter(Location.bin == filter_params.bin)
-
-        locations = query.offset(skip).limit(limit).all()
-        return [LocationWithInventorySchema.model_validate(location) for location in locations]
-
-    def get_with_inventory(self, db: Session, id: int) -> Optional[LocationWithInventorySchema]:
-        location = db.query(Location).filter(Location.location_id == id).options(
-            joinedload(Location.inventory_items)).first()
-        return LocationWithInventorySchema.model_validate(location) if location else None
-
-
-class CRUDZone(CRUDBase[Zone, ZoneCreate, ZoneUpdate]):
-    def get_warehouse_layout(self, db: Session) -> list[ZoneWithLocations]:
-        zones = db.query(Zone).options(joinedload(Zone.locations)).all()
-        return [ZoneWithLocations.model_validate(zone) for zone in zones]
-
-    def get_multi_with_locations(
-            self, db: Session,
-            skip: int = 0, limit: int = 100,
-            filter_params: Optional[LocationFilter] = None) -> list[ZoneWithLocations]:
-        query = db.query(Zone).options(joinedload(Zone.locations))
-
-        if filter_params:
-            if filter_params.name:
-                query = query.filter(Zone.name.ilike(f"%{filter_params.name}%"))
-
-        zones = query.offset(skip).limit(limit).all()
-        return [ZoneWithLocations.model_validate(zone) for zone in zones]
-
-    def get_with_locations(self, db: Session, id: int) -> Optional[ZoneWithLocations]:
-        zone = db.query(Zone).filter(Zone.zone_id == id).options(joinedload(Zone.locations)).first()
-        return ZoneWithLocations.model_validate(zone) if zone else None
-
-
-product = CRUDProduct(Product)
-product_category = CRUDProductCategory(ProductCategory)
 inventory = CRUDInventory(Inventory)
-location = CRUDLocation(Location)
-zone = CRUDZone(Zone)

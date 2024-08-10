@@ -1,93 +1,127 @@
 import flet as ft
-from utils.validators import validate_email, validate_password
-from utils.api_helper import api_call
+from flet import (
+    Column,
+    Container,
+    Text,
+    TextField,
+    ElevatedButton,
+    TextButton,
+    Image,
+    colors,
+)
+
 
 class LoginScreen(ft.UserControl):
     def __init__(self, app):
         super().__init__()
         self.app = app
-
-    def build(self):
-        self.email = ft.TextField(
+        self.email_field = TextField(
             label="Email",
+            border=ft.InputBorder.OUTLINE,
             width=300,
-            autofocus=True,
+            height=56,
         )
-        self.password = ft.TextField(
+        self.password_field = TextField(
             label="Password",
             password=True,
             can_reveal_password=True,
+            border=ft.InputBorder.OUTLINE,
             width=300,
+            height=56,
         )
-        self.login_button = ft.ElevatedButton("Login", on_click=self.login)
-        self.forgot_password_button = ft.TextButton("Forgot Password?", on_click=self.show_forgot_password)
-        self.error_text = ft.Text("", color=ft.colors.RED)
+        self.login_button = ElevatedButton(
+            text="Login",
+            width=300,
+            height=48,
+            style=ft.ButtonStyle(
+                color={
+                    ft.MaterialState.HOVERED: colors.WHITE,
+                    ft.MaterialState.DEFAULT: colors.WHITE,
+                },
+                bgcolor={
+                    ft.MaterialState.HOVERED: colors.BLUE_700,
+                    ft.MaterialState.DEFAULT: colors.BLUE_600,
+                },
+            ),
+        )
+        self.forgot_password_button = TextButton(
+            text="Forgot Password?",
+            style=ft.ButtonStyle(
+                color={
+                    ft.MaterialState.HOVERED: colors.BLUE_700,
+                    ft.MaterialState.DEFAULT: colors.BLUE_600,
+                },
+            ),
+        )
+        self.error_text = Text(
+            color=colors.RED_600,
+            size=14,
+            weight=ft.FontWeight.BOLD,
+        )
 
-        return ft.Container(
-            content=ft.Column(
-                [
-                    ft.Image(src="/assets/logo.png", width=200, height=200),
-                    self.email,
-                    self.password,
-                    self.login_button,
-                    self.forgot_password_button,
-                    self.error_text,
-                ],
+    def build(self):
+        return Container(
+            width=self.app.page.width,
+            height=self.app.page.height,
+            bgcolor=ft.colors.WHITE,
+            content=Column(
                 alignment=ft.MainAxisAlignment.CENTER,
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                spacing=20,
+                controls=[
+                    Image(
+                        src="logo.png",
+                        width=200,
+                        height=200,
+                    ),
+                    Container(height=20),
+                    Container(
+                        width=300,
+                        padding=ft.padding.all(20),
+                        content=Column(
+                            alignment=ft.MainAxisAlignment.CENTER,
+                            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                            controls=[
+                                self.email_field,
+                                Container(height=10),
+                                self.password_field,
+                                Container(height=10),
+                                self.error_text,
+                                Container(height=20),
+                                self.login_button,
+                                Container(height=10),
+                                self.forgot_password_button,
+                            ],
+                        ),
+                    ),
+                ],
             ),
-            alignment=ft.alignment.center,
-            bgcolor=ft.colors.WHITE,
-            border_radius=10,
-            padding=40,
-            width=400,
-            height=600,
         )
 
-    async def login(self, _):
-        await self.do_login()
+    def did_mount(self):
+        self.login_button.on_click = self.login
+        self.forgot_password_button.on_click = self.forgot_password
 
-    async def do_login(self):
+    async def login(self, e):
         self.error_text.value = ""
-        self.login_button.disabled = True
-        await self.update_async()
+        email = self.email_field.value
+        password = self.password_field.value
 
-        # Validate email
-        if not validate_email(self.email.value):
-            self.error_text.value = "Invalid email format"
-            self.login_button.disabled = False
-            await self.update_async()
+        if not email or not password:
+            self.error_text.value = "Please enter both email and password."
+            self.update()
             return
 
-        # Prepare login data
-        login_data = {
-            "username": self.email.value,
-            "password": self.password.value
-        }
+        self.login_button.disabled = True
+        self.update()
 
-        try:
-            # API call for login
-            response = await api_call(self.app, self.app.client.post, "/users/login", data=login_data)
-            if response and "access_token" in response:
-                self.app.token = response["access_token"]
-                self.app.client.headers["Authorization"] = f"Bearer {self.app.token}"
-                await self.app.load_user_data()
-                await self.app.page.go_async("/")
-            else:
-                self.error_text.value = "Invalid email or password"
-        except Exception as e:
-            self.error_text.value = f"An error occurred: {str(e)}"
+        success = await self.app.login(email, password)
 
-        # Re-enable the button and update UI
-        self.login_button.disabled = False
-        await self.update_async()
+        if success:
+            self.app.page.go("/")
+        else:
+            self.error_text.value = "Invalid email or password."
+            self.login_button.disabled = False
+            self.update()
 
-    def show_forgot_password(self, _):
+    def forgot_password(self, e):
         self.app.page.go("/forgot-password")
-
-    def did_mount(self):
-        pass
-
-    def will_unmount(self):
-        pass

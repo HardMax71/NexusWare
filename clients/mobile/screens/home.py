@@ -1,184 +1,186 @@
 import flet as ft
-import asyncio
+from flet import (
+    Column,
+    Container,
+    Row,
+    Text,
+    Icon,
+    IconButton,
+    Card,
+    GridView,
+    AppBar,
+    colors,
+    icons,
+    padding,
+    border_radius,
+)
+from flet_core import Image
+
+from clients.mobile.utils.api_helper import api_call
 
 
 class HomeScreen(ft.UserControl):
     def __init__(self, app):
         super().__init__()
         self.app = app
-        self.loading = True
-        self.stats = None
-        self.warehouse_stats = None
+        self.init_ui()
 
-    def build(self):
-        self.header = self.build_header()
-        self.statistics = self.build_statistics()
-        self.function_grid = self.build_function_grid()
-        self.navigation_bar = self.build_navigation_bar()
-
-        return ft.Column(
-            [
-                self.header,
-                ft.Container(
-                    content=ft.Column([
-                        self.statistics,
-                        self.function_grid
-                    ]),
-                    expand=True,
-                    scroll=ft.ScrollMode.AUTO
-                ),
-                self.navigation_bar
+    def init_ui(self):
+        self.app_bar = AppBar(
+            leading=Image(src="logo.png", width=40, height=40),
+            leading_width=40,
+            title=Text("NexusWare", size=20, weight=ft.FontWeight.BOLD),
+            center_title=False,
+            bgcolor=colors.BLUE_600,
+            actions=[
+                IconButton(icon=icons.SEARCH, icon_color=colors.WHITE),
             ],
+        )
+
+        self.stats_row = Row(
+            controls=[
+                self.create_stat_card("Total Items", "0"),
+                self.create_stat_card("Pending Orders", "0"),
+            ],
+            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+        )
+
+        self.function_grid = GridView(
             expand=True,
-            spacing=0,
-        )
-
-    def build_header(self):
-        return ft.Container(
-            content=ft.Row(
-                [
-                    ft.Image(src="/assets/logo.png", width=40, height=40),
-                    ft.Text("NexusWare", size=20, weight=ft.FontWeight.BOLD),
-                    ft.IconButton(ft.icons.SEARCH, on_click=self.search_clicked),
-                ],
-                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-            ),
-            padding=ft.padding.symmetric(horizontal=20, vertical=10),
-            bgcolor=ft.colors.SURFACE_VARIANT,
-        )
-
-    def build_statistics(self):
-        return ft.Container(
-            content=ft.Column(
-                [
-                    ft.Text("Warehouse Statistics", size=18, weight=ft.FontWeight.BOLD),
-                    ft.Row(
-                        [
-                            self.create_stat_card("Total Items", "Loading..."),
-                            self.create_stat_card("Pending Orders", "Loading..."),
-                        ],
-                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                    ),
-                ],
-            ),
-            padding=ft.padding.all(20),
-            margin=ft.margin.all(10),
-            bgcolor=ft.colors.WHITE,
-            border_radius=12,
-            shadow=ft.BoxShadow(blur_radius=5, color=ft.colors.SHADOW),
-        )
-
-    def build_function_grid(self):
-        return ft.GridView(
-            expand=True,
+            runs_count=2,
             max_extent=150,
             child_aspect_ratio=1.0,
             spacing=20,
             run_spacing=20,
-            padding=20,
+        )
+
+        self.bottom_nav_bar = ft.NavigationBar(
+            destinations=[
+                ft.NavigationDestination(icon=icons.HOME, label="Home"),
+                ft.NavigationDestination(icon=icons.INVENTORY_2, label="Inventory"),
+                ft.NavigationDestination(icon=icons.SHOPPING_CART, label="Orders"),
+                ft.NavigationDestination(icon=icons.PERSON, label="Profile"),
+            ],
+            on_change=self.bottom_nav_change,
+        )
+
+    def build(self):
+        return Column(
             controls=[
-                self.create_function_card("Inventory", ft.icons.INVENTORY, lambda _: self.app.page.go("/inventory")),
-                self.create_function_card("Picking", ft.icons.LIST, lambda _: self.app.page.go("/picking")),
-                self.create_function_card("Receiving", ft.icons.MOVE_TO_INBOX,
-                                          lambda _: self.app.page.go("/receiving")),
-                self.create_function_card("Shipping", ft.icons.LOCAL_SHIPPING, lambda _: self.app.page.go("/shipping")),
-                self.create_function_card("Tasks", ft.icons.ASSIGNMENT, lambda _: self.app.page.go("/tasks")),
-                self.create_function_card("Reports", ft.icons.BAR_CHART, lambda _: self.app.page.go("/reports")),
-            ]
+                self.app_bar,
+                Container(
+                    expand=True,
+                    bgcolor=colors.BLUE_50,
+                    content=Column(
+                        controls=[
+                            Container(
+                                padding=padding.all(20),
+                                content=Column(
+                                    controls=[
+                                        self.stats_row,
+                                        Container(height=20),
+                                        self.function_grid,
+                                    ],
+                                    expand=True,
+                                ),
+                            ),
+                        ],
+                        expand=True,
+                    ),
+                ),
+                self.bottom_nav_bar,
+            ],
+            expand=True,
         )
 
-    def build_navigation_bar(self):
-        return ft.Container(
-            content=ft.NavigationBar(
-                destinations=[
-                    ft.NavigationDestination(icon=ft.icons.HOME, label="Home"),
-                    ft.NavigationDestination(icon=ft.icons.INVENTORY, label="Inventory"),
-                    ft.NavigationDestination(icon=ft.icons.SHOPPING_CART, label="Orders"),
-                    ft.NavigationDestination(icon=ft.icons.PERSON, label="Profile"),
-                ],
-                on_change=self.navigation_change,
-                selected_index=0,
-            ),
-            bgcolor=ft.colors.SURFACE_VARIANT,
-        )
+    def did_mount(self):
+        self.load_function_cards()
+        self.app.page.run_task(self.fetch_warehouse_stats)
+        self.update()
 
-    def create_function_card(self, title, icon, on_click):
-        return ft.Container(
-            content=ft.Column(
-                [
-                    ft.Icon(icon, size=40, color=ft.colors.PRIMARY),
-                    ft.Text(title, size=16, weight=ft.FontWeight.BOLD),
-                ],
-                alignment=ft.MainAxisAlignment.CENTER,
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-            ),
-            width=150,
-            height=150,
-            bgcolor=ft.colors.WHITE,
-            border_radius=12,
-            shadow=ft.BoxShadow(blur_radius=5, color=ft.colors.SHADOW),
-            on_click=on_click,
-        )
+    async def fetch_warehouse_stats(self):
+        response = await api_call(self.app, self.app.client.get, "/warehouse/stats")
+        if response:
+            self.stats_row.controls[0].content.content.controls[1].value = str(response.get("total_items", 0))
+            self.stats_row.controls[1].content.content.controls[1].value = str(response.get("pending_orders", 0))
+        self.update()
 
     def create_stat_card(self, title, value):
-        return ft.Container(
-            content=ft.Column(
-                [
-                    ft.Text(title, size=14),
-                    ft.Text(value, size=24, weight=ft.FontWeight.BOLD),
-                ],
-                alignment=ft.MainAxisAlignment.CENTER,
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+        return Card(
+            content=Container(
+                padding=10,
+                content=Column(
+                    controls=[
+                        Text(title, size=14, color=colors.BLUE_600),
+                        Text(value, size=24, weight=ft.FontWeight.BOLD),
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                ),
             ),
-            width=150,
-            height=80,
-            bgcolor=ft.colors.SURFACE_VARIANT,
-            border_radius=8,
+            width=self.app.page.width * 0.4,  # 40% of screen width
+            height=100,
         )
 
-    async def did_mount_async(self):
-        await self.load_data()
+    def create_function_card(self, icon, title, gradient_colors):
+        return ft.GestureDetector(
+            content=Card(
+                content=Container(
+                    gradient=ft.LinearGradient(
+                        begin=ft.alignment.top_left,
+                        end=ft.alignment.bottom_right,
+                        colors=gradient_colors,
+                    ),
+                    border_radius=border_radius.all(12),
+                    padding=15,
+                    content=Column(
+                        controls=[
+                            Icon(icon, size=40, color=colors.WHITE),
+                            Container(height=10),
+                            Text(title, color=colors.WHITE, size=16, weight=ft.FontWeight.BOLD),
+                        ],
+                        alignment=ft.MainAxisAlignment.CENTER,
+                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    ),
+                ),
+            ),
+            on_tap=lambda _: self.navigate_to_function(title),
+        )
 
-    async def load_data(self):
-        try:
-            stats_task = self.app.client.get("/inventory/report")
-            warehouse_stats_task = self.app.client.get("/warehouse/stats")
+    def load_function_cards(self):
+        functions = [
+            ("Inventory", icons.INVENTORY_2, [ft.colors.BLUE_400, ft.colors.BLUE_700]),
+            ("Picking", icons.LIST_ALT, [ft.colors.GREEN_400, ft.colors.GREEN_700]),
+            ("Receiving", icons.MOVE_TO_INBOX, [ft.colors.AMBER_400, ft.colors.AMBER_700]),
+            ("Shipping", icons.LOCAL_SHIPPING, [ft.colors.PURPLE_400, ft.colors.PURPLE_700]),
+            ("Tasks", icons.ASSIGNMENT, [ft.colors.RED_400, ft.colors.RED_700]),
+            ("Reports", icons.BAR_CHART, [ft.colors.CYAN_400, ft.colors.CYAN_700]),
+        ]
 
-            stats_response, warehouse_stats_response = await asyncio.gather(stats_task, warehouse_stats_task)
+        for title, icon, colors in functions:
+            self.function_grid.controls.append(self.create_function_card(icon, title, colors))
 
-            if stats_response.status_code == 200 and warehouse_stats_response.status_code == 200:
-                self.stats = stats_response.json()
-                self.warehouse_stats = warehouse_stats_response.json()
-                await self.update_statistics()
-            else:
-                print("Failed to load data")
-        except Exception as e:
-            print(f"Error loading data: {str(e)}")
-        finally:
-            self.loading = False
-            await self.update_async()
+        self.update()
 
-    async def update_statistics(self):
-        if self.stats and self.warehouse_stats:
-            total_items = self.stats.get("total_items", "N/A")
-            pending_orders = self.warehouse_stats.get("pending_orders", "N/A")
+    def navigate_to_function(self, function_name):
+        function_routes = {
+            "Inventory": "/inventory",
+            "Picking": "/picking",
+            "Receiving": "/receiving",
+            "Shipping": "/shipping",
+            "Tasks": "/tasks",
+            "Reports": "/reports",
+        }
+        if function_name in function_routes:
+            self.app.page.go(function_routes[function_name])
 
-            self.statistics.content.controls[1].controls[0].content.controls[1].value = str(total_items)
-            self.statistics.content.controls[1].controls[1].content.controls[1].value = str(pending_orders)
-
-            await self.update_async()
-
-    def search_clicked(self, e):
-        print("Search clicked")
-        # Implement search functionality
-
-    def navigation_change(self, e):
+    def bottom_nav_change(self, e):
         index = e.control.selected_index
-        if index == 0:
-            self.app.page.go("/")
-        elif index == 1:
+        if index == 0:  # Home
+            pass  # Already on home screen
+        elif index == 1:  # Inventory
             self.app.page.go("/inventory")
-        elif index == 2:
+        elif index == 2:  # Orders
             self.app.page.go("/orders")
-        elif index == 3:
+        elif index == 3:  # Profile
             self.app.page.go("/profile")

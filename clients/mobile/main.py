@@ -75,7 +75,7 @@ class NexusWareApp:
             new_view.controls.append(routes[route.route])
         elif route.route.startswith("/product/"):
             product_id = int(route.route.split("/")[-1])
-            self.product_details_screen.load_product(product_id)
+            self.page.run_task(self.product_details_screen.load_product(product_id))
             new_view.controls.append(self.product_details_screen)
         else:
             new_view.controls.append(ft.Text(f"404 - Page not found: {route.route}"))
@@ -124,4 +124,4 @@ def main(page: Page):
 
 
 if __name__ == "__main__":
-    ft.app(target=main, assets_dir="assets")
+    ft.app(target=main)

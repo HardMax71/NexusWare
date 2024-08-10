@@ -6,21 +6,12 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
-from server.app.models import Order, OrderItem, Customer, PurchaseOrder, POItem, Supplier
+from server.app.models import Order, OrderItem
 from server.app.schemas import (
     Order as OrderSchema,
     OrderWithDetails as OrderWithDetailsSchema,
     OrderCreate, OrderUpdate, OrderItemCreate, OrderItemUpdate,
-    Customer as CustomerSchema,
-    CustomerCreate, CustomerUpdate,
-    PurchaseOrder as PurchaseOrderSchema,
-    PurchaseOrderWithDetails as PurchaseOrderWithDetailsSchema,
-    POItem as POItemSchema,
-    POItemCreate, POItemUpdate,
-    Supplier as SupplierSchema,
-    SupplierCreate, SupplierUpdate,
-    OrderFilter, CustomerFilter, PurchaseOrderFilter, SupplierFilter,
-    OrderSummary, POItemReceive, ShippingInfo, PurchaseOrderCreate, PurchaseOrderUpdate, BulkOrderImportData,
+    OrderFilter, OrderSummary, ShippingInfo, BulkOrderImportData,
     BulkOrderImportResult, OrderProcessingTimes
 )
 from .base import CRUDBase
@@ -179,111 +170,9 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
         )
 
 
-
-
 class CRUDOrderItem(CRUDBase[OrderItem, OrderItemCreate, OrderItemUpdate]):
     pass
 
 
-class CRUDCustomer(CRUDBase[Customer, CustomerCreate, CustomerUpdate]):
-    def get_multi_with_filter(self, db: Session, *,
-                              skip: int = 0, limit: int = 100,
-                              filter_params: CustomerFilter) -> list[CustomerSchema]:
-        query = db.query(self.model)
-        if filter_params.name:
-            query = query.filter(Customer.name.ilike(f"%{filter_params.name}%"))
-        if filter_params.email:
-            query = query.filter(Customer.email == filter_params.email)
-        customers = query.offset(skip).limit(limit).all()
-        return [CustomerSchema.model_validate(x) for x in customers]
-
-
-class CRUDPurchaseOrder(CRUDBase[PurchaseOrder, PurchaseOrderCreate, PurchaseOrderUpdate]):
-    def create(self, db: Session, *, obj_in: PurchaseOrderCreate) -> PurchaseOrderSchema:
-        obj_in_data = jsonable_encoder(obj_in)
-        items = obj_in_data.pop("items")
-        db_obj = self.model(**obj_in_data)
-        for item in items:
-            db_obj.po_items.append(POItem(**item))
-        db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
-        return PurchaseOrderSchema.model_validate(db_obj)
-
-    def get_multi_with_details(self, db: Session, *, skip: int = 0, limit: int = 100,
-                               filter_params: PurchaseOrderFilter) -> list[PurchaseOrderWithDetailsSchema]:
-        query = db.query(self.model).join(Supplier)
-        if filter_params.supplier_id:
-            query = query.filter(PurchaseOrder.supplier_id == filter_params.supplier_id)
-        if filter_params.status:
-            query = query.filter(PurchaseOrder.status == filter_params.status)
-        if filter_params.date_from:
-            query = query.filter(PurchaseOrder.order_date >= filter_params.date_from)
-        if filter_params.date_to:
-            query = query.filter(PurchaseOrder.order_date <= filter_params.date_to)
-
-        purchase_orders = query.offset(skip).limit(limit).all()
-        return [PurchaseOrderWithDetailsSchema.model_validate(po) for po in purchase_orders]
-
-    def get_with_details(self, db: Session, id: int) -> Optional[PurchaseOrderWithDetailsSchema]:
-        purchase_order = (db.query(self.model)
-                          .filter(self.model.po_id == id)
-                          .join(Supplier)
-                          .first())
-        return PurchaseOrderWithDetailsSchema.model_validate(purchase_order) if purchase_order else None
-
-    def receive(self, db: Session, *, db_obj: PurchaseOrder,
-                received_items: list[POItemReceive]) -> PurchaseOrderSchema:
-        for item in received_items:
-            cur_po_item = next((i for i in db_obj.po_items if i.po_item_id == item.po_item_id), None)
-            if cur_po_item:
-                cur_po_item.received_quantity = item.received_quantity
-        db_obj.status = "received"
-        db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
-        return PurchaseOrderSchema.model_validate(db_obj)
-
-    def get_by_supplier(self, db: Session, *,
-                        supplier_id: int, skip: int = 0, limit: int = 100) -> list[PurchaseOrderSchema]:
-        purchase_orders = (db.query(self.model)
-                           .filter(PurchaseOrder.supplier_id == supplier_id)
-                           .offset(skip).limit(limit)
-                           .all())
-        return [PurchaseOrderSchema.model_validate(po) for po in purchase_orders]
-
-
-class CRUDPOItem(CRUDBase[POItem, POItemCreate, POItemUpdate]):
-    def get_by_product(self, db: Session, *, product_id: int, skip: int = 0, limit: int = 100) -> list[POItemSchema]:
-        po_items = (db.query(self.model)
-                    .filter(POItem.product_id == product_id)
-                    .offset(skip).limit(limit)
-                    .all())
-        return [POItemSchema.model_validate(item) for item in po_items]
-
-    def get_pending_receipt(self, db: Session, *, skip: int = 0, limit: int = 100) -> list[POItemSchema]:
-        po_items = db.query(self.model).join(PurchaseOrder).filter(
-            PurchaseOrder.status.in_(["open", "partial"])
-        ).offset(skip).limit(limit).all()
-        return [POItemSchema.model_validate(item) for item in po_items]
-
-
-class CRUDSupplier(CRUDBase[Supplier, SupplierCreate, SupplierUpdate]):
-    def get_multi_with_filter(self, db: Session, *,
-                              skip: int = 0, limit: int = 100,
-                              filter_params: SupplierFilter) -> list[SupplierSchema]:
-        query = db.query(self.model)
-        if filter_params.name:
-            query = query.filter(Supplier.name.ilike(f"%{filter_params.name}%"))
-        if filter_params.contact_person:
-            query = query.filter(Supplier.contact_person.ilike(f"%{filter_params.contact_person}%"))
-        suppliers = query.offset(skip).limit(limit).all()
-        return [SupplierSchema.model_validate(supplier) for supplier in suppliers]
-
-
 order = CRUDOrder(Order)
 order_item = CRUDOrderItem(OrderItem)
-customer = CRUDCustomer(Customer)
-purchase_order = CRUDPurchaseOrder(PurchaseOrder)
-po_item = CRUDPOItem(POItem)
-supplier = CRUDSupplier(Supplier)
