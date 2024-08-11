@@ -1,8 +1,8 @@
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-
-from server.app.core.config import settings
+# import smtplib
+# from email.mime.multipart import MIMEMultipart
+# from email.mime.text import MIMEText
+#
+# from server.app.core.config import settings
 
 
 def send_reset_password_email(email: str, token: str) -> str:

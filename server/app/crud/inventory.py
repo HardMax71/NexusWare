@@ -18,12 +18,25 @@ from server.app.schemas import (
     InventoryReport, LocationWithInventory as LocationWithInventorySchema, InventoryMovement,
     StocktakeCreate, StocktakeResult, ABCAnalysisResult, InventoryLocationSuggestion,
     StocktakeDiscrepancy, ABCCategory, StorageUtilization,
-    BulkImportData, BulkImportResult
+    BulkImportData, BulkImportResult, InventoryFilter
 )
 from .base import CRUDBase
 
 
 class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
+
+    def get_multi_with_filter(self, db: Session, *, skip: int = 0, limit: int = 100,
+                              filter_params: InventoryFilter) -> list[InventorySchema]:
+        query = db.query(Inventory)
+        if filter_params.product_id:
+            query = query.filter(Inventory.product_id == filter_params.product_id)
+        if filter_params.location_id:
+            query = query.filter(Inventory.location_id == filter_params.location_id)
+        if filter_params.quantity_max:
+            query = query.filter(Inventory.quantity <= filter_params.quantity_max)
+        if filter_params.quantity_min:
+            query = query.filter(Inventory.quantity >= filter_params.quantity_min)
+        return [InventorySchema.model_validate(x) for x in query.offset(skip).limit(limit).all()]
 
     def adjust_quantity(self, db: Session, inventory_id: int, adjustment: InventoryAdjustment) -> InventorySchema:
         current_inventory = self.get(db, id=inventory_id)

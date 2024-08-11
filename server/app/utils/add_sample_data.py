@@ -22,6 +22,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 # Create all tables in the database
 Base.metadata.create_all(bind=engine)
 
+
 def add_sample_data():
     db = SessionLocal()
 
@@ -78,11 +79,16 @@ def add_sample_data():
     db.commit()
     # Products
     products = [
-        Product(sku="SKU001", name="Smartphone", category_id=categories[0].category_id, price=599.99, unit_of_measure="piece", weight=0.2, dimensions="15x7x1"),
-        Product(sku="SKU002", name="T-shirt", category_id=categories[1].category_id, price=19.99, unit_of_measure="piece", weight=0.1, dimensions="30x20x2"),
-        Product(sku="SKU003", name="Garden Hose", category_id=categories[2].category_id, price=29.99, unit_of_measure="piece", weight=1.5, dimensions="100x10x10"),
-        Product(sku="SKU004", name="Novel", category_id=categories[3].category_id, price=14.99, unit_of_measure="piece", weight=0.3, dimensions="20x15x3"),
-        Product(sku="SKU005", name="Action Figure", category_id=categories[4].category_id, price=24.99, unit_of_measure="piece", weight=0.1, dimensions="10x5x15"),
+        Product(sku="SKU001", name="Smartphone", category_id=categories[0].category_id, price=599.99,
+                unit_of_measure="piece", weight=0.2, dimensions="15x7x1"),
+        Product(sku="SKU002", name="T-shirt", category_id=categories[1].category_id, price=19.99,
+                unit_of_measure="piece", weight=0.1, dimensions="30x20x2"),
+        Product(sku="SKU003", name="Garden Hose", category_id=categories[2].category_id, price=29.99,
+                unit_of_measure="piece", weight=1.5, dimensions="100x10x10"),
+        Product(sku="SKU004", name="Novel", category_id=categories[3].category_id, price=14.99, unit_of_measure="piece",
+                weight=0.3, dimensions="20x15x3"),
+        Product(sku="SKU005", name="Action Figure", category_id=categories[4].category_id, price=24.99,
+                unit_of_measure="piece", weight=0.1, dimensions="10x5x15"),
     ]
     db.add_all(products)
     db.commit()
@@ -138,14 +144,17 @@ def add_sample_data():
         )
         for product in random.sample(products, random.randint(1, 3)):
             quantity = random.randint(1, 5)
-            OrderItem(order_id=order.order_id, product_id=product.product_id, quantity=quantity, unit_price=product.price)
+            OrderItem(order_id=order.order_id, product_id=product.product_id, quantity=quantity,
+                      unit_price=product.price)
             order.total_amount += quantity * product.price
         db.add(order)
     db.commit()
     # Suppliers
     suppliers = [
-        Supplier(name="Acme Corp", contact_person="John Acme", email="john@acme.com", phone="1111111111", address="1 Acme Way"),
-        Supplier(name="XYZ Distributors", contact_person="Jane XYZ", email="jane@xyz.com", phone="2222222222", address="2 XYZ Street"),
+        Supplier(name="Acme Corp", contact_person="John Acme", email="john@acme.com", phone="1111111111",
+                 address="1 Acme Way"),
+        Supplier(name="XYZ Distributors", contact_person="Jane XYZ", email="jane@xyz.com", phone="2222222222",
+                 address="2 XYZ Street"),
     ]
     db.add_all(suppliers)
     db.commit()
@@ -159,7 +168,8 @@ def add_sample_data():
         )
         for product in random.sample(products, random.randint(1, 3)):
             quantity = random.randint(10, 50)
-            POItem(po_id=po.po_id, product_id=product.product_id, quantity=quantity, unit_price=int(product.price) * 0.7)
+            POItem(po_id=po.po_id, product_id=product.product_id, quantity=quantity,
+                   unit_price=int(product.price) * 0.7)
         db.add(po)
     db.commit()
     # Assets
@@ -169,8 +179,8 @@ def add_sample_data():
         asset_type = random.choice(asset_types)
         asset = Asset(
             asset_type=asset_type,
-            asset_name=f"{asset_type} {i+1}",
-            serial_number=f"{asset_type[:2].upper()}{i+1:03d}",
+            asset_name=f"{asset_type} {i + 1}",
+            serial_number=f"{asset_type[:2].upper()}{i + 1:03d}",
             purchase_date=datetime.now().date() - timedelta(days=random.randint(1, 1000)),
             status=random.choice(["Active", "Under Maintenance", "Inactive"]),
             location_id=random.choice(locations).location_id
@@ -324,7 +334,7 @@ def add_sample_data():
         )
         db.add(audit_log)
     db.commit()
-        # Inventory Movements
+    # Inventory Movements
     for _ in range(30):  # Create 30 inventory movements
         product = random.choice(products)
         from_location = random.choice(locations)
@@ -338,7 +348,7 @@ def add_sample_data():
         )
         db.add(movement)
     db.commit()
-        # Inventory Adjustments
+    # Inventory Adjustments
     for _ in range(20):  # Create 20 inventory adjustments
         product = random.choice(products)
         location = random.choice(locations)
@@ -350,14 +360,14 @@ def add_sample_data():
         )
         db.add(adjustment)
     db.commit()
-        # Role Permissions
+    # Role Permissions
     for role in [admin_role, user_role, manager_role]:
         for permission in permissions:
             if role == admin_role or (role == manager_role and permission.permission_name != "manage_users"):
                 role_permission = RolePermission(role_id=role.role_id, permission_id=permission.permission_id)
                 db.add(role_permission)
     db.commit()
-        # Location Inventory
+    # Location Inventory
     for location in locations:
         for product in random.sample(products, k=random.randint(1, len(products))):
             location_inventory = LocationInventory(
