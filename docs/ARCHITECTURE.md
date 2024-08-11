@@ -13,25 +13,26 @@ This document provides an overview of the NexusWare Warehouse Management System 
 
 ## System Overview
 
-NexusWare is a distributed system consisting of a central server and multiple client applications (mobile, web, and desktop). The system is designed to be scalable, maintainable, and secure.
+NexusWare is a distributed system consisting of a central server and multiple client applications (mobile, web, and desktop). 
+The system is designed to be scalable, maintainable, and secure.
 
 ## Component Diagram
 
 The following diagram illustrates the high-level components of the NexusWare system:
 
-![Component Diagram](diagrams/component_diagram.png)
+![Component Diagram](../diagrams/component_diagram.png)
 
 ## Data Flow Diagram
 
 The following diagram illustrates the data flow within the NexusWare system:
 
-![Data Flow Diagram](diagrams/data_flow_diagram.png)
+![Data Flow Diagram](../diagrams/data_flow_diagram.png)
 
 ## Database Schema
 
 The following diagram illustrates the core database schema for NexusWare:
 
-![Database Schema](diagrams/database_schema.png)
+![Database Schema](../diagrams/database_schema.png)
 
 ## API Design
 

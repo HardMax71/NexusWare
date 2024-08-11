@@ -1,33 +1,11 @@
 # NexusWare: Advanced Warehouse Management System
 
 NexusWare is a cutting-edge, multi-platform Warehouse Management System designed to revolutionize inventory control,
-order fulfillment, and warehouse operations. Built with Python, Flet, and SQLite, NexusWare offers seamless integration
+order fulfillment, and warehouse operations. Built with Python and SQLite, NexusWare offers seamless integration
 across mobile, web, and desktop environments.
 
-## System Requirements
-
-### General
-
-- Python 3.8+
-- Flet framework
-- SQLite database
-
-### Mobile
-
-- Android 7.0+ or iOS 13+
-- 2GB RAM minimum
-- 100MB free storage
-
-### Web
-
-- Modern web browser (Chrome, Firefox, Safari, Edge)
-- Internet connection
-
-### Desktop
-
-- Windows 10 or later
-- 4GB RAM minimum
-- 500MB free storage
+> Although initial development idea was to use Flet lib, it was decided to split the project into separate projects
+> for each platform.
 
 ## Feature Roadmap
 
@@ -74,7 +52,7 @@ across mobile, web, and desktop environments.
 
 ## Architecture
 
-For a detailed description of the system architecture, please refer to the [ARCHITECTURE.md](./ARCHITECTURE.md) file.
+For a detailed description of the system architecture, please refer to the [ARCHITECTURE.md](docs/ARCHITECTURE.md) file.
 
 ## Getting Started
 
@@ -83,12 +61,8 @@ here.)
 
 ## Contributing
 
-(Guidelines for contributing to the project will be added here.)
+We welcome contributions to NexusWare! Please refer to our [CONTRIBUTING.md](docs/CONTRIBUTING.md) file for guidelines on how to report issues, submit pull requests, and more.
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Support
-
-(Information on how to get support or contact the development team will be added here.)
