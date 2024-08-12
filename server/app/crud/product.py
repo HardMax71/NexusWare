@@ -10,7 +10,7 @@ from server.app.schemas import (
     Product as ProductSchema,
     ProductWithInventory as ProductWithInventorySchema,
     ProductCreate, ProductUpdate,
-    ProductFilter
+    ProductFilter, ProductWithCategoryAndInventory
 )
 from .base import CRUDBase
 
@@ -26,7 +26,7 @@ class CRUDProduct(CRUDBase[Product, ProductCreate, ProductUpdate]):
     def get_multi_with_category_and_inventory(
             self, db: Session,
             skip: int = 0, limit: int = 100,
-            filter_params: Optional[ProductFilter] = None) -> list[ProductWithInventorySchema]:
+            filter_params: Optional[ProductFilter] = None) -> list[ProductWithCategoryAndInventory]:
         query = db.query(Product).options(
             joinedload(Product.category),
             joinedload(Product.inventory_items)
@@ -43,7 +43,7 @@ class CRUDProduct(CRUDBase[Product, ProductCreate, ProductUpdate]):
                 query = query.filter(Product.barcode == filter_params.barcode)
 
         products = query.offset(skip).limit(limit).all()
-        return [ProductWithInventorySchema.model_validate(product) for product in products]
+        return [ProductWithCategoryAndInventory.model_validate(product) for product in products]
 
     def get_by_barcode(self, db: Session, barcode: str) -> Optional[ProductSchema]:
         current_product = db.query(Product).filter(Product.barcode == barcode).first()

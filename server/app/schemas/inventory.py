@@ -1,6 +1,6 @@
 # /server/app/schemas/inventory.py
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 from pydantic import BaseModel, constr, Field
 
@@ -140,6 +140,10 @@ class Zone(ZoneBase):
 
 class ProductWithInventory(Product):
     inventory_items: List[Inventory] = []
+    category: Optional[ProductCategory] = None
+
+    class Config:
+        from_attributes = True
 
 
 class LocationWithInventory(Location):
@@ -155,13 +159,6 @@ class ProductFilter(BaseModel):
     category_id: Optional[int] = None
     sku: Optional[str] = None
     barcode: Optional[str] = None
-
-
-class InventoryFilter(BaseModel):
-    product_id: Optional[int] = None
-    location_id: Optional[int] = None
-    quantity_min: Optional[int] = None
-    quantity_max: Optional[int] = None
 
 
 class LocationFilter(BaseModel):
@@ -188,7 +185,7 @@ class InventoryTransfer(BaseModel):
 
 
 class ProductWithCategoryAndInventory(ProductWithInventory):
-    category: ProductCategory
+    pass
 
 
 class InventoryReport(BaseModel):
@@ -275,3 +272,32 @@ class StorageUtilization(BaseModel):
     total_capacity: float
     used_capacity: float
     utilization_percentage: float
+
+
+class InventorySummary(BaseModel):
+    category_quantities: Dict[str, int]
+    total_items: int
+    total_categories: int
+
+    class Config:
+        from_attributes = True
+
+
+class InventoryWithDetails(Inventory):
+    product: Product
+    location: Location
+
+    class Config:
+        from_attributes = True
+
+class InventoryList(BaseModel):
+    items: List[InventoryWithDetails]
+    total: int
+
+class InventoryFilter(BaseModel):
+    product_id: Optional[int] = None
+    location_id: Optional[int] = None
+    sku: Optional[str] = None
+    name: Optional[str] = None
+    quantity_min: Optional[int] = None
+    quantity_max: Optional[int] = None

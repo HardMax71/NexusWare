@@ -1,4 +1,4 @@
-# /server/app/api/v1/endpoints/audit_log.py
+# /server/app/api/v1/endpoints/audit.py
 from datetime import datetime
 from typing import List
 
@@ -31,7 +31,7 @@ def read_audit_logs(
     return crud.audit_log.get_multi_with_filter(db, skip=skip, limit=limit, filter_params=filter_params)
 
 
-@router.get("/logs/{log_id}", response_model=schemas.AuditLogWithUser)
+@router.get("/logs/{log_id:int}", response_model=schemas.AuditLogWithUser)
 def read_audit_log(
         log_id: int = Path(..., title="The ID of the audit log to get"),
         db: Session = Depends(deps.get_db),
@@ -92,7 +92,7 @@ def export_audit_logs(
         db: Session = Depends(deps.get_db),
         date_from: datetime = Query(None),
         date_to: datetime = Query(None),
-        current_user: models.User = Depends(deps.get_current_active_superuser)
+        current_user: models.User = Depends(deps.get_current_admin)
 ):
     logs = crud.audit_log.get_for_export(db, date_from=date_from, date_to=date_to)
     return schemas.AuditLogExport(logs=logs, export_timestamp=datetime.utcnow())

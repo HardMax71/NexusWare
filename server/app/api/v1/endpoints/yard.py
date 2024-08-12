@@ -61,7 +61,7 @@ def update_yard_location(
 def delete_yard_location(
         location_id: int = Path(..., title="The ID of the yard location to delete"),
         db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_superuser)
+        current_user: models.User = Depends(deps.get_current_admin)
 ):
     location = crud.yard_location.get(db, id=location_id)
     if location is None:
@@ -135,7 +135,6 @@ def delete_dock_appointment(
     return crud.dock_appointment.remove(db, id=appointment_id)
 
 
-# Additional yard management operations
 @router.get("/utilization", response_model=schemas.YardUtilizationReport)
 def get_yard_utilization(
         date: datetime = Query(None),
@@ -145,7 +144,7 @@ def get_yard_utilization(
     return crud.yard.get_utilization_report(db, date=date or datetime.now())
 
 
-@router.get("/carrier-performance", response_model=List[schemas.CarrierPerformance])
+@router.get("/carrier_performance", response_model=List[schemas.CarrierPerformance])
 def get_carrier_performance(
         start_date: datetime = Query(...),
         end_date: datetime = Query(...),
@@ -155,7 +154,7 @@ def get_carrier_performance(
     return crud.yard.get_carrier_performance(db, start_date=start_date, end_date=end_date)
 
 
-@router.post("/check-availability", response_model=List[schemas.AppointmentConflict])
+@router.post("/check_availability", response_model=List[schemas.AppointmentConflict])
 def check_appointment_availability(
         appointment: schemas.DockAppointmentCreate,
         db: Session = Depends(deps.get_db),

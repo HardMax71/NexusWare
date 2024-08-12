@@ -10,7 +10,7 @@ from ....api import deps
 router = APIRouter()
 
 
-@router.get("/inventory-summary", response_model=schemas.InventorySummaryReport)
+@router.get("/inventory_summary", response_model=schemas.InventorySummaryReport)
 def get_inventory_summary(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
@@ -18,7 +18,7 @@ def get_inventory_summary(
     return crud.reports.get_inventory_summary(db)
 
 
-@router.get("/order-summary", response_model=schemas.OrderSummaryReport)
+@router.get("/order_summary", response_model=schemas.OrderSummaryReport)
 def get_order_summary(
         start_date: date = Query(...),
         end_date: date = Query(...),
@@ -28,7 +28,7 @@ def get_order_summary(
     return crud.reports.get_order_summary(db, start_date, end_date)
 
 
-@router.get("/warehouse-performance", response_model=schemas.WarehousePerformanceReport)
+@router.get("/warehouse_performance", response_model=schemas.WarehousePerformanceReport)
 def get_warehouse_performance(
         start_date: date = Query(...),
         end_date: date = Query(...),
@@ -38,7 +38,7 @@ def get_warehouse_performance(
     return crud.reports.get_warehouse_performance(db, start_date, end_date)
 
 
-@router.get("/kpi-dashboard", response_model=schemas.KPIDashboard)
+@router.get("/kpi_dashboard", response_model=schemas.KPIDashboard)
 def get_kpi_dashboard(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)

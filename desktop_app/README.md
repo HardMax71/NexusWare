@@ -22,7 +22,7 @@ This is the desktop application component of the NexusWare Warehouse Management 
 - Python 3.11+
 - PySide6
 - SQLite
-- Other dependencies (listed in requirements.txt)7
+- Other dependencies (listed in requirements.txt)
 
 > README will be extended with detailed instructions for setting up the development environment, 
 > installing dependencies, and running the application, but sooner.

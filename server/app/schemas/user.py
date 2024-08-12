@@ -64,6 +64,16 @@ class UserUpdate(BaseModel):
     password: Optional[str] = None
 
 
+class UserSanitizedWithRole(UserBase):
+    user_id: int
+    created_at: datetime
+    last_login: Optional[datetime] = None
+    role: Role
+
+    class Config:
+        from_attributes = True
+
+
 class User(UserBase):
     user_id: int
     created_at: datetime

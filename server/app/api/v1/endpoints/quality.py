@@ -60,7 +60,7 @@ def update_quality_check(
 def delete_quality_check(
         check_id: int = Path(..., title="The ID of the quality check to delete"),
         db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_superuser)
+        current_user: models.User = Depends(deps.get_current_admin)
 ):
     check = crud.quality_check.get(db, id=check_id)
     if check is None:
@@ -126,7 +126,7 @@ def update_quality_standard(
 def delete_quality_standard(
         standard_id: int = Path(..., title="The ID of the quality standard to delete"),
         db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_superuser)
+        current_user: models.User = Depends(deps.get_current_admin)
 ):
     standard = crud.quality_standard.get(db, id=standard_id)
     if standard is None:
@@ -196,7 +196,7 @@ def get_product_quality_standards(
     return crud.quality_standard.get_by_product(db, product_id=product_id)
 
 
-@router.post("/batch-check", response_model=List[schemas.QualityCheck])
+@router.post("/batch_check", response_model=List[schemas.QualityCheck])
 def create_batch_quality_check(
         checks: List[schemas.QualityCheckCreate],
         db: Session = Depends(deps.get_db),
@@ -225,7 +225,7 @@ def add_comment_to_quality_check(
     return crud.quality_check.add_comment(db, check_id=check_id, comment=comment, user_id=current_user.user_id)
 
 
-@router.get("/reports/defect-rate", response_model=List[schemas.ProductDefectRate])
+@router.get("/reports/defect_rate", response_model=List[schemas.ProductDefectRate])
 def get_product_defect_rates(
         db: Session = Depends(deps.get_db),
         date_from: datetime = Query(None),

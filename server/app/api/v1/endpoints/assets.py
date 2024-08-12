@@ -33,43 +33,6 @@ def read_assets(
     return {"assets": assets, "total": total}
 
 
-@router.get("/{asset_id}", response_model=schemas.AssetWithMaintenance)
-def read_asset(
-        asset_id: int,
-        db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_user)
-):
-    asset = crud.asset.get_with_maintenance(db, id=asset_id)
-    if asset is None:
-        raise HTTPException(status_code=404, detail="Asset not found")
-    return asset
-
-
-@router.put("/{asset_id}", response_model=schemas.Asset)
-def update_asset(
-        asset_id: int,
-        asset_in: schemas.AssetUpdate,
-        db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_user)
-):
-    asset = crud.asset.get(db, id=asset_id)
-    if asset is None:
-        raise HTTPException(status_code=404, detail="Asset not found")
-    return crud.asset.update(db, db_obj=asset, obj_in=asset_in)
-
-
-@router.delete("/{asset_id}", response_model=schemas.Asset)
-def delete_asset(
-        asset_id: int,
-        db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_superuser)
-):
-    asset = crud.asset.get(db, id=asset_id)
-    if asset is None:
-        raise HTTPException(status_code=404, detail="Asset not found")
-    return crud.asset.remove(db, id=asset_id)
-
-
 @router.get("/types", response_model=list[str])
 def read_asset_types(
         db: Session = Depends(deps.get_db),
@@ -136,7 +99,7 @@ def update_asset_maintenance(
 def delete_asset_maintenance(
         maintenance_id: int,
         db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_superuser)
+        current_user: models.User = Depends(deps.get_current_admin)
 ):
     maintenance = crud.asset_maintenance.get(db, id=maintenance_id)
     if maintenance is None:
@@ -152,7 +115,7 @@ def read_maintenance_types(
     return crud.asset_maintenance.get_all_types(db)
 
 
-@router.get("/{asset_id}/maintenance-history", response_model=list[schemas.AssetMaintenance])
+@router.get("/{asset_id}/maintenance_history", response_model=list[schemas.AssetMaintenance])
 def read_asset_maintenance_history(
         asset_id: int,
         db: Session = Depends(deps.get_db),
@@ -163,7 +126,7 @@ def read_asset_maintenance_history(
     return crud.asset_maintenance.get_multi_by_asset(db, asset_id=asset_id, skip=skip, limit=limit)
 
 
-@router.post("/{asset_id}/schedule-maintenance", response_model=schemas.AssetMaintenance)
+@router.post("/{asset_id}/schedule_maintenance", response_model=schemas.AssetMaintenance)
 def schedule_asset_maintenance(
         asset_id: int,
         maintenance: schemas.AssetMaintenanceCreate,
@@ -192,7 +155,52 @@ def complete_asset_maintenance(
     return crud.asset_maintenance.update(db, db_obj=maintenance, obj_in=completion_data)
 
 
-@router.get("/{asset_id}/current-location", response_model=schemas.Location)
+@router.get("/due_for_maintenance", response_model=list[schemas.AssetWithMaintenance])
+def get_assets_due_for_maintenance(
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.asset.get_due_for_maintenance(db)
+
+
+@router.get("/{asset_id}", response_model=schemas.AssetWithMaintenance)
+def read_asset(
+        asset_id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    asset = crud.asset.get_with_maintenance(db, id=asset_id)
+    if asset is None:
+        raise HTTPException(status_code=404, detail="Asset not found")
+    return asset
+
+
+@router.put("/{asset_id}", response_model=schemas.Asset)
+def update_asset(
+        asset_id: int,
+        asset_in: schemas.AssetUpdate,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    asset = crud.asset.get(db, id=asset_id)
+    if asset is None:
+        raise HTTPException(status_code=404, detail="Asset not found")
+    return crud.asset.update(db, db_obj=asset, obj_in=asset_in)
+
+
+@router.delete("/{asset_id}", response_model=schemas.Asset)
+def delete_asset(
+        asset_id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_admin)
+):
+    asset = crud.asset.get(db, id=asset_id)
+    if asset is None:
+        raise HTTPException(status_code=404, detail="Asset not found")
+    return crud.asset.remove(db, id=asset_id)
+
+
+@router.get("/{asset_id}/current_location", response_model=schemas.Location)
 def get_asset_current_location(
         asset_id: int,
         db: Session = Depends(deps.get_db),
@@ -215,11 +223,3 @@ def transfer_asset(
     if asset is None:
         raise HTTPException(status_code=404, detail="Asset not found")
     return asset
-
-
-@router.get("/due-for-maintenance", response_model=list[schemas.AssetWithMaintenance])
-def get_assets_due_for_maintenance(
-        db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_user)
-):
-    return crud.asset.get_due_for_maintenance(db)

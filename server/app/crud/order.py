@@ -40,10 +40,14 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
             query = query.filter(Order.customer_id == filter_params.customer_id)
         if filter_params.status:
             query = query.filter(Order.status == filter_params.status)
-        if filter_params.date_from:
-            query = query.filter(Order.order_date >= filter_params.date_from)
-        if filter_params.date_to:
-            query = query.filter(Order.order_date <= filter_params.date_to)
+        if filter_params.order_date_from:
+            query = query.filter(Order.order_date >= filter_params.order_date_from)
+        if filter_params.order_date_to:
+            query = query.filter(Order.order_date <= filter_params.order_date_to)
+        if filter_params.ship_date_from:
+            query = query.filter(Order.ship_date >= filter_params.ship_date_from)
+        if filter_params.ship_date_to:
+            query = query.filter(Order.ship_date <= filter_params.ship_date_to)
 
         orders = query.offset(skip).limit(limit).all()
         return [OrderWithDetailsSchema.model_validate(x) for x in orders]

@@ -1,14 +1,14 @@
 # /server/app/crud/inventory.py
 from collections import defaultdict
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, List
 
 from fastapi import HTTPException
 from sqlalchemy import func, or_
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from server.app.models import (
-    Product, Inventory, Location, Zone
+    Product, Inventory, Location, Zone, ProductCategory
 )
 from server.app.schemas import (
     Product as ProductSchema,
@@ -18,12 +18,44 @@ from server.app.schemas import (
     InventoryReport, LocationWithInventory as LocationWithInventorySchema, InventoryMovement,
     StocktakeCreate, StocktakeResult, ABCAnalysisResult, InventoryLocationSuggestion,
     StocktakeDiscrepancy, ABCCategory, StorageUtilization,
-    BulkImportData, BulkImportResult, InventoryFilter
+    BulkImportData, BulkImportResult, InventoryFilter, InventoryWithDetails, InventorySummary
 )
 from .base import CRUDBase
 
 
+
 class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
+
+    def get_multi_with_products(
+            self,
+            db: Session,
+            *,
+            skip: int = 0,
+            limit: int = 100,
+            filter_params: Optional[InventoryFilter] = None
+    ) -> List[InventoryWithDetails]:
+        query = db.query(Inventory).options(
+            joinedload(Inventory.product),
+            joinedload(Inventory.location)
+        )
+
+        if filter_params:
+            if filter_params.product_id:
+                query = query.filter(Inventory.product_id == filter_params.product_id)
+            if filter_params.location_id:
+                query = query.filter(Inventory.location_id == filter_params.location_id)
+            if filter_params.quantity_min is not None:
+                query = query.filter(Inventory.quantity >= filter_params.quantity_min)
+            if filter_params.quantity_max is not None:
+                query = query.filter(Inventory.quantity <= filter_params.quantity_max)
+            if filter_params.sku:
+                query = query.join(Product).filter(Product.sku.ilike(f"%{filter_params.sku}%"))
+            if filter_params.name:
+                query = query.join(Product).filter(Product.name.ilike(f"%{filter_params.name}%"))
+
+        items = query.offset(skip).limit(limit).all()
+
+        return [InventoryWithDetails.model_validate(item) for item in items]
 
     def get_multi_with_filter(self, db: Session, *, skip: int = 0, limit: int = 100,
                               filter_params: InventoryFilter) -> list[InventorySchema]:
@@ -148,6 +180,24 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
         if end_date:
             query = query.filter(InventoryMovement.timestamp <= end_date)
         return query.order_by(InventoryMovement.timestamp.desc()).all()
+
+    def get_inventory_summary(self, db: Session) -> InventorySummary:
+        categories = db.query(ProductCategory).all()
+        summary = {}
+        total_items = 0
+        for category in categories:
+            quantity = db.query(func.sum(Inventory.quantity)) \
+                           .join(Product) \
+                           .filter(Product.category_id == category.category_id) \
+                           .scalar() or 0
+            summary[category.name] = quantity
+            total_items += quantity
+
+        return InventorySummary(
+            category_quantities=summary,
+            total_items=total_items,
+            total_categories=len(categories)
+        )
 
     def perform_stocktake(self, db: Session, stocktake: StocktakeCreate) -> StocktakeResult:
         discrepancies = []

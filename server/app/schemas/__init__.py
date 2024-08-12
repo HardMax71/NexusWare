@@ -26,7 +26,7 @@ from .inventory import (
     StocktakeDiscrepancy, StocktakeResult, ABCCategory, ABCAnalysisResult,
     InventoryLocationSuggestion, BulkImportData, BulkImportResult,
     StorageUtilization, LocationBase, LocationCreate, LocationUpdate, Location,
-    LocationFilter
+    LocationFilter, InventorySummary, InventoryList, InventoryWithDetails,
 )
 # Order schemas
 from .order import (
@@ -66,7 +66,7 @@ from .user import (
     PermissionBase, PermissionCreate, PermissionUpdate, Permission,
     RoleBase, RoleCreate, RoleUpdate, Role,
     UserBase, UserCreate, UserUpdate, User, UserInDB, Token, TokenData,
-    Message
+    Message, UserSanitizedWithRole
 )
 # Warehouse schemas
 from .warehouse import (

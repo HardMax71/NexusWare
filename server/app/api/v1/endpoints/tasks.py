@@ -30,6 +30,51 @@ def read_tasks(
     return crud.task.get_multi_with_filter(db, skip=skip, limit=limit, filter_params=filter_params)
 
 
+@router.get("/statistics", response_model=schemas.TaskStatistics)
+def get_task_statistics(
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.task.get_statistics(db)
+
+
+@router.get("/user_summary", response_model=List[schemas.UserTaskSummary])
+def get_user_task_summary(
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.task.get_user_summary(db)
+
+
+@router.get("/overdue", response_model=List[schemas.TaskWithAssignee])
+def get_overdue_tasks(
+        db: Session = Depends(deps.get_db),
+        skip: int = 0,
+        limit: int = 100,
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.task.get_overdue(db, skip=skip, limit=limit)
+
+
+@router.post("/batch_create", response_model=List[schemas.Task])
+def create_batch_tasks(
+        tasks: List[schemas.TaskCreate],
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.task.create_batch(db=db, obj_in_list=tasks)
+
+
+@router.get("/my_tasks", response_model=List[schemas.Task])
+def get_my_tasks(
+        db: Session = Depends(deps.get_db),
+        skip: int = 0,
+        limit: int = 100,
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.task.get_user_tasks(db, user_id=current_user.user_id, skip=skip, limit=limit)
+
+
 @router.get("/{task_id}", response_model=schemas.TaskWithAssignee)
 def read_task(
         task_id: int = Path(..., title="The ID of the task to get"),
@@ -59,7 +104,7 @@ def update_task(
 def delete_task(
         task_id: int = Path(..., title="The ID of the task to delete"),
         db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_superuser)
+        current_user: models.User = Depends(deps.get_current_admin)
 ):
     task = crud.task.get(db, id=task_id)
     if task is None:
@@ -98,48 +143,3 @@ def get_task_comments(
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.task.get_comments(db, task_id=task_id, skip=skip, limit=limit)
-
-
-@router.get("/statistics", response_model=schemas.TaskStatistics)
-def get_task_statistics(
-        db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_user)
-):
-    return crud.task.get_statistics(db)
-
-
-@router.get("/user-summary", response_model=List[schemas.UserTaskSummary])
-def get_user_task_summary(
-        db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_user)
-):
-    return crud.task.get_user_summary(db)
-
-
-@router.get("/overdue", response_model=List[schemas.TaskWithAssignee])
-def get_overdue_tasks(
-        db: Session = Depends(deps.get_db),
-        skip: int = 0,
-        limit: int = 100,
-        current_user: models.User = Depends(deps.get_current_active_user)
-):
-    return crud.task.get_overdue(db, skip=skip, limit=limit)
-
-
-@router.post("/batch-create", response_model=List[schemas.Task])
-def create_batch_tasks(
-        tasks: List[schemas.TaskCreate],
-        db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_user)
-):
-    return crud.task.create_batch(db=db, obj_in_list=tasks)
-
-
-@router.get("/my-tasks", response_model=List[schemas.Task])
-def get_my_tasks(
-        db: Session = Depends(deps.get_db),
-        skip: int = 0,
-        limit: int = 100,
-        current_user: models.User = Depends(deps.get_current_active_user)
-):
-    return crud.task.get_user_tasks(db, user_id=current_user.user_id, skip=skip, limit=limit)
