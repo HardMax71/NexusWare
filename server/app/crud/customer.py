@@ -3,7 +3,7 @@
 from sqlalchemy.orm import Session
 
 from server.app.models import Customer
-from server.app.schemas import (
+from public_api.shared_schemas import (
     Customer as CustomerSchema,
     CustomerCreate, CustomerUpdate,
     CustomerFilter

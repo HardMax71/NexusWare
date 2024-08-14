@@ -1,23 +1,22 @@
 # /server/app/crud/purchase_order.py
 from typing import Optional
 
-from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 
-from server.app.models import PurchaseOrder, POItem, Supplier
-from server.app.schemas import (
+from public_api.shared_schemas import (
     PurchaseOrder as PurchaseOrderSchema,
     PurchaseOrderWithDetails as PurchaseOrderWithDetailsSchema,
     POItem as POItemSchema,
     POItemCreate, POItemUpdate,
     PurchaseOrderFilter, POItemReceive, PurchaseOrderCreate, PurchaseOrderUpdate
 )
+from server.app.models import PurchaseOrder, POItem, Supplier
 from .base import CRUDBase
 
 
 class CRUDPurchaseOrder(CRUDBase[PurchaseOrder, PurchaseOrderCreate, PurchaseOrderUpdate]):
     def create(self, db: Session, *, obj_in: PurchaseOrderCreate) -> PurchaseOrderSchema:
-        obj_in_data = jsonable_encoder(obj_in)
+        obj_in_data = obj_in.model_dump()
         items = obj_in_data.pop("items")
         db_obj = self.model(**obj_in_data)
         for item in items:
@@ -44,7 +43,7 @@ class CRUDPurchaseOrder(CRUDBase[PurchaseOrder, PurchaseOrderCreate, PurchaseOrd
 
     def get_with_details(self, db: Session, id: int) -> Optional[PurchaseOrderWithDetailsSchema]:
         purchase_order = (db.query(self.model)
-                          .filter(self.model.po_id == id)
+                          .filter(self.model.id == id)
                           .join(Supplier)
                           .first())
         return PurchaseOrderWithDetailsSchema.model_validate(purchase_order) if purchase_order else None
@@ -52,7 +51,7 @@ class CRUDPurchaseOrder(CRUDBase[PurchaseOrder, PurchaseOrderCreate, PurchaseOrd
     def receive(self, db: Session, *, db_obj: PurchaseOrder,
                 received_items: list[POItemReceive]) -> PurchaseOrderSchema:
         for item in received_items:
-            cur_po_item = next((i for i in db_obj.po_items if i.po_item_id == item.po_item_id), None)
+            cur_po_item = next((i for i in db_obj.po_items if i.id == item.id), None)
             if cur_po_item:
                 cur_po_item.received_quantity = item.received_quantity
         db_obj.status = "received"

@@ -3,7 +3,7 @@
 from server.app.models import (
     ProductCategory
 )
-from server.app.schemas import (
+from public_api.shared_schemas import (
     ProductCategoryCreate, ProductCategoryUpdate
 )
 from .base import CRUDBase

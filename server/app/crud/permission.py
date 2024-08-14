@@ -4,7 +4,7 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from server.app.models import Permission
-from server.app.schemas import PermissionCreate, PermissionUpdate, \
+from public_api.shared_schemas import PermissionCreate, PermissionUpdate, \
     Permission as PermissionSchema
 from .base import CRUDBase
 

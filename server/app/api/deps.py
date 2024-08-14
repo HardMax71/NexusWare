@@ -5,7 +5,8 @@ from jose import jwt
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
-from server.app import crud, models, schemas
+from server.app import crud, models
+from public_api import shared_schemas
 from server.app.core.config import settings
 from server.app.db.database import get_db
 
@@ -20,7 +21,7 @@ def get_current_user(
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
         )
-        token_data = schemas.TokenData(**payload)
+        token_data = shared_schemas.TokenData(**payload)
     except (jwt.JWTError, ValidationError):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -40,10 +41,10 @@ def get_current_active_user(
     return current_user
 
 
-def get_current_active_superuser(
+def get_current_admin(
         current_user: models.User = Depends(get_current_user),
 ) -> models.User:
-    if not crud.user.is_superuser(current_user):
+    if not crud.user.is_admin(current_user):
         raise HTTPException(
             status_code=400, detail="The user doesn't have enough privileges"
         )

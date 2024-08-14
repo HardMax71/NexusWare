@@ -1,11 +1,10 @@
-# /server/app/crud/asset.py
-from datetime import date
+from datetime import datetime
 from typing import Optional
 
 from sqlalchemy.orm import Session, joinedload
 
 from server.app.models import Asset, AssetMaintenance, Location
-from server.app.schemas import (
+from public_api.shared_schemas import (
     Asset as AssetSchema,
     Location as LocationSchema,
     AssetWithMaintenance as AssetWithMaintenanceSchema,
@@ -19,17 +18,17 @@ from .base import CRUDBase
 class CRUDAsset(CRUDBase[Asset, AssetCreate, AssetUpdate]):
 
     def get_due_for_maintenance(self, db: Session) -> list[AssetWithMaintenanceSchema]:
-        today = date.today()
+        current_timestamp = int(datetime.now().timestamp())
         assets = db.query(self.model).join(AssetMaintenance).filter(
-            AssetMaintenance.scheduled_date <= today,
-            AssetMaintenance.completed_date is None
+            AssetMaintenance.scheduled_date <= current_timestamp,
+            AssetMaintenance.completed_date.is_(None)
         ).all()
         return [AssetWithMaintenanceSchema.model_validate(asset) for asset in assets]
 
     def transfer(self, db: Session, asset_id: int, new_location_id: int) -> Optional[AssetSchema]:
-        current_asset = db.query(self.model).filter(self.model.asset_id == asset_id).first()
+        current_asset = db.query(self.model).filter(self.model.id == asset_id).first()
         if current_asset:
-            location = db.query(Location).filter(Location.location_id == new_location_id).first()
+            location = db.query(Location).filter(Location.id == new_location_id).first()
             if location:
                 current_asset.location = location.name
                 db.commit()
@@ -38,7 +37,7 @@ class CRUDAsset(CRUDBase[Asset, AssetCreate, AssetUpdate]):
         return None
 
     def get_asset_location(self, db: Session, asset_id: int) -> Optional[LocationSchema]:
-        asset = db.query(self.model).filter(self.model.asset_id == asset_id).first()
+        asset = db.query(self.model).filter(self.model.id == asset_id).first()
         if asset and asset.location:
             location = db.query(Location).filter(Location.name == asset.location).first()
             if location:
@@ -46,7 +45,7 @@ class CRUDAsset(CRUDBase[Asset, AssetCreate, AssetUpdate]):
         return None
 
     def get_with_maintenance(self, db: Session, id: int) -> Optional[AssetWithMaintenanceSchema]:
-        asset = db.query(self.model).filter(self.model.asset_id == id).options(
+        asset = db.query(self.model).filter(self.model.id == id).options(
             joinedload(self.model.maintenance_records)
         ).first()
         if asset:

@@ -8,7 +8,7 @@ from .base import Base
 class YardLocation(Base):
     __tablename__ = "yard_locations"
 
-    yard_location_id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)
     name = Column(String(50), nullable=False)
     type = Column(String(20))
     status = Column(String(20))

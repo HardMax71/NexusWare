@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from server.app.models import (
     Receipt, ReceiptItem
 )
-from server.app.schemas import (
+from public_api.shared_schemas import (
     Receipt as ReceiptSchema, ReceiptCreate, ReceiptUpdate,
     ReceiptItem as ReceiptItemSchema, ReceiptItemCreate, ReceiptItemUpdate,
     ReceiptFilter, QualityCheckCreate
@@ -23,20 +23,20 @@ class CRUDReceipt(CRUDBase[Receipt, ReceiptCreate, ReceiptUpdate]):
         db.add(db_obj)
         db.flush()
         for item in obj_in.items:
-            db_item = ReceiptItem(**item.dict(), receipt_id=db_obj.receipt_id)
+            db_item = ReceiptItem(**item.model_dump(), receipt_id=db_obj.id)
             db.add(db_item)
         db.commit()
         db.refresh(db_obj)
         return ReceiptSchema.model_validate(db_obj)
 
     def update_with_items(self, db: Session, *, db_obj: Receipt, obj_in: ReceiptUpdate) -> ReceiptSchema:
-        update_data = obj_in.dict(exclude_unset=True)
+        update_data = obj_in.model_dump(exclude_unset=True)
         if "items" in update_data:
             items = update_data.pop("items")
             for item in db_obj.receipt_items:
                 db.delete(item)
             for item in items:
-                db_item = ReceiptItem(**item, receipt_id=db_obj.receipt_id)
+                db_item = ReceiptItem(**item, receipt_id=db_obj.id)
                 db.add(db_item)
         updated_receipt = super().update(db, db_obj=db_obj, obj_in=update_data)
         return ReceiptSchema.model_validate(updated_receipt)
@@ -57,7 +57,7 @@ class CRUDReceipt(CRUDBase[Receipt, ReceiptCreate, ReceiptUpdate]):
 
     def report_discrepancy(self, db: Session, *, receipt_id: int, item_id: int, discrepancy: int) -> ReceiptItemSchema:
         item = db.query(ReceiptItem).filter(ReceiptItem.receipt_id == receipt_id,
-                                            ReceiptItem.receipt_item_id == item_id).first()
+                                            ReceiptItem.id == item_id).first()
         item.quantity_received += discrepancy
         db.commit()
         db.refresh(item)
@@ -68,7 +68,7 @@ class CRUDReceipt(CRUDBase[Receipt, ReceiptCreate, ReceiptUpdate]):
             func.date(Receipt.received_date) == func.current_date()).scalar()
 
     def perform_quality_check(self, db: Session, receipt_id: int, quality_check: QualityCheckCreate) -> ReceiptSchema:
-        receipt = db.query(Receipt).filter(Receipt.receipt_id == receipt_id).first()
+        receipt = db.query(Receipt).filter(Receipt.id == receipt_id).first()
         if not receipt:
             raise ValueError("Receipt not found")
 

@@ -4,7 +4,7 @@ from typing import Optional, List
 from sqlalchemy.orm import Session, selectinload
 
 from server.app.models import YardLocation
-from server.app.schemas import (
+from public_api.shared_schemas import (
     YardLocation as YardLocationSchema,
     YardLocationCreate, YardLocationUpdate,
     YardLocationFilter, YardLocationWithAppointments
@@ -27,7 +27,7 @@ class CRUDYardLocation(CRUDBase[YardLocation, YardLocationCreate, YardLocationUp
 
     def get_with_appointments(self, db: Session, id: int) -> Optional[YardLocationWithAppointments]:
         location = (db.query(self.model)
-                    .filter(self.model.yard_location_id == id)
+                    .filter(self.model.id == id)
                     .options(selectinload(YardLocation.appointments))
                     .first())
         return YardLocationWithAppointments.model_validate(location) if location else None

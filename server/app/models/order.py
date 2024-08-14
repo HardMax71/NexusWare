@@ -1,7 +1,8 @@
 # /server/app/models/order.py
 from sqlalchemy import (Column, Integer, String, ForeignKey,
-                        Numeric, DateTime, func)
+                        Numeric)
 from sqlalchemy.orm import relationship
+import time
 
 from .base import Base
 
@@ -9,10 +10,10 @@ from .base import Base
 class Order(Base):
     __tablename__ = "orders"
 
-    order_id = Column(Integer, primary_key=True, index=True)
-    customer_id = Column(Integer, ForeignKey("customers.customer_id"))
-    order_date = Column(DateTime, server_default=func.now())
-    ship_date = Column(DateTime)
+    id = Column(Integer, primary_key=True, index=True)
+    customer_id = Column(Integer, ForeignKey("customers.id"))
+    order_date = Column(Integer, default=lambda: int(time.time()))
+    ship_date = Column(Integer)
     status = Column(String(20))
     total_amount = Column(Numeric(10, 2))
     shipping_name = Column(String(100))
@@ -30,9 +31,9 @@ class Order(Base):
 class OrderItem(Base):
     __tablename__ = "order_items"
 
-    order_item_id = Column(Integer, primary_key=True, index=True)
-    order_id = Column(Integer, ForeignKey("orders.order_id"))
-    product_id = Column(Integer, ForeignKey("products.product_id"))
+    id = Column(Integer, primary_key=True, index=True)
+    order_id = Column(Integer, ForeignKey("orders.id"))
+    product_id = Column(Integer, ForeignKey("products.id"))
     quantity = Column(Integer)
     unit_price = Column(Numeric(10, 2))
 
@@ -43,11 +44,11 @@ class OrderItem(Base):
 class PurchaseOrder(Base):
     __tablename__ = "purchase_orders"
 
-    po_id = Column(Integer, primary_key=True, index=True)
-    supplier_id = Column(Integer, ForeignKey("suppliers.supplier_id"))
-    order_date = Column(DateTime, server_default=func.now())
+    id = Column(Integer, primary_key=True, index=True)
+    supplier_id = Column(Integer, ForeignKey("suppliers.id"))
+    order_date = Column(Integer, default=lambda: int(time.time()))
     status = Column(String(20))
-    expected_delivery_date = Column(DateTime)
+    expected_delivery_date = Column(Integer)
 
     supplier = relationship("Supplier", back_populates="purchase_orders")
     po_items = relationship("POItem", back_populates="purchase_order")
@@ -56,9 +57,9 @@ class PurchaseOrder(Base):
 class POItem(Base):
     __tablename__ = "po_items"
 
-    po_item_id = Column(Integer, primary_key=True, index=True)
-    po_id = Column(Integer, ForeignKey("purchase_orders.po_id"))
-    product_id = Column(Integer, ForeignKey("products.product_id"))
+    id = Column(Integer, primary_key=True, index=True)
+    po_id = Column(Integer, ForeignKey("purchase_orders.id"))
+    product_id = Column(Integer, ForeignKey("products.id"))
     quantity = Column(Integer)
     unit_price = Column(Numeric(10, 2))
 

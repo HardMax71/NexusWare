@@ -9,7 +9,7 @@ from .base import Base
 class Zone(Base):
     __tablename__ = "zones"
 
-    zone_id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)
     name = Column(String(50), nullable=False)
     description = Column(Text)
 

@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from server.app.models import (
     PickList, Receipt, Shipment, LocationInventory, InventoryMovement, InventoryAdjustment
 )
-from server.app.schemas import (
+from public_api.shared_schemas import (
     InventoryMovement as InventoryMovementSchema,
     InventoryAdjustment as InventoryAdjustmentSchema,
     InventoryAdjustmentCreate,
@@ -17,13 +17,13 @@ from server.app.schemas import (
 
 class CRUDWarehouse:
     def get_stats(self, db: Session) -> WarehouseStats:
-        total_pick_lists = db.query(func.count(PickList.pick_list_id)).scalar()
-        completed_pick_lists = db.query(func.count(PickList.pick_list_id)).filter(
+        total_pick_lists = db.query(func.count(PickList.id)).scalar()
+        completed_pick_lists = db.query(func.count(PickList.id)).filter(
             PickList.status == "completed").scalar()
-        total_receipts = db.query(func.count(Receipt.receipt_id)).scalar()
-        completed_receipts = db.query(func.count(Receipt.receipt_id)).filter(Receipt.status == "completed").scalar()
-        total_shipments = db.query(func.count(Shipment.shipment_id)).scalar()
-        completed_shipments = db.query(func.count(Shipment.shipment_id)).filter(Shipment.status == "completed").scalar()
+        total_receipts = db.query(func.count(Receipt.id)).scalar()
+        completed_receipts = db.query(func.count(Receipt.id)).filter(Receipt.status == "completed").scalar()
+        total_shipments = db.query(func.count(Shipment.id)).scalar()
+        completed_shipments = db.query(func.count(Shipment.id)).filter(Shipment.status == "completed").scalar()
 
         return WarehouseStats(
             total_pick_lists=total_pick_lists,
@@ -79,7 +79,7 @@ class CRUDWarehouse:
             )
             db.add(to_location_inventory)
 
-        db_movement = InventoryMovement(**movement.dict())
+        db_movement = InventoryMovement(**movement.model_dump())
         db.add(db_movement)
         db.commit()
         db.refresh(db_movement)
@@ -101,7 +101,7 @@ class CRUDWarehouse:
             )
             db.add(location_inventory)
 
-        db_adjustment = InventoryAdjustment(**adjustment.dict())
+        db_adjustment = InventoryAdjustment(**adjustment.model_dump())
         db.add(db_adjustment)
         db.commit()
         db.refresh(db_adjustment)

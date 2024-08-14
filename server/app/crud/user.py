@@ -1,13 +1,13 @@
-# /server/app/crud/user.py
-from datetime import datetime, timedelta
+from datetime import timedelta, datetime
 from typing import Optional, List, Any, Dict, Union
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
+from public_api.shared_schemas import UserCreate, UserUpdate
 from server.app.core.security import get_password_hash, verify_password
 from server.app.models import User
-from server.app.schemas import UserCreate, UserUpdate
 from .base import CRUDBase
+
 
 class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     def get_by_email(self, db: Session, *, email: str) -> Optional[User]:
@@ -17,7 +17,10 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         return db.query(User).filter(User.username == username).first()
 
     def get_by_id(self, db: Session, *, user_id: int) -> Optional[User]:
-        return db.query(User).filter(User.user_id == user_id).first()
+        return db.query(User).filter(User.id == user_id).first()
+
+    def get_multi_with_role(self, db: Session, *, skip: int = 0, limit: int = 100) -> List[User]:
+        return db.query(User).options(joinedload(User.role)).offset(skip).limit(limit).all()
 
     def create(self, db: Session, *, obj_in: UserCreate) -> User:
         db_obj = User(
@@ -36,7 +39,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         if isinstance(obj_in, dict):
             update_data = obj_in
         else:
-            update_data = obj_in.dict(exclude_unset=True)
+            update_data = obj_in.model_dump(exclude_unset=True)
         if update_data.get("password"):
             hashed_password = get_password_hash(update_data["password"])
             del update_data["password"]
@@ -54,8 +57,8 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     def is_active(self, user: User) -> bool:
         return user.is_active
 
-    def is_superuser(self, user: User) -> bool:
-        return user.role.role_name == "superuser"
+    def is_admin(self, user: User) -> bool:
+        return user.role.role_name.lower() == "admin"
 
     def get_multi_by_role(self, db: Session, *, role_id: int, skip: int = 0, limit: int = 100) -> List[User]:
         return db.query(User).filter(User.role_id == role_id).offset(skip).limit(limit).all()
@@ -70,10 +73,11 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
 
     def set_reset_password_token(self, db: Session, *, user: User, token: str) -> User:
         user.password_reset_token = token
-        user.password_reset_expiration = datetime.utcnow() + timedelta(hours=1)
+        user.password_reset_expiration = int((datetime.utcnow() + timedelta(hours=1)).timestamp())
         db.add(user)
         db.commit()
         db.refresh(user)
         return user
+
 
 user = CRUDUser(User)

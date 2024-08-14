@@ -8,11 +8,11 @@ from .base import Base
 class Product(Base):
     __tablename__ = "products"
 
-    product_id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)
     sku = Column(String(50), unique=True, nullable=False)
     name = Column(String(100), nullable=False)
     description = Column(Text)
-    category_id = Column(Integer, ForeignKey("product_categories.category_id"))
+    category_id = Column(Integer, ForeignKey("product_categories.id"))
     unit_of_measure = Column(String(20))
     weight = Column(Numeric(10, 2))
     dimensions = Column(String(50))
@@ -30,9 +30,9 @@ class Product(Base):
 class ProductCategory(Base):
     __tablename__ = "product_categories"
 
-    category_id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)
     name = Column(String(50), nullable=False)
-    parent_category_id = Column(Integer, ForeignKey("product_categories.category_id"))
+    parent_category_id = Column(Integer, ForeignKey("product_categories.id"))
 
     products = relationship("Product", back_populates="category")
     subcategories = relationship("ProductCategory")

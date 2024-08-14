@@ -1,38 +1,38 @@
 # /server/app/api/v1/endpoints/yard.py
-from datetime import datetime
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Path, Body
 from sqlalchemy.orm import Session
 
-from .... import crud, models, schemas
+from .... import crud, models
+from public_api import shared_schemas
 from ....api import deps
 
 router = APIRouter()
 
 
 # Yard Location routes
-@router.post("/locations", response_model=schemas.YardLocation)
+@router.post("/locations", response_model=shared_schemas.YardLocation)
 def create_yard_location(
-        location: schemas.YardLocationCreate,
+        location: shared_schemas.YardLocationCreate,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.yard_location.create(db=db, obj_in=location)
 
 
-@router.get("/locations", response_model=List[schemas.YardLocation])
+@router.get("/locations", response_model=List[shared_schemas.YardLocation])
 def read_yard_locations(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
         limit: int = 100,
-        filter_params: schemas.YardLocationFilter = Depends(),
+        filter_params: shared_schemas.YardLocationFilter = Depends(),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.yard_location.get_multi_with_filter(db, skip=skip, limit=limit, filter_params=filter_params)
 
 
-@router.get("/locations/{location_id}", response_model=schemas.YardLocationWithAppointments)
+@router.get("/locations/{location_id}", response_model=shared_schemas.YardLocationWithAppointments)
 def read_yard_location(
         location_id: int = Path(..., title="The ID of the yard location to get"),
         db: Session = Depends(deps.get_db),
@@ -44,10 +44,10 @@ def read_yard_location(
     return location
 
 
-@router.put("/locations/{location_id}", response_model=schemas.YardLocation)
+@router.put("/locations/{location_id}", response_model=shared_schemas.YardLocation)
 def update_yard_location(
         location_id: int = Path(..., title="The ID of the yard location to update"),
-        location_in: schemas.YardLocationUpdate = Body(..., title="Yard location update data"),
+        location_in: shared_schemas.YardLocationUpdate = Body(..., title="Yard location update data"),
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
@@ -57,11 +57,11 @@ def update_yard_location(
     return crud.yard_location.update(db, db_obj=location, obj_in=location_in)
 
 
-@router.delete("/locations/{location_id}", response_model=schemas.YardLocation)
+@router.delete("/locations/{location_id}", response_model=shared_schemas.YardLocation)
 def delete_yard_location(
         location_id: int = Path(..., title="The ID of the yard location to delete"),
         db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_superuser)
+        current_user: models.User = Depends(deps.get_current_admin)
 ):
     location = crud.yard_location.get(db, id=location_id)
     if location is None:
@@ -70,9 +70,9 @@ def delete_yard_location(
 
 
 # Dock Appointment routes
-@router.post("/appointments", response_model=schemas.DockAppointment)
+@router.post("/appointments", response_model=shared_schemas.DockAppointment)
 def create_dock_appointment(
-        appointment: schemas.DockAppointmentCreate,
+        appointment: shared_schemas.DockAppointmentCreate,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
@@ -83,18 +83,18 @@ def create_dock_appointment(
     return crud.dock_appointment.create(db=db, obj_in=appointment)
 
 
-@router.get("/appointments", response_model=List[schemas.DockAppointment])
+@router.get("/appointments", response_model=List[shared_schemas.DockAppointment])
 def read_dock_appointments(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
         limit: int = 100,
-        filter_params: schemas.DockAppointmentFilter = Depends(),
+        filter_params: shared_schemas.DockAppointmentFilter = Depends(),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.dock_appointment.get_multi_with_filter(db, skip=skip, limit=limit, filter_params=filter_params)
 
 
-@router.get("/appointments/{appointment_id}", response_model=schemas.DockAppointment)
+@router.get("/appointments/{appointment_id}", response_model=shared_schemas.DockAppointment)
 def read_dock_appointment(
         appointment_id: int = Path(..., title="The ID of the dock appointment to get"),
         db: Session = Depends(deps.get_db),
@@ -106,10 +106,10 @@ def read_dock_appointment(
     return appointment
 
 
-@router.put("/appointments/{appointment_id}", response_model=schemas.DockAppointment)
+@router.put("/appointments/{appointment_id}", response_model=shared_schemas.DockAppointment)
 def update_dock_appointment(
         appointment_id: int = Path(..., title="The ID of the dock appointment to update"),
-        appointment_in: schemas.DockAppointmentUpdate = Body(..., title="Dock appointment update data"),
+        appointment_in: shared_schemas.DockAppointmentUpdate = Body(..., title="Dock appointment update data"),
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
@@ -123,7 +123,7 @@ def update_dock_appointment(
     return crud.dock_appointment.update(db, db_obj=appointment, obj_in=appointment_in)
 
 
-@router.delete("/appointments/{appointment_id}", response_model=schemas.DockAppointment)
+@router.delete("/appointments/{appointment_id}", response_model=shared_schemas.DockAppointment)
 def delete_dock_appointment(
         appointment_id: int = Path(..., title="The ID of the dock appointment to delete"),
         db: Session = Depends(deps.get_db),
@@ -135,29 +135,28 @@ def delete_dock_appointment(
     return crud.dock_appointment.remove(db, id=appointment_id)
 
 
-# Additional yard management operations
-@router.get("/utilization", response_model=schemas.YardUtilizationReport)
+@router.get("/utilization", response_model=shared_schemas.YardUtilizationReport)
 def get_yard_utilization(
-        date: datetime = Query(None),
+        date: int = Query(None),
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    return crud.yard.get_utilization_report(db, date=date or datetime.now())
+    return crud.yard.get_utilization_report(db, date=date)
 
 
-@router.get("/carrier-performance", response_model=List[schemas.CarrierPerformance])
+@router.get("/carrier_performance", response_model=List[shared_schemas.CarrierPerformance])
 def get_carrier_performance(
-        start_date: datetime = Query(...),
-        end_date: datetime = Query(...),
+        start_date: int = Query(...),
+        end_date: int = Query(...),
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.yard.get_carrier_performance(db, start_date=start_date, end_date=end_date)
 
 
-@router.post("/check-availability", response_model=List[schemas.AppointmentConflict])
+@router.post("/check_availability", response_model=List[shared_schemas.AppointmentConflict])
 def check_appointment_availability(
-        appointment: schemas.DockAppointmentCreate,
+        appointment: shared_schemas.DockAppointmentCreate,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
