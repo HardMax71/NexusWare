@@ -69,6 +69,16 @@ def get_order_processing_times(
     return crud.order.get_processing_times(db, start_date=start_date, end_date=end_date)
 
 
+@router.put("/{order_id}/items", response_model=shared_schemas.Order)
+def update_order_items(
+        order_id: int,
+        items: List[shared_schemas.OrderItemUpdate],
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.order.update_items(db, order_id=order_id, items=items)
+
+
 @router.get("/{order_id}", response_model=shared_schemas.OrderWithDetails)
 def read_order(
         order_id: int,

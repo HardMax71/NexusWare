@@ -17,7 +17,7 @@ class PermissionUpdate(BaseModel):
 
 
 class Permission(PermissionBase):
-    permission_id: int
+    id: int
 
     class Config:
         from_attributes = True
@@ -37,7 +37,7 @@ class RoleUpdate(BaseModel):
 
 
 class Role(RoleBase):
-    role_id: int
+    id: int
     permissions: List[Permission] = []
 
     class Config:
@@ -64,7 +64,7 @@ class UserUpdate(BaseModel):
 
 
 class UserSanitizedWithRole(UserBase):
-    user_id: int
+    id: int
     created_at: int
     last_login: Optional[int] = None
     role: Role
@@ -74,7 +74,7 @@ class UserSanitizedWithRole(UserBase):
 
 
 class User(UserBase):
-    user_id: int
+    id: int
     created_at: int
     last_login: Optional[int] = None
     password_hash: str

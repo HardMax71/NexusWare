@@ -1,10 +1,6 @@
-# /server/app/crud/quality.py
-from datetime import datetime
 from typing import Optional
-
 from sqlalchemy import func, case
 from sqlalchemy.orm import Session
-
 from server.app.models import QualityCheck, QualityStandard, QualityAlert, Product
 from public_api.shared_schemas import (
     QualityCheck as QualityCheckSchema,
@@ -39,12 +35,12 @@ class CRUDQualityCheck(CRUDBase[QualityCheck, QualityCheckCreate, QualityCheckUp
         return [QualityCheckSchema.model_validate(check) for check in quality_checks]
 
     def get_with_product(self, db: Session, id: int) -> Optional[QualityCheckWithProductSchema]:
-        quality_check = db.query(self.model).filter(self.model.check_id == id).join(Product).first()
+        quality_check = db.query(self.model).filter(self.model.id == id).join(Product).first()
         return QualityCheckWithProductSchema.model_validate(quality_check) if quality_check else None
 
-    def get_metrics(self, db: Session, date_from: Optional[datetime], date_to: Optional[datetime]) -> QualityMetrics:
+    def get_metrics(self, db: Session, date_from: Optional[int], date_to: Optional[int]) -> QualityMetrics:
         query = db.query(
-            func.count(QualityCheck.check_id).label("total_checks"),
+            func.count(QualityCheck.id).label("total_checks"),
             func.sum(case((QualityCheck.result == "pass", 1), else_=0)).label("passes"),
             func.sum(case((QualityCheck.result == "fail", 1), else_=0)).label("fails")
         )
@@ -73,8 +69,8 @@ class CRUDQualityCheck(CRUDBase[QualityCheck, QualityCheckCreate, QualityCheckUp
                           .all())
         return [QualityCheckSchema.model_validate(check) for check in quality_checks]
 
-    def get_summary(self, db: Session, date_from: Optional[datetime], date_to: Optional[datetime]) -> dict[str, int]:
-        query = db.query(QualityCheck.result, func.count(QualityCheck.check_id))
+    def get_summary(self, db: Session, date_from: Optional[int], date_to: Optional[int]) -> dict[str, int]:
+        query = db.query(QualityCheck.result, func.count(QualityCheck.id))
         if date_from:
             query = query.filter(QualityCheck.check_date >= date_from)
         if date_to:
@@ -108,11 +104,11 @@ class CRUDQualityCheck(CRUDBase[QualityCheck, QualityCheckCreate, QualityCheckUp
         return QualityCheckCommentSchema.model_validate(db_comment)
 
     def get_product_defect_rates(self, db: Session,
-                                 date_from: Optional[datetime], date_to: Optional[datetime]) -> list[ProductDefectRate]:
+                                 date_from: Optional[int], date_to: Optional[int]) -> list[ProductDefectRate]:
         query = db.query(
-            Product.product_id,
+            Product.id,
             Product.name.label("product_name"),
-            func.count(QualityCheck.check_id).label("total_checks"),
+            func.count(QualityCheck.id).label("total_checks"),
             func.sum(case((QualityCheck.result == "fail", 1), else_=0)).label("defect_count")
         ).join(QualityCheck)
         if date_from:
@@ -120,7 +116,7 @@ class CRUDQualityCheck(CRUDBase[QualityCheck, QualityCheckCreate, QualityCheckUp
         if date_to:
             query = query.filter(QualityCheck.check_date <= date_to)
 
-        results = query.group_by(Product.product_id).all()
+        results = query.group_by(Product.id).all()
         return [
             ProductDefectRate(
                 product_id=r.product_id,

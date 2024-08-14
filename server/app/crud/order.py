@@ -1,11 +1,8 @@
-# /server/app/crud/order.py
-from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
-from fastapi.encoders import jsonable_encoder
+from fastapi import HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
-
 from server.app.models import Order, OrderItem
 from public_api.shared_schemas import (
     Order as OrderSchema,
@@ -56,11 +53,11 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
         current_order = db.query(self.model).options(
             joinedload(Order.customer),
             joinedload(Order.order_items).joinedload(OrderItem.product)
-        ).filter(self.model.order_id == id).first()
+        ).filter(self.model.id == id).first()
         return OrderWithDetailsSchema.model_validate(current_order) if current_order else None
 
-    def get_summary(self, db: Session, date_from: Optional[datetime], date_to: Optional[datetime]) -> OrderSummary:
-        query = db.query(func.count(Order.order_id).label("total_orders"),
+    def get_summary(self, db: Session, date_from: Optional[int], date_to: Optional[int]) -> OrderSummary:
+        query = db.query(func.count(Order.id).label("total_orders"),
                          func.sum(Order.total_amount).label("total_revenue"))
         if date_from:
             query = query.filter(Order.order_date >= date_from)
@@ -81,7 +78,7 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
         return OrderSchema.model_validate(db_obj)
 
     def ship(self, db: Session, *, db_obj: Order, shipping_info: ShippingInfo) -> OrderSchema:
-        db_obj.status = "shipped"
+        db_obj.status = "Shipped"
         db_obj.shipping_carrier = shipping_info.carrier
         db_obj.tracking_number = shipping_info.tracking_number
         db.add(db_obj)
@@ -98,11 +95,11 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
         return [OrderSchema.model_validate(x) for x in orders]
 
     def cancel_item(self, db: Session, *, order_id: int, item_id: int) -> OrderSchema:
-        order = db.query(self.model).filter(Order.order_id == order_id).first()
+        order = db.query(self.model).filter(Order.id == order_id).first()
         if not order:
             raise ValueError("Order not found")
 
-        item = next((item for item in order.order_items if item.order_item_id == item_id), None)
+        item = next((item for item in order.order_items if item.id == item_id), None)
         if not item:
             raise ValueError("Order item not found")
 
@@ -118,7 +115,7 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
         return OrderSchema.model_validate(order)
 
     def add_item(self, db: Session, *, order_id: int, item: OrderItemCreate) -> OrderSchema:
-        order = db.query(self.model).filter(Order.order_id == order_id).first()
+        order = db.query(self.model).filter(Order.id == order_id).first()
         if not order:
             raise ValueError("Order not found")
 
@@ -154,14 +151,14 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
             errors=errors
         )
 
-    def get_processing_times(self, db: Session, *, start_date: datetime, end_date: datetime) -> OrderProcessingTimes:
+    def get_processing_times(self, db: Session, *, start_date: int, end_date: int) -> OrderProcessingTimes:
         processing_times = db.query(
             func.avg(Order.ship_date - Order.order_date).label('avg_time'),
             func.min(Order.ship_date - Order.order_date).label('min_time'),
             func.max(Order.ship_date - Order.order_date).label('max_time')
         ).filter(
             Order.order_date.between(start_date, end_date),
-            Order.status == 'shipped'
+            Order.status == 'Shipped'
         ).first()
 
         return OrderProcessingTimes(
@@ -172,6 +169,33 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
             max_processing_time=processing_times.max_time.total_seconds() / 3600
             if processing_times.max_time else 0
         )
+
+    def update_items(self, db: Session, order_id: int, items: List[OrderItemUpdate]) -> Order:
+        db_order = db.query(Order).filter(Order.id == order_id).first()
+        if not db_order:
+            raise HTTPException(status_code=404, detail="Order not found")
+
+        # Remove existing items not in the update list
+        existing_item_ids = {item.id for item in db_order.order_items}
+        update_item_ids = {item.id for item in items if item.id is not None}
+        items_to_delete = existing_item_ids - update_item_ids
+        for item_id in items_to_delete:
+            db.query(OrderItem).filter(OrderItem.id == item_id).delete()
+
+        # Update or create items
+        for item in items:
+            if item.id:
+                db_item = db.query(OrderItem).filter(OrderItem.id == item.id).first()
+                if db_item:
+                    for key, value in item.model_dump(exclude_unset=True).items():
+                        setattr(db_item, key, value)
+            else:
+                db_item = OrderItem(**item.model_dump(exclude={'id'}), order_id=order_id)
+                db.add(db_item)
+
+        db.commit()
+        db.refresh(db_order)
+        return db_order
 
 
 class CRUDOrderItem(CRUDBase[OrderItem, OrderItemCreate, OrderItemUpdate]):

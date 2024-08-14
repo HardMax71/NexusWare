@@ -26,7 +26,7 @@ def load_stylesheet(filename):
 
 def main():
     # Set up logging
-    logger = setup_logger("nexusware")
+    # logger = setup_logger("nexusware")
 
     # Initialize the application
     app = QApplication(sys.argv)
@@ -47,7 +47,7 @@ def main():
     # Initialize services
     users_api = UsersAPI(api_client)
     auth_service = AuthenticationService(users_api)
-    offline_manager = OfflineManager("offline_data.db")
+    # offline_manager = OfflineManager("offline_data.db")
     update_manager = UpdateManager(config_manager)
 
     # Check for updates

@@ -29,7 +29,18 @@ class OrdersAPI:
         return OrderWithDetails.model_validate(response)
 
     def update_order(self, order_id: int, order_data: OrderUpdate) -> Order:
-        response = self.client.put(f"/orders/{order_id}", json=order_data.model_dump(mode="json", exclude_unset=True))
+        update_data = order_data.model_dump(exclude_unset=True)
+
+        # Handle item updates separately
+        if 'items' in update_data:
+            items = update_data.pop('items')
+            self.client.put(f"/orders/{order_id}/items", json=items)
+
+        if update_data:
+            response = self.client.put(f"/orders/{order_id}", json=update_data)
+        else:
+            response = self.client.get(f"/orders/{order_id}")
+
         return Order.model_validate(response)
 
     def delete_order(self, order_id: int) -> Order:

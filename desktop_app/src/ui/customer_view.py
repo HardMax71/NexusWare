@@ -44,7 +44,7 @@ class CustomerView(QWidget):
             actions_widget = QWidget()
             actions_layout = QHBoxLayout(actions_widget)
             edit_button = StyledButton("Edit")
-            edit_button.clicked.connect(lambda _, cid=customer.customer_id: self.edit_customer(cid))
+            edit_button.clicked.connect(lambda _, cid=customer.id: self.edit_customer(cid))
             actions_layout.addWidget(edit_button)
             self.customers_table.setCellWidget(row, 4, actions_widget)
 

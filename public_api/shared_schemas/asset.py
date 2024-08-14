@@ -27,7 +27,7 @@ class AssetUpdate(BaseModel):
 
 
 class Asset(AssetBase):
-    asset_id: int
+    id: int
 
     class Config:
         from_attributes = True

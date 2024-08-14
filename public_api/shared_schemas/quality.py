@@ -25,7 +25,7 @@ class QualityCheckUpdate(BaseModel):
 
 
 class QualityCheck(QualityCheckBase):
-    check_id: int
+    id: int
     check_date: int
 
     class Config:
@@ -67,7 +67,7 @@ class QualityStandardUpdate(BaseModel):
 
 
 class QualityStandard(QualityStandardBase):
-    standard_id: int
+    id: int
 
     class Config:
         from_attributes = True
@@ -91,7 +91,7 @@ class QualityAlertUpdate(BaseModel):
 
 
 class QualityAlert(QualityAlertBase):
-    alert_id: int
+    id: int
     created_at: int
     resolved_at: Optional[int] = None
 
@@ -100,7 +100,7 @@ class QualityAlert(QualityAlertBase):
 
 
 class QualityCheckComment(BaseModel):
-    comment_id: int
+    id: int
     check_id: int
     user_id: int
     comment: str

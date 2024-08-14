@@ -8,9 +8,9 @@ from .base import Base
 class Shipment(Base):
     __tablename__ = "shipments"
 
-    shipment_id = Column(Integer, primary_key=True, index=True)
-    order_id = Column(Integer, ForeignKey("orders.order_id"))
-    carrier_id = Column(Integer, ForeignKey("carriers.carrier_id"))
+    id = Column(Integer, primary_key=True, index=True)
+    order_id = Column(Integer, ForeignKey("orders.id"))
+    carrier_id = Column(Integer, ForeignKey("carriers.id"))
     tracking_number = Column(String(50))
     ship_date = Column(Integer)
     status = Column(String(20))

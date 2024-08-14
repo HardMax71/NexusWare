@@ -1,6 +1,5 @@
-# /server/app/crud/dock_appointment.py
-from datetime import timedelta
 from typing import Optional, List
+from datetime import timedelta
 
 from sqlalchemy.orm import Session
 
@@ -41,12 +40,12 @@ class CRUDDockAppointment(CRUDBase[DockAppointment, DockAppointmentCreate, DockA
         query = db.query(DockAppointment).filter(
             DockAppointment.yard_location_id == appointment.yard_location_id,
             DockAppointment.appointment_time.between(
-                appointment.appointment_time - appointment_duration,
-                appointment.appointment_time + appointment_duration
+                appointment.appointment_time - appointment_duration.total_seconds(),
+                appointment.appointment_time + appointment_duration.total_seconds()
             )
         )
         if exclude_id:
-            query = query.filter(DockAppointment.appointment_id != exclude_id)
+            query = query.filter(DockAppointment.id != exclude_id)
 
         for existing_appointment in query.all():
             conflicts.append(AppointmentConflict(

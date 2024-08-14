@@ -18,7 +18,7 @@ from .base import CRUDBase
 
 class CRUDProduct(CRUDBase[Product, ProductCreate, ProductUpdate]):
     def get_with_category_and_inventory(self, db: Session, id: int) -> Optional[ProductWithInventorySchema]:
-        current_product = db.query(Product).filter(Product.product_id == id).options(
+        current_product = db.query(Product).filter(Product.id == id).options(
             joinedload(Product.category),
             joinedload(Product.inventory_items)
         ).first()
@@ -51,7 +51,7 @@ class CRUDProduct(CRUDBase[Product, ProductCreate, ProductUpdate]):
         return ProductSchema.model_validate(current_product) if current_product else None
 
     def get_max_id(self, db: Session) -> int:
-        max_id = db.query(func.max(Product.product_id)).scalar()
+        max_id = db.query(func.max(Product.id)).scalar()
         return max_id if max_id is not None else 0
 
 

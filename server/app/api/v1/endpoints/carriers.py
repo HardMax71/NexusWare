@@ -4,8 +4,9 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Path, Body
 from sqlalchemy.orm import Session
 
-from .... import crud, models
 from public_api import shared_schemas
+from public_api.shared_schemas import Carrier
+from .... import crud, models
 from ....api import deps
 
 router = APIRouter()
@@ -20,14 +21,15 @@ def create_carrier(
     return crud.carrier.create(db=db, obj_in=carrier)
 
 
-@router.get("/", response_model=List[shared_schemas.Carrier])
+@router.get("/", response_model=List[Carrier])
 def read_carriers(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
         limit: int = 100,
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    return crud.carrier.get_multi(db, skip=skip, limit=limit)
+    carriers = crud.carrier.get_multi(db, skip=skip, limit=limit)
+    return [Carrier.model_validate(carrier) for carrier in carriers]
 
 
 @router.get("/{carrier_id}", response_model=shared_schemas.Carrier)

@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from PySide6.QtCore import QDateTime
 from PySide6.QtWidgets import (QDialog, QFormLayout, QLineEdit, QSpinBox, QComboBox,
                                QPushButton, QHBoxLayout, QMessageBox, QDateEdit)
 
@@ -65,7 +66,7 @@ class InventoryDialog(QDialog):
         try:
             products = self.products_api.get_products()
             for product in products:
-                self.product_input.addItem(f"{product.sku} - {product.name}", product.product_id)
+                self.product_input.addItem(f"{product.sku} - {product.name}", product.id)
         except Exception as e:
             QMessageBox.warning(self, "Error", f"Failed to load products: {str(e)}")
 
@@ -73,14 +74,14 @@ class InventoryDialog(QDialog):
         try:
             locations = self.locations_api.get_locations()
             for location in locations:
-                self.location_input.addItem(location.name, location.location_id)
+                self.location_input.addItem(location.name, location.id)
         except Exception as e:
             QMessageBox.warning(self, "Error", f"Failed to load locations: {str(e)}")
 
     def set_existing_item_data(self):
         if self.item_data:
-            self.product_data = self.products_api.get_product(self.item_data.product_id)
-            index = self.product_input.findData(self.item_data.product_id)
+            self.product_data = self.products_api.get_product(self.item_data.id)
+            index = self.product_input.findData(self.item_data.id)
             if index >= 0:
                 self.product_input.setCurrentIndex(index)
             self.quantity_input.setValue(self.item_data.quantity)
@@ -89,7 +90,7 @@ class InventoryDialog(QDialog):
                 if index >= 0:
                     self.location_input.setCurrentIndex(index)
             if self.item_data.expiration_date:
-                self.expiration_date_input.setDate(self.item_data.expiration_date.date())
+                self.expiration_date_input.setDate(QDateTime.fromSecsSinceEpoch(self.item_data.expiration_date).date())
             self.update_product_details()
 
     def update_product_details(self):
@@ -102,31 +103,30 @@ class InventoryDialog(QDialog):
     def save_item(self):
         try:
             product_id = self.product_input.currentData()
-            expiration_date = self.expiration_date_input.date().toPython()
+            expiration_date = int(self.expiration_date_input.dateTime().toSecsSinceEpoch())  # Convert to timestamp
 
             if self.item_data:
                 # Update existing item
                 inventory_update = InventoryUpdate(
                     quantity=self.quantity_input.value(),
                     location_id=self.location_input.currentData(),
-                    expiration_date=expiration_date
+                    expiration_date=expiration_date  # Pass timestamp
                 )
-                response = self.inventory_api.update_inventory(self.item_data.id, inventory_update)
+                self.inventory_api.update_inventory(self.item_data.id, inventory_update)
             else:
                 # Create new item
                 inventory_create = InventoryCreate(
                     product_id=product_id,
                     quantity=self.quantity_input.value(),
                     location_id=self.location_input.currentData(),
-                    expiration_date=expiration_date
+                    expiration_date=expiration_date  # Pass timestamp
                 )
-                response = self.inventory_api.create_inventory(inventory_create)
+                self.inventory_api.create_inventory(inventory_create)
 
             QMessageBox.information(self, "Success", "Item saved successfully!")
             self.accept()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to save item: {str(e)}")
-
 
 
 class AdjustmentDialog(QDialog):
@@ -160,12 +160,12 @@ class AdjustmentDialog(QDialog):
         try:
             adjustment_data = InventoryAdjustment(
                 product_id=self.id,
-                location_id=self.id,  # Assuming `id` is the location ID, modify as needed.
+                location_id=self.id,
                 quantity_change=self.adjustment_input.value(),
                 reason=self.reason_input.text(),
-                timestamp=datetime.now()
+                timestamp=int(datetime.now().timestamp())  # Pass timestamp
             )
-            response = self.inventory_api.adjust_inventory(self.id, adjustment_data)
+            self.inventory_api.adjust_inventory(self.id, adjustment_data)
             QMessageBox.information(self, "Success", "Adjustment saved successfully!")
             self.accept()
         except Exception as e:

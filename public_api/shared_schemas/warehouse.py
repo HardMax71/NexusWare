@@ -127,7 +127,7 @@ class ShipmentUpdate(BaseModel):
 
 
 class Shipment(ShipmentBase):
-    shipment_id: int
+    id: int
     ship_date: Optional[int] = None
 
     class Config:
@@ -149,7 +149,7 @@ class CarrierUpdate(BaseModel):
 
 
 class Carrier(CarrierBase):
-    carrier_id: int
+    id: int
 
     class Config:
         from_attributes = True

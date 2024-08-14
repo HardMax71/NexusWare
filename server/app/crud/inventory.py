@@ -1,7 +1,6 @@
-# /server/app/crud/inventory.py
 from collections import defaultdict
-from datetime import datetime, timedelta
 from typing import Optional, List, Dict
+from datetime import timedelta, datetime
 
 import numpy as np
 from fastapi import HTTPException
@@ -78,14 +77,14 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
         if not current_inventory:
             raise HTTPException(status_code=404, detail="Inventory item not found")
         current_inventory.quantity += adjustment.quantity_change
-        current_inventory.last_updated = datetime.utcnow()
+        current_inventory.last_updated = int(datetime.utcnow().timestamp())
 
         new_adjustment = InventoryAdjustment(
             product_id=current_inventory.product_id,
             location_id=current_inventory.location_id,
             quantity_change=adjustment.quantity_change,
             reason=adjustment.reason,
-            timestamp=adjustment.timestamp or datetime.utcnow()
+            timestamp=adjustment.timestamp or int(datetime.utcnow().timestamp())
         )
 
         db.add(current_inventory)
@@ -125,7 +124,7 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
         return InventorySchema.model_validate(to_inventory)
 
     def get_inventory_report(self, db: Session) -> InventoryReport:
-        total_products = db.query(func.count(Product.product_id)).scalar()
+        total_products = db.query(func.count(Product.id)).scalar()
         total_quantity = db.query(func.sum(Inventory.quantity)).scalar()
         low_stock_items = self.get_low_stock_items(db, threshold=10)
         out_of_stock_items = self.get_out_of_stock_items(db)
@@ -147,7 +146,7 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
             ).first()
             if current_inventory:
                 current_inventory.quantity = item.quantity
-                current_inventory.last_updated = datetime.utcnow()
+                current_inventory.last_updated = int(datetime.utcnow().timestamp())
                 db.add(current_inventory)
                 updated_items.append(current_inventory)
         db.commit()
@@ -180,14 +179,14 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
             if current_inventory:
                 for key, value in update.model_dump(exclude_unset=True).items():
                     setattr(current_inventory, key, value)
-                current_inventory.last_updated = datetime.utcnow()
+                current_inventory.last_updated = int(datetime.utcnow().timestamp())
                 db.add(current_inventory)
                 updated_items.append(current_inventory)
         db.commit()
         return [InventorySchema.model_validate(inventory) for inventory in updated_items]
 
-    def get_movement_history(self, db: Session, product_id: int, start_date: Optional[datetime],
-                             end_date: Optional[datetime]) -> list[InventoryMovementSchema]:
+    def get_movement_history(self, db: Session, product_id: int, start_date: Optional[int],
+                             end_date: Optional[int]) -> list[InventoryMovementSchema]:
         query = db.query(InventoryMovement).filter(InventoryMovement.product_id == product_id)
         if start_date:
             query = query.filter(InventoryMovement.timestamp >= start_date)
@@ -204,7 +203,7 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
         for category in categories:
             quantity = db.query(func.sum(Inventory.quantity)) \
                            .join(Product) \
-                           .filter(Product.category_id == category.category_id) \
+                           .filter(Product.category_id == category.id) \
                            .scalar() or 0
             summary[category.name] = quantity
             total_items += quantity
@@ -241,7 +240,7 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
                     accurate_items += 1
 
                 current_inventory.quantity = item.counted_quantity
-                current_inventory.last_updated = datetime.utcnow()
+                current_inventory.last_updated = int(datetime.utcnow().timestamp())
                 db.add(current_inventory)
 
         db.commit()
@@ -257,10 +256,10 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
 
     def perform_abc_analysis(self, db: Session) -> ABCAnalysisResult:
         product_values = db.query(
-            Product.product_id,
+            Product.id,
             Product.name,
             func.sum(Inventory.quantity * Product.price).label('total_value')
-        ).join(Inventory).group_by(Product.product_id).all()
+        ).join(Inventory).group_by(Product.id).all()
 
         sorted_products = sorted(product_values, key=lambda x: x.total_value, reverse=True)
 
@@ -295,23 +294,23 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
 
     def optimize_locations(self, db: Session) -> list[InventoryLocationSuggestion]:
         product_locations = db.query(
-            Product.product_id,
+            Product.id,
             Inventory.location_id,
             func.sum(Inventory.quantity).label('total_quantity')
-        ).join(Inventory).group_by(Product.product_id, Inventory.location_id).all()
+        ).join(Inventory).group_by(Product.id, Inventory.location_id).all()
 
         locations = db.query(Location).all()
         zones = db.query(Zone).all()
 
         zone_locations = defaultdict(list)
         for current_location in locations:
-            zone_locations[current_location.zone_id].append(current_location)
+            zone_locations[current_location.id].append(current_location)
 
         suggestions = []
 
         for product_location in product_locations:
-            current_location = next(loc for loc in locations if loc.location_id == product_location.location_id)
-            current_zone = next(zone for zone in zones if zone.zone_id == current_location.zone_id)
+            current_location = next(loc for loc in locations if loc.id == product_location.id)
+            current_zone = next(zone for zone in zones if zone.id == current_location.zone_id)
 
             if product_location.total_quantity > 1000:
                 optimal_zone = next((z for z in zones if z.name == 'High Volume'), None)
@@ -320,21 +319,21 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
             else:
                 optimal_zone = next((z for z in zones if z.name == 'Low Volume'), None)
 
-            if optimal_zone and optimal_zone.zone_id != current_zone.zone_id:
-                optimal_location = min(zone_locations[optimal_zone.zone_id],
+            if optimal_zone and optimal_zone.id != current_zone.id:
+                optimal_location = min(zone_locations[optimal_zone.id],
                                        key=lambda loc: (loc.aisle, loc.rack, loc.shelf, loc.bin))
 
                 suggestions.append(InventoryLocationSuggestion(
                     product_id=product_location.product_id,
-                    current_location_id=current_location.location_id,
-                    suggested_location_id=optimal_location.location_id,
+                    current_location_id=current_location.id,
+                    suggested_location_id=optimal_location.id,
                     reason=f"Move from {current_zone.name} to {optimal_zone.name} zone for better inventory management"
                 ))
 
         return suggestions
 
     def get_expiring_soon(self, db: Session, days: int) -> list[ProductWithInventorySchema]:
-        expiration_date = datetime.utcnow() + timedelta(days=days)
+        expiration_date = int((datetime.utcnow() + timedelta(days=days)).timestamp())
         products = db.query(Product).join(Inventory).filter(Inventory.expiration_date <= expiration_date).all()
         return [ProductWithInventorySchema.model_validate(product) for product in products]
 
@@ -351,7 +350,7 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
                     db.flush()
 
                 inventory = db.query(Inventory).filter(
-                    Inventory.product_id == product.product_id,
+                    Inventory.product_id == product.id,
                     Inventory.location_id == item.location_id
                 ).first()
 
@@ -359,7 +358,7 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
                     inventory.quantity += item.quantity
                 else:
                     inventory = Inventory(
-                        product_id=product.product_id,
+                        product_id=product.id,
                         location_id=item.location_id,
                         quantity=item.quantity
                     )
@@ -376,18 +375,18 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
         )
 
     def get_storage_utilization(self, db: Session) -> StorageUtilization:
-        # TODO: func.sum(Location.location_id) - colculate total capacity better, now placeholder
-        total_capacity = db.query(func.sum(Location.location_id)).scalar() or 0
+        # TODO: func.sum(Location.location_id) - calculate total capacity better, now placeholder
+        total_capacity = db.query(func.sum(Location.id)).scalar() or 0
         total_used = db.query(func.sum(Inventory.quantity)).scalar() or 0
         utilization_percentage = (total_used / total_capacity * 100) if total_capacity > 0 else 0
 
         zone_utilization = db.query(
             Zone.name,
-            func.sum(Location.location_id).label('capacity'),
+            func.sum(Location.id).label('capacity'),
             func.sum(Inventory.quantity).label('used')
-        ).join(Location, Zone.zone_id == Location.zone_id) \
-            .outerjoin(Inventory, Location.location_id == Inventory.location_id) \
-            .group_by(Zone.zone_id).all()
+        ).join(Location, Zone.id == Location.zone_id) \
+            .outerjoin(Inventory, Location.id == Inventory.location_id) \
+            .group_by(Zone.id).all()
 
         return StorageUtilization(
             total_capacity=total_capacity,
@@ -427,7 +426,7 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
             )
 
         if category_id:
-            query = query.filter(Product.category_id == category_id)
+            query = query.filter(Product.id == category_id)
 
         if min_price is not None:
             query = query.filter(Product.price >= min_price)
@@ -440,7 +439,7 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
                 query = query.join(Inventory).filter(Inventory.quantity > 0)
             else:
                 query = query.outerjoin(Inventory).filter(
-                    or_(Inventory.quantity == 0, Inventory.quantity is None)
+                    or_(Inventory.quantity == 0, Inventory.quantity.is_(None))
                 )
 
         # Apply sorting
@@ -469,16 +468,16 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
 
         # Simple linear regression for forecasting
         # TODO: Implement more advanced methods
-        x = np.array([(d - dates[0]).days for d in dates])
+        x = np.array([(d - dates[0]) // 86400 for d in dates])  # Convert timestamps to days
         y = np.array(quantities)
         slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
 
         # Generate forecast for next 30 days
         forecast = []
         for i in range(30):
-            forecast_date = dates[-1] + timedelta(days=i + 1)
+            forecast_date = dates[-1] + (i + 1) * 86400
             forecast_quantity = slope * (len(x) + i) + intercept
-            forecast.append({"date": forecast_date.isoformat(), "quantity": max(0, round(forecast_quantity))})
+            forecast.append({"date": forecast_date, "quantity": max(0, round(forecast_quantity))})
 
         return {"forecast": forecast}
 

@@ -29,7 +29,7 @@ class TaskUpdate(BaseModel):
 
 
 class Task(TaskBase):
-    task_id: int
+    id: int
     created_at: int
 
     class Config:
@@ -60,7 +60,7 @@ class TaskCommentCreate(TaskCommentBase):
 
 
 class TaskComment(TaskCommentBase):
-    comment_id: int
+    id: int
     created_at: int
 
     class Config:

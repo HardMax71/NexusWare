@@ -127,8 +127,4 @@ class InventoryAPI:
 
     def delete_inventory_item(self, id: int) -> Inventory:
         response = self.client.delete(f"/inventory/{id}")
-        if response.status_code == 404:
-            raise Exception("Inventory item not found")
-        elif response.status_code != 200:
-            raise Exception(f"Failed to delete inventory item: {response.text}")
-        return Inventory.model_validate(response.json())
+        return Inventory.model_validate(response)

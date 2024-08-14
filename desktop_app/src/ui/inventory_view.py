@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from PySide6.QtCore import Signal
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
@@ -46,8 +48,8 @@ class InventoryView(QWidget):
 
         # Table
         self.table = QTableWidget()
-        self.table.setColumnCount(7)  # Added one more column for the delete button
-        self.table.setHorizontalHeaderLabels(["SKU", "Name", "Quantity", "Location", "Last Updated", "Actions", "Delete"])
+        self.table.setColumnCount(6)
+        self.table.setHorizontalHeaderLabels(["SKU", "Name", "Quantity", "Location", "Last Updated", "Actions"])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         main_layout.addWidget(self.table)
 
@@ -80,7 +82,9 @@ class InventoryView(QWidget):
             self.table.setItem(row, 1, QTableWidgetItem(item.product.name))
             self.table.setItem(row, 2, QTableWidgetItem(str(item.quantity)))
             self.table.setItem(row, 3, QTableWidgetItem(item.location.name))
-            self.table.setItem(row, 4, QTableWidgetItem(str(item.last_updated)))
+            self.table.setItem(row, 4,
+                               QTableWidgetItem(
+                                   datetime.fromtimestamp(item.last_updated).strftime("%Y-%m-%d %H:%M:%S")))
 
             actions_widget = QWidget()
             actions_layout = QHBoxLayout(actions_widget)
@@ -88,15 +92,13 @@ class InventoryView(QWidget):
             edit_button.clicked.connect(lambda _, i=item.id: self.edit_item(i))
             adjust_button = StyledButton("Adjust")
             adjust_button.clicked.connect(lambda _, i=item.id: self.adjust_item(i))
-            actions_layout.addWidget(edit_button)
-            actions_layout.addWidget(adjust_button)
-            actions_layout.setContentsMargins(0, 0, 0, 0)
-            self.table.setCellWidget(row, 5, actions_widget)
-
-            # Delete button
             delete_button = StyledButton("Delete")
             delete_button.clicked.connect(lambda _, i=item.id: self.delete_item(i))
-            self.table.setCellWidget(row, 6, delete_button)
+            actions_layout.addWidget(edit_button)
+            actions_layout.addWidget(adjust_button)
+            actions_layout.addWidget(delete_button)
+            actions_layout.setContentsMargins(0, 0, 0, 0)
+            self.table.setCellWidget(row, 5, actions_widget)
 
             # Color coding based on quantity
             if item.quantity == 0:

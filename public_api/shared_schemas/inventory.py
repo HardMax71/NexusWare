@@ -19,7 +19,7 @@ class ProductCategoryUpdate(BaseModel):
 
 
 class ProductCategory(ProductCategoryBase):
-    category_id: int
+    id: int
 
     class Config:
         from_attributes = True
@@ -54,7 +54,7 @@ class ProductUpdate(BaseModel):
 
 
 class Product(ProductBase):
-    product_id: int
+    id: int
 
     class Config:
         from_attributes = True
@@ -72,6 +72,7 @@ class InventoryCreate(InventoryBase):
 
 
 class InventoryUpdate(BaseModel):
+    location_id: Optional[int] = None
     quantity: Optional[int] = None
     expiration_date: Optional[int] = None
 
@@ -107,7 +108,7 @@ class LocationUpdate(BaseModel):
 
 
 class Location(LocationBase):
-    location_id: int
+    id: int
 
     class Config:
         from_attributes = True
@@ -128,7 +129,7 @@ class ZoneUpdate(BaseModel):
 
 
 class Zone(ZoneBase):
-    zone_id: int
+    id: int
 
     class Config:
         from_attributes = True

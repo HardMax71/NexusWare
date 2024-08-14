@@ -30,14 +30,14 @@ class CRUDShipment(CRUDBase[Shipment, ShipmentCreate, ShipmentUpdate]):
         return [ShipmentSchema.model_validate(shipment) for shipment in shipments]
 
     def track(self, db: Session, *, shipment_id: int) -> Optional[ShipmentTracking]:
-        shipment = db.query(Shipment).filter(Shipment.shipment_id == shipment_id).first()
+        shipment = db.query(Shipment).filter(Shipment.id == shipment_id).first()
         if not shipment:
             return None
 
         tracking_data = shipengine_api_call(f"tracking/{shipment.tracking_number}", method="GET")
 
         return ShipmentTracking(
-            shipment_id=shipment.shipment_id,
+            shipment_id=shipment.id,
             tracking_number=shipment.tracking_number,
             current_status=tracking_data["status"],
             estimated_delivery_date=tracking_data.get("estimated_delivery_date"),
@@ -48,7 +48,7 @@ class CRUDShipment(CRUDBase[Shipment, ShipmentCreate, ShipmentUpdate]):
         carriers = db.query(Carrier).all()
         return [
             CarrierRate(
-                carrier_id=possible_carrier.carrier_id,
+                carrier_id=possible_carrier.id,
                 carrier_name=possible_carrier.name,
                 rate=weight * 2.5 * len(dimensions) * len(destination_zip),  # Placeholder calculation
                 estimated_delivery_time="3-5 business days"
@@ -57,12 +57,12 @@ class CRUDShipment(CRUDBase[Shipment, ShipmentCreate, ShipmentUpdate]):
         ]
 
     def generate_label(self, db: Session, shipment_id: int) -> ShippingLabel:
-        shipment = db.query(Shipment).filter(Shipment.shipment_id == shipment_id).first()
+        shipment = db.query(Shipment).filter(Shipment.id == shipment_id).first()
         if not shipment:
             raise HTTPException(status_code=404, detail="Shipment not found")
 
-        order = db.query(Order).filter(Order.order_id == shipment.order_id).first()
-        carrier = db.query(Carrier).filter(Carrier.carrier_id == shipment.carrier_id).first()
+        order = db.query(Order).filter(Order.id == shipment.id).first()
+        carrier = db.query(Carrier).filter(Carrier.id == shipment.id).first()
 
         if not order or not carrier:
             raise HTTPException(status_code=404, detail="Related order or carrier not found")

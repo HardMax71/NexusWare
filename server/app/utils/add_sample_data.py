@@ -1,6 +1,5 @@
 import random
-from datetime import datetime, timedelta
-
+import time
 import sqlalchemy as sa
 from sqlalchemy.orm import sessionmaker
 
@@ -21,6 +20,13 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Create all tables in the database
 Base.metadata.create_all(bind=engine)
+
+
+# Helper function to generate a random timestamp in the past or future
+def random_timestamp(past_days=0, future_days=0) -> int:
+    now = int(time.time())
+    offset = random.randint(-past_days * 86400, future_days * 86400)
+    return now + offset
 
 
 def add_sample_data():
@@ -48,21 +54,21 @@ def add_sample_data():
         username="admin",
         email="admin@example.com",
         password_hash=get_password_hash("admin"),
-        role_id=admin_role.role_id,
+        role_id=admin_role.id,
         is_active=True
     )
     regular_user = User(
         username="user",
         email="user@example.com",
         password_hash=get_password_hash("user"),
-        role_id=user_role.role_id,
+        role_id=user_role.id,
         is_active=True
     )
     manager_user = User(
         username="manager",
         email="manager@example.com",
         password_hash=get_password_hash("manager"),
-        role_id=manager_role.role_id,
+        role_id=manager_role.id,
         is_active=True
     )
     db.add_all([admin_user, regular_user, manager_user])
@@ -79,15 +85,15 @@ def add_sample_data():
     db.commit()
     # Products
     products = [
-        Product(sku="SKU001", name="Smartphone", category_id=categories[0].category_id, price=599.99,
+        Product(sku="SKU001", name="Smartphone", category_id=categories[0].id, price=599.99,
                 unit_of_measure="piece", weight=0.2, dimensions="15x7x1"),
-        Product(sku="SKU002", name="T-shirt", category_id=categories[1].category_id, price=19.99,
+        Product(sku="SKU002", name="T-shirt", category_id=categories[1].id, price=19.99,
                 unit_of_measure="piece", weight=0.1, dimensions="30x20x2"),
-        Product(sku="SKU003", name="Garden Hose", category_id=categories[2].category_id, price=29.99,
+        Product(sku="SKU003", name="Garden Hose", category_id=categories[2].id, price=29.99,
                 unit_of_measure="piece", weight=1.5, dimensions="100x10x10"),
-        Product(sku="SKU004", name="Novel", category_id=categories[3].category_id, price=14.99, unit_of_measure="piece",
+        Product(sku="SKU004", name="Novel", category_id=categories[3].id, price=14.99, unit_of_measure="piece",
                 weight=0.3, dimensions="20x15x3"),
-        Product(sku="SKU005", name="Action Figure", category_id=categories[4].category_id, price=24.99,
+        Product(sku="SKU005", name="Action Figure", category_id=categories[4].id, price=24.99,
                 unit_of_measure="piece", weight=0.1, dimensions="10x5x15"),
     ]
     db.add_all(products)
@@ -102,7 +108,7 @@ def add_sample_data():
         for aisle in ['A', 'B', 'C']:
             for rack in range(1, 4):
                 for shelf in range(1, 4):
-                    location = Location(zone_id=zone.zone_id, aisle=aisle, rack=str(rack), shelf=str(shelf),
+                    location = Location(zone_id=zone.id, aisle=aisle, rack=str(rack), shelf=str(shelf),
                                         name=f"{zone.name}-{aisle}{rack}-{shelf}")
                     locations.append(location)
     db.add_all(locations)
@@ -112,10 +118,10 @@ def add_sample_data():
         for _ in range(3):  # Multiple inventory entries per product
             location = random.choice(locations)
             inventory = Inventory(
-                product_id=product.product_id,
-                location_id=location.location_id,
+                product_id=product.id,
+                location_id=location.id,
                 quantity=random.randint(50, 200),
-                expiration_date=datetime.now() + timedelta(days=random.randint(30, 365))
+                expiration_date=random_timestamp(future_days=365)
             )
             db.add(inventory)
     db.commit()
@@ -127,11 +133,11 @@ def add_sample_data():
     ]
     db.add_all(customers)
     db.commit()
-    # Orders
+    # Orders and Order Items
     for _ in range(20):  # Create 20 orders
         customer = random.choice(customers)
         order = Order(
-            customer_id=customer.customer_id,
+            customer_id=customer.id,
             status=random.choice(["Pending", "Processing", "Shipped", "Delivered"]),
             total_amount=0,
             shipping_name=customer.name,
@@ -140,13 +146,27 @@ def add_sample_data():
             shipping_state="Sample State",
             shipping_postal_code="12345",
             shipping_country="Sample Country",
-            shipping_phone=customer.phone
+            shipping_phone=customer.phone,
+            order_date=random_timestamp(past_days=30)  # Set order date
         )
-        for product in random.sample(products, random.randint(1, 3)):
-            quantity = random.randint(1, 5)
-            OrderItem(order_id=order.order_id, product_id=product.product_id, quantity=quantity,
-                      unit_price=product.price)
-            order.total_amount += quantity * product.price
+        db.add(order)
+        db.flush()  # Flush to get the order_id
+
+        # Generate 1 to 5 order items for each order
+        for _ in range(random.randint(1, 5)):
+            product = random.choice(products)
+            quantity = random.randint(1, 10)
+            unit_price = product.price
+            order_item = OrderItem(
+                order_id=order.id,
+                product_id=product.id,
+                quantity=quantity,
+                unit_price=unit_price
+            )
+            db.add(order_item)
+            order.total_amount += quantity * unit_price
+
+        # Update the order's total amount
         db.add(order)
     db.commit()
     # Suppliers
@@ -162,13 +182,13 @@ def add_sample_data():
     for _ in range(10):  # Create 10 purchase orders
         supplier = random.choice(suppliers)
         po = PurchaseOrder(
-            supplier_id=supplier.supplier_id,
+            supplier_id=supplier.id,
             status=random.choice(["Pending", "Ordered", "Received"]),
-            expected_delivery_date=datetime.now() + timedelta(days=random.randint(1, 30))
+            expected_delivery_date=random_timestamp(future_days=30)
         )
         for product in random.sample(products, random.randint(1, 3)):
             quantity = random.randint(10, 50)
-            POItem(po_id=po.po_id, product_id=product.product_id, quantity=quantity,
+            POItem(po_id=po.id, product_id=product.id, quantity=quantity,
                    unit_price=int(product.price) * 0.7)
         db.add(po)
     db.commit()
@@ -181,9 +201,9 @@ def add_sample_data():
             asset_type=asset_type,
             asset_name=f"{asset_type} {i + 1}",
             serial_number=f"{asset_type[:2].upper()}{i + 1:03d}",
-            purchase_date=datetime.now().date() - timedelta(days=random.randint(1, 1000)),
+            purchase_date=random_timestamp(past_days=1000),
             status=random.choice(["Active", "Under Maintenance", "Inactive"]),
-            location_id=random.choice(locations).location_id
+            location_id=random.choice(locations).id
         )
         assets.append(asset)
     db.add_all(assets)
@@ -192,11 +212,11 @@ def add_sample_data():
     for asset in assets:
         for _ in range(random.randint(1, 3)):
             maintenance = AssetMaintenance(
-                asset_id=asset.asset_id,
+                asset_id=asset.id,
                 maintenance_type=random.choice(["Routine Check", "Repair", "Upgrade"]),
-                scheduled_date=datetime.now().date() + timedelta(days=random.randint(1, 90)),
-                completed_date=datetime.now().date() - timedelta(days=random.randint(1, 30)),
-                performed_by=random.choice([admin_user.user_id, manager_user.user_id]),
+                scheduled_date=random_timestamp(future_days=90),
+                completed_date=random_timestamp(past_days=30),
+                performed_by=random.choice([admin_user.id, manager_user.id]),
                 notes="Sample maintenance notes"
             )
             db.add(maintenance)
@@ -205,8 +225,8 @@ def add_sample_data():
     for _ in range(50):  # Create 50 quality checks
         product = random.choice(products)
         check = QualityCheck(
-            product_id=product.product_id,
-            performed_by=random.choice([admin_user.user_id, manager_user.user_id, regular_user.user_id]),
+            product_id=product.id,
+            performed_by=random.choice([admin_user.id, manager_user.id, regular_user.id]),
             result=random.choice(["Pass", "Fail", "Pending Review"]),
             notes=f"Quality check for {product.name}"
         )
@@ -215,7 +235,7 @@ def add_sample_data():
     # Quality Standards
     for product in products:
         standard = QualityStandard(
-            product=product,
+            product_id=product.id,
             criteria=f"Standard for {product.name}",
             acceptable_range="90-100%"
         )
@@ -224,10 +244,10 @@ def add_sample_data():
     # Quality Alerts
     for _ in range(10):
         alert = QualityAlert(
-            product=random.choice(products),
+            product_id=random.choice(products).id,
             alert_type=random.choice(["Minor Issue", "Major Problem", "Critical Failure"]),
             description="Sample quality alert description",
-            resolved_at=random.choice([None, datetime.now()])
+            resolved_at=random.choice([None, random_timestamp(past_days=10)])
         )
         db.add(alert)
     db.commit()
@@ -237,8 +257,8 @@ def add_sample_data():
         task = Task(
             task_type=random.choice(task_types),
             description=f"Perform {random.choice(task_types).lower()} task",
-            assigned_to=random.choice([admin_user.user_id, manager_user.user_id, regular_user.user_id]),
-            due_date=datetime.now() + timedelta(days=random.randint(1, 30)),
+            assigned_to=random.choice([admin_user.id, manager_user.id, regular_user.id]),
+            due_date=random_timestamp(future_days=30),
             priority=random.choice(["Low", "Medium", "High"]),
             status=random.choice(["Pending", "In Progress", "Completed"])
         )
@@ -247,21 +267,21 @@ def add_sample_data():
         # Add some task comments
         for _ in range(random.randint(0, 3)):
             comment = TaskComment(
-                task=task,
-                user_id=random.choice([admin_user.user_id, manager_user.user_id, regular_user.user_id]),
+                task_id=task.id,
+                user_id=random.choice([admin_user.id, manager_user.id, regular_user.id]),
                 comment="Sample task comment"
             )
             db.add(comment)
     db.commit()
     # Warehouse Operations
     for order in db.query(Order).filter(Order.status == "Processing").limit(5):
-        pick_list = PickList(order_id=order.order_id, status="In Progress")
+        pick_list = PickList(order_id=order.id, status="In Progress")
         db.add(pick_list)
         for order_item in order.order_items:
             PickListItem(
-                pick_list=pick_list,
+                pick_list_id=pick_list.id,
                 product_id=order_item.product_id,
-                location_id=random.choice(locations).location_id,
+                location_id=random.choice(locations).id,
                 quantity=order_item.quantity,
                 picked_quantity=random.randint(0, order_item.quantity)
             )
@@ -283,23 +303,23 @@ def add_sample_data():
     db.commit()
     for _ in range(10):  # Create 10 dock appointments
         appointment = DockAppointment(
-            yard_location=random.choice(yard_locations),
-            appointment_time=datetime.now() + timedelta(days=random.randint(1, 30)),
-            carrier=random.choice(carriers),
+            yard_location_id=random.choice(yard_locations).id,
+            appointment_time=random_timestamp(future_days=30),
+            carrier_id=random.choice(carriers).id,
             type=random.choice(["Inbound", "Outbound"]),
             status=random.choice(["Scheduled", "In Progress", "Completed"]),
-            actual_arrival_time=datetime.now() - timedelta(hours=random.randint(1, 5)),
-            actual_departure_time=datetime.now() + timedelta(hours=random.randint(1, 5))
+            actual_arrival_time=random_timestamp(past_days=5),
+            actual_departure_time=random_timestamp(future_days=5)
         )
         db.add(appointment)
     db.commit()
     # Shipments
     for order in db.query(Order).filter(Order.status == "Shipped").limit(10):
         shipment = Shipment(
-            order_id=order.order_id,
-            carrier_id=random.choice(carriers).carrier_id,
+            order_id=order.id,
+            carrier_id=random.choice(carriers).id,
             tracking_number=f"TRK{random.randint(1000000, 9999999)}",
-            ship_date=datetime.now() - timedelta(days=random.randint(1, 10)),
+            ship_date=random_timestamp(past_days=10),
             status=random.choice(["In Transit", "Delivered"]),
             label_id=f"LBL{random.randint(1000000, 9999999)}",
             label_download_url=f"https://example.com/labels/LBL{random.randint(1000000, 9999999)}.pdf"
@@ -309,23 +329,23 @@ def add_sample_data():
     # Receipts
     for po in db.query(PurchaseOrder).filter(PurchaseOrder.status == "Received").limit(5):
         receipt = Receipt(
-            po_id=po.po_id,
-            received_date=datetime.now() - timedelta(days=random.randint(1, 30)),
+            po_id=po.id,
+            received_date=random_timestamp(past_days=30),
             status="Completed"
         )
         for po_item in po.po_items:
             ReceiptItem(
-                receipt=receipt,
-                product_id=po_item.product_id,
+                receipt_id=receipt.id,
+                product_id=po_item.id,
                 quantity_received=po_item.quantity,
-                location_id=random.choice(locations).location_id
+                location_id=random.choice(locations).id
             )
         db.add(receipt)
     db.commit()
     # Audit Logs
     for _ in range(50):  # Create 50 audit log entries
         audit_log = AuditLog(
-            user_id=random.choice([admin_user.user_id, manager_user.user_id, regular_user.user_id]),
+            user_id=random.choice([admin_user.id, manager_user.id, regular_user.id]),
             action_type=random.choice(["Create", "Update", "Delete"]),
             table_name=random.choice(["orders", "products", "inventory", "users"]),
             record_id=random.randint(1, 100),
@@ -340,11 +360,12 @@ def add_sample_data():
         from_location = random.choice(locations)
         to_location = random.choice([loc for loc in locations if loc != from_location])
         movement = InventoryMovement(
-            product=product,
-            from_location=from_location,
-            to_location=to_location,
+            product_id=product.id,
+            from_location_id=from_location.id,
+            to_location_id=to_location.id,
             quantity=random.randint(1, 50),
-            reason=random.choice(["Restock", "Relocation", "Order Fulfillment"])
+            reason=random.choice(["Restock", "Relocation", "Order Fulfillment"]),
+            timestamp=random_timestamp(past_days=60, future_days=00)
         )
         db.add(movement)
     db.commit()
@@ -353,8 +374,8 @@ def add_sample_data():
         product = random.choice(products)
         location = random.choice(locations)
         adjustment = InventoryAdjustment(
-            product=product,
-            location=location,
+            product_id=product.id,
+            location_id=location.id,
             quantity_change=random.randint(-10, 10),
             reason=random.choice(["Damage", "Theft", "Found", "Miscounted"])
         )
@@ -364,15 +385,15 @@ def add_sample_data():
     for role in [admin_role, user_role, manager_role]:
         for permission in permissions:
             if role == admin_role or (role == manager_role and permission.permission_name != "manage_users"):
-                role_permission = RolePermission(role_id=role.role_id, permission_id=permission.permission_id)
+                role_permission = RolePermission(role_id=role.id, permission_id=permission.id)
                 db.add(role_permission)
     db.commit()
     # Location Inventory
     for location in locations:
         for product in random.sample(products, k=random.randint(1, len(products))):
             location_inventory = LocationInventory(
-                location=location,
-                product=product,
+                location_id=location.id,
+                product_id=product.id,
                 quantity=random.randint(0, 100)
             )
             db.add(location_inventory)

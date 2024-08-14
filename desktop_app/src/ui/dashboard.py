@@ -1,3 +1,4 @@
+import time
 from datetime import datetime
 
 from PySide6.QtCharts import QChart, QChartView, QPieSeries, QBarSeries, QBarSet, QValueAxis, QBarCategoryAxis
@@ -58,9 +59,13 @@ class DashboardWidget(QWidget):
         return chart_view
 
     def create_performance_chart(self):
-        start_date = datetime(2023, 1, 1)
-        end_date = datetime(2024, 12, 31)
-        picking_performance = self.pick_lists_api.get_picking_performance(start_date=start_date, end_date=end_date)
+        # Convert datetime objects to Unix timestamps
+        start_date_timestamp = int(time.mktime(datetime(2023, 1, 1).timetuple()))
+        end_date_timestamp = int(time.mktime(datetime(2024, 12, 31).timetuple()))
+
+        picking_performance = self.pick_lists_api.get_picking_performance(
+            start_date=start_date_timestamp, end_date=end_date_timestamp
+        )
 
         set0 = QBarSet("Average Picking Time")
         set1 = QBarSet("Items Picked Per Hour")

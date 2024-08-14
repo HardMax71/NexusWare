@@ -44,7 +44,7 @@ class ShipmentView(QWidget):
         shipments = self.shipments_api.get_shipments(filter_params=filter)
         self.shipments_table.setRowCount(len(shipments))
         for row, shipment in enumerate(shipments):
-            self.shipments_table.setItem(row, 0, QTableWidgetItem(str(shipment.shipment_id)))
+            self.shipments_table.setItem(row, 0, QTableWidgetItem(str(shipment.id)))
             self.shipments_table.setItem(row, 1, QTableWidgetItem(str(shipment.order_id)))
             self.shipments_table.setItem(row, 2, QTableWidgetItem(shipment.label_id))
             self.shipments_table.setItem(row, 3, QTableWidgetItem(shipment.status))
@@ -53,7 +53,7 @@ class ShipmentView(QWidget):
             actions_widget = QWidget()
             actions_layout = QHBoxLayout(actions_widget)
             track_button = StyledButton("Track")
-            track_button.clicked.connect(lambda _, sid=shipment.shipment_id: self.track_shipment(sid))
+            track_button.clicked.connect(lambda _, sid=shipment.id: self.track_shipment(sid))
             actions_layout.addWidget(track_button)
             self.shipments_table.setCellWidget(row, 5, actions_widget)
 

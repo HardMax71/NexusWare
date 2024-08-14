@@ -16,7 +16,7 @@ class CRUDRole(CRUDBase[Role, RoleCreate, RoleUpdate]):
         db.refresh(db_obj)
 
         for permission_id in obj_in.permissions:
-            db.add(RolePermission(role_id=db_obj.role_id, permission_id=permission_id))
+            db.add(RolePermission(role_id=db_obj.id, permission_id=permission_id))
         db.commit()
 
         return RoleSchema.model_validate(db_obj)
@@ -28,9 +28,9 @@ class CRUDRole(CRUDBase[Role, RoleCreate, RoleUpdate]):
             update_data = obj_in.model_dump(exclude_unset=True)
 
         if "permissions" in update_data:
-            db.query(RolePermission).filter(RolePermission.role_id == db_obj.role_id).delete()
+            db.query(RolePermission).filter(RolePermission.role_id == db_obj.id).delete()
             for permission_id in update_data["permissions"]:
-                db.add(RolePermission(role_id=db_obj.role_id, permission_id=permission_id))
+                db.add(RolePermission(role_id=db_obj.id, permission_id=permission_id))
             del update_data["permissions"]
 
         updated_role = super().update(db, db_obj=db_obj, obj_in=update_data)

@@ -21,6 +21,7 @@ from .inventory_widget_dialogs import (
     InventoryDialog,
     AdjustmentDialog
 )
+from .order_view_dialogs import OrderDialog, OrderDetailsDialog, ShippingDialog
 
 __all__ = [
     "StyledButton",
@@ -39,5 +40,8 @@ __all__ = [
     "FileDialog",
     "ErrorDialog",
     "InventoryDialog",
-    "AdjustmentDialog"
+    "AdjustmentDialog",
+    "OrderDialog",
+    "OrderDetailsDialog",
+    "ShippingDialog"
 ]

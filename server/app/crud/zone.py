@@ -31,7 +31,7 @@ class CRUDZone(CRUDBase[Zone, ZoneCreate, ZoneUpdate]):
         return [ZoneWithLocations.model_validate(zone) for zone in zones]
 
     def get_with_locations(self, db: Session, id: int) -> Optional[ZoneWithLocations]:
-        zone = db.query(Zone).filter(Zone.zone_id == id).options(joinedload(Zone.locations)).first()
+        zone = db.query(Zone).filter(Zone.id == id).options(joinedload(Zone.locations)).first()
         return ZoneWithLocations.model_validate(zone) if zone else None
 
 

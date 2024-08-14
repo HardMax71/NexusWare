@@ -3,9 +3,11 @@ from typing import Optional, List
 
 from pydantic import BaseModel
 
+from public_api.shared_schemas import Product
+
 
 class OrderItemBase(BaseModel):
-    product_id: int
+    product: Product = None
     quantity: int
     unit_price: float
 
@@ -15,13 +17,14 @@ class OrderItemCreate(OrderItemBase):
 
 
 class OrderItemUpdate(BaseModel):
+    id: Optional[int] = None
     product_id: Optional[int] = None
     quantity: Optional[int] = None
     unit_price: Optional[float] = None
 
 
 class OrderItem(OrderItemBase):
-    order_item_id: int
+    id: int
     order_id: int
 
     class Config:
@@ -62,7 +65,7 @@ class OrderUpdate(BaseModel):
 
 
 class Order(OrderBase):
-    order_id: int
+    id: int
     order_date: int
     order_items: List[OrderItem] = []
 
@@ -89,7 +92,7 @@ class CustomerUpdate(BaseModel):
 
 
 class Customer(CustomerBase):
-    customer_id: int
+    id: int
 
     class Config:
         from_attributes = True
@@ -112,7 +115,7 @@ class POItemUpdate(BaseModel):
 
 
 class POItem(POItemBase):
-    po_item_id: int
+    id: int
     po_id: int
 
     class Config:
@@ -137,7 +140,7 @@ class PurchaseOrderUpdate(BaseModel):
 
 
 class PurchaseOrder(PurchaseOrderBase):
-    po_id: int
+    id: int
     order_date: int
     po_items: List[POItem] = []
 
@@ -166,7 +169,7 @@ class SupplierUpdate(BaseModel):
 
 
 class Supplier(SupplierBase):
-    supplier_id: int
+    id: int
 
     class Config:
         from_attributes = True
@@ -216,11 +219,12 @@ class PurchaseOrderWithDetails(PurchaseOrder):
 
 class ShippingInfo(BaseModel):
     carrier: str
+    carrier_id: int
     tracking_number: str
 
 
 class POItemReceive(BaseModel):
-    po_item_id: int
+    id: int
     received_quantity: int
 
 

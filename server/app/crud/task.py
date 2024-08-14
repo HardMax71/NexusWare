@@ -1,5 +1,3 @@
-# /server/app/crud/task.py
-from datetime import datetime
 from typing import Optional
 
 from sqlalchemy import func, case
@@ -33,7 +31,7 @@ class CRUDTask(CRUDBase[Task, TaskCreate, TaskUpdate]):
         return [TaskSchema.model_validate(x) for x in tasks]
 
     def get_with_assignee(self, db: Session, id: int) -> Optional[TaskWithAssignee]:
-        task = db.query(self.model).filter(self.model.task_id == id).join(User).first()
+        task = db.query(self.model).filter(self.model.id == id).join(User).first()
         return TaskWithAssignee.model_validate(task) if task else None
 
     def complete(self, db: Session, *, db_obj: Task) -> TaskSchema:
@@ -59,11 +57,11 @@ class CRUDTask(CRUDBase[Task, TaskCreate, TaskUpdate]):
         return [TaskCommentSchema.model_validate(comment) for comment in comments]
 
     def get_statistics(self, db: Session) -> TaskStatistics:
-        total_tasks = db.query(func.count(Task.task_id)).scalar()
-        completed_tasks = db.query(func.count(Task.task_id)).filter(Task.status == "completed").scalar()
-        overdue_tasks = db.query(func.count(Task.task_id)).filter(Task.due_date < datetime.utcnow(),
+        total_tasks = db.query(func.count(Task.id)).scalar()
+        completed_tasks = db.query(func.count(Task.id)).filter(Task.status == "completed").scalar()
+        overdue_tasks = db.query(func.count(Task.id)).filter(Task.due_date < func.now(),
                                                                   Task.status != "completed").scalar()
-        high_priority_tasks = db.query(func.count(Task.task_id)).filter(Task.priority == "high").scalar()
+        high_priority_tasks = db.query(func.count(Task.id)).filter(Task.priority == "high").scalar()
 
         return TaskStatistics(
             total_tasks=total_tasks,
@@ -74,17 +72,17 @@ class CRUDTask(CRUDBase[Task, TaskCreate, TaskUpdate]):
 
     def get_user_summary(self, db: Session) -> list[UserTaskSummary]:
         query = db.query(
-            User.user_id,
+            User.id,
             User.username,
-            func.count(Task.task_id).label("assigned_tasks"),
+            func.count(Task.id).label("assigned_tasks"),
             func.sum(case((Task.status == "completed", 1), else_=0)).label("completed_tasks"),
             func.sum(case((Task.due_date < func.now(), Task.status != "completed", 1),
                           else_=0)).label("overdue_tasks")
-        ).outerjoin(Task, User.user_id == Task.assigned_to).group_by(User.user_id)
+        ).outerjoin(Task, User.id == Task.assigned_to).group_by(User.id)
 
         return [
             UserTaskSummary(
-                user_id=row.user_id,
+                user_id=row.id,
                 username=row.username,
                 assigned_tasks=row.assigned_tasks,
                 completed_tasks=row.completed_tasks,
@@ -95,7 +93,7 @@ class CRUDTask(CRUDBase[Task, TaskCreate, TaskUpdate]):
 
     def get_overdue(self, db: Session, *, skip: int = 0, limit: int = 100) -> list[TaskSchema]:
         overdue_tasks = (db.query(self.model)
-                         .filter(Task.due_date < datetime.utcnow(),
+                         .filter(Task.due_date < func.now(),
                                  Task.status != "completed")
                          .offset(skip).limit(limit)
                          .all())

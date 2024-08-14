@@ -175,6 +175,46 @@ def get_storage_utilization(
     return crud.inventory.get_storage_utilization(db)
 
 
+@router.get("/forecast/{product_id}", response_model=Dict)
+def get_inventory_forecast(
+        product_id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.inventory.get_inventory_forecast(db, product_id=product_id)
+
+
+@router.post("/forecast/{product_id}", response_model=Dict)
+def generate_inventory_forecast(
+        product_id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.inventory.generate_inventory_forecast(db, product_id=product_id)
+
+
+@router.get("/reorder_suggestions", response_model=List[Dict])
+def get_reorder_suggestions(
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.inventory.get_reorder_suggestions(db)
+
+
+@router.delete("/{id}", status_code=200)
+def delete_inventory_item(
+        id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    inventory_item = crud.inventory.get(db, id=id)
+    if not inventory_item:
+        raise HTTPException(status_code=404, detail="Inventory item not found")
+
+    inventory_item = crud.inventory.remove(db, id=id)
+    return inventory_item
+
+
 @router.get("/{id}", response_model=shared_schemas.Inventory)
 def read_inventory_item(
         id: int,
@@ -208,42 +248,3 @@ def adjust_inventory(
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.inventory.adjust_quantity(db, id=id, adjustment=adjustment)
-
-
-@router.get("/forecast/{product_id}", response_model=Dict)
-def get_inventory_forecast(
-        product_id: int,
-        db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_user)
-):
-    return crud.inventory.get_inventory_forecast(db, product_id=product_id)
-
-
-@router.post("/forecast/{product_id}", response_model=Dict)
-def generate_inventory_forecast(
-        product_id: int,
-        db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_user)
-):
-    return crud.inventory.generate_inventory_forecast(db, product_id=product_id)
-
-
-@router.get("/reorder_suggestions", response_model=List[Dict])
-def get_reorder_suggestions(
-        db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_user)
-):
-    return crud.inventory.get_reorder_suggestions(db)
-
-
-@router.delete("/{id}", response_model=shared_schemas.Inventory)
-def delete_inventory_item(
-        id: int,
-        db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_user)
-):
-    inventory_item = crud.inventory.get(db, id=id)
-    if not inventory_item:
-        raise HTTPException(status_code=404, detail="Inventory item not found")
-    inventory_item = crud.inventory.remove(db, id=id)
-    return inventory_item

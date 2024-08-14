@@ -1,22 +1,21 @@
-# /server/app/crud/reports.py
-from datetime import date, timedelta
-
+from datetime import timedelta, datetime
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-
 from server.app.models import Product, Inventory, Order, OrderItem, Task
-from public_api.shared_schemas import InventorySummaryReport, InventoryItem, OrderSummaryReport, OrderSummary, \
+from public_api.shared_schemas import (
+    InventorySummaryReport, InventoryItem, OrderSummaryReport, OrderSummary,
     WarehousePerformanceReport, WarehousePerformanceMetric, KPIDashboard, KPIMetric
+)
 
 
 class ReportsCRUD:
     def get_inventory_summary(self, db: Session) -> InventorySummaryReport:
         query = db.query(
-            Product.product_id,
+            Product.id,
             Product.name.label("product_name"),
             func.sum(Inventory.quantity).label("quantity"),
             (func.sum(Inventory.quantity) * Product.price).label("value")
-        ).join(Inventory).group_by(Product.product_id)
+        ).join(Inventory).group_by(Product.id)
 
         items = [
             InventoryItem.model_validate(row)
@@ -32,9 +31,9 @@ class ReportsCRUD:
             items=items
         )
 
-    def get_order_summary(self, db: Session, start_date: date, end_date: date) -> OrderSummaryReport:
+    def get_order_summary(self, db: Session, start_date: int, end_date: int) -> OrderSummaryReport:
         query = db.query(
-            func.count(Order.order_id).label("total_orders"),
+            func.count(Order.id).label("total_orders"),
             func.sum(Order.total_amount).label("total_revenue")
         ).filter(Order.order_date.between(start_date, end_date))
 
@@ -55,18 +54,17 @@ class ReportsCRUD:
             summary=summary
         )
 
-    def get_warehouse_performance(self, db: Session, start_date: date,
-                                  end_date: date) -> WarehousePerformanceReport:
+    def get_warehouse_performance(self, db: Session, start_date: int, end_date: int) -> WarehousePerformanceReport:
         # Order fulfillment rate
-        total_orders = db.query(func.count(Order.order_id)).filter(
+        total_orders = db.query(func.count(Order.id)).filter(
             Order.order_date.between(start_date, end_date)).scalar()
-        fulfilled_orders = db.query(func.count(Order.order_id)).filter(
+        fulfilled_orders = db.query(func.count(Order.id)).filter(
             Order.order_date.between(start_date, end_date),
             Order.status == "completed"
         ).scalar()
         fulfillment_rate = (fulfilled_orders / total_orders) * 100 if total_orders > 0 else 0
 
-        # Since Task does not have start_time and end_time, let's focus on task completion
+        # Average task completion time
         avg_task_completion_time = db.query(func.avg(Task.due_date - Task.created_at)).filter(
             Task.task_type == "picking",
             Task.created_at.between(start_date, end_date),
@@ -83,7 +81,7 @@ class ReportsCRUD:
         avg_inventory = (start_inventory + end_inventory) / 2
 
         cogs = db.query(func.sum(OrderItem.quantity * Product.price)).join(Product).filter(
-            OrderItem.order_id == Order.order_id,
+            OrderItem.order_id == Order.id,
             Order.order_date.between(start_date, end_date)
         ).scalar() or 0
 
@@ -114,9 +112,9 @@ class ReportsCRUD:
         )
 
     def get_kpi_dashboard(self, db: Session) -> KPIDashboard:
-        today = date.today()
-        yesterday = today - timedelta(days=1)
-        last_week = today - timedelta(days=7)
+        today = int(datetime.utcnow().timestamp())
+        yesterday = today - timedelta(days=1).total_seconds()
+        last_week = today - timedelta(days=7).total_seconds()
 
         # Daily revenue
         today_revenue = db.query(func.sum(Order.total_amount)).filter(
@@ -127,9 +125,9 @@ class ReportsCRUD:
             if today_revenue < yesterday_revenue else "stable"
 
         # Weekly order count
-        weekly_orders = db.query(func.count(Order.order_id)).filter(Order.order_date >= last_week).scalar()
-        prev_week_orders = db.query(func.count(Order.order_id)).filter(
-            Order.order_date.between(last_week - timedelta(days=7), last_week)
+        weekly_orders = db.query(func.count(Order.id)).filter(Order.order_date >= last_week).scalar()
+        prev_week_orders = db.query(func.count(Order.id)).filter(
+            Order.order_date.between(last_week - timedelta(days=7).total_seconds(), last_week)
         ).scalar()
         order_trend = "up" if weekly_orders > prev_week_orders else "down" \
             if weekly_orders < prev_week_orders else "stable"
@@ -138,7 +136,7 @@ class ReportsCRUD:
         inventory_value = db.query(func.sum(Inventory.quantity * Product.price)).join(Product).scalar() or 0
 
         # Pending shipments
-        pending_shipments = db.query(func.count(Order.order_id)).filter(Order.status == "pending").scalar()
+        pending_shipments = db.query(func.count(Order.id)).filter(Order.status == "pending").scalar()
 
         metrics = [
             KPIMetric.model_validate({

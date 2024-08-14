@@ -8,9 +8,9 @@ from .base import Base
 class Location(Base):
     __tablename__ = "locations"
 
-    location_id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), nullable=False, default="")
-    zone_id = Column(Integer, ForeignKey("zones.zone_id"), nullable=True)
+    zone_id = Column(Integer, ForeignKey("zones.id"), nullable=True)
     aisle = Column(String(50), nullable=True)
     rack = Column(String(50), nullable=True)
     shelf = Column(String(50), nullable=True)

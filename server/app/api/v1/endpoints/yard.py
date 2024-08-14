@@ -146,8 +146,8 @@ def get_yard_utilization(
 
 @router.get("/carrier_performance", response_model=List[shared_schemas.CarrierPerformance])
 def get_carrier_performance(
-        start_date: datetime = Query(...),
-        end_date: datetime = Query(...),
+        start_date: int = Query(...),
+        end_date: int = Query(...),
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):

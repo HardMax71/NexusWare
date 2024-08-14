@@ -20,7 +20,7 @@ class AuditLogCreate(AuditLogBase):
 
 
 class AuditLog(AuditLogBase):
-    log_id: int
+    id: int
     timestamp: int
 
     class Config:

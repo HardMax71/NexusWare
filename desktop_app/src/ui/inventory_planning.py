@@ -1,13 +1,11 @@
 from PySide6.QtCharts import QChart, QChartView, QLineSeries, QValueAxis, QDateTimeAxis
-from PySide6.QtCore import QDateTime
-from PySide6.QtGui import QPainter, Qt
+from PySide6.QtCore import QDateTime, Qt
+from PySide6.QtGui import QPainter
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem, QComboBox
 
 from public_api.api import ProductsAPI, InventoryAPI, APIClient
 from desktop_app.src.ui.components import StyledButton
 
-
-# TODO: Implement all missing inventory api methods
 
 class InventoryPlanningWidget(QWidget):
     def __init__(self, api_client: APIClient):
@@ -47,7 +45,7 @@ class InventoryPlanningWidget(QWidget):
         products = self.products_api.get_products()
         self.product_combo.clear()
         for product in products:
-            self.product_combo.addItem(product.name, product.product_id)
+            self.product_combo.addItem(product.name, product.id)
 
     def update_forecast(self):
         product_id = self.product_combo.currentData()
@@ -65,8 +63,7 @@ class InventoryPlanningWidget(QWidget):
     def update_chart(self, forecast_data):
         series = QLineSeries()
         for point in forecast_data['forecast']:
-            date = QDateTime.fromString(point['date'], Qt.ISODate)
-            x = date.toMSecsSinceEpoch()  # Convert date to milliseconds
+            x = point['date'] * 1000  # Convert the timestamp to milliseconds
             y = float(point['quantity'])  # Convert quantity to float
             series.append(x, y)
 

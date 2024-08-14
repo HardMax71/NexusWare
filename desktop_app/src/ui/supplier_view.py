@@ -46,7 +46,7 @@ class SupplierView(QWidget):
             actions_widget = QWidget()
             actions_layout = QHBoxLayout(actions_widget)
             edit_button = StyledButton("Edit")
-            edit_button.clicked.connect(lambda _, sid=supplier.supplier_id: self.edit_supplier(sid))
+            edit_button.clicked.connect(lambda _, sid=supplier.id: self.edit_supplier(sid))
             actions_layout.addWidget(edit_button)
             self.suppliers_table.setCellWidget(row, 4, actions_widget)
 

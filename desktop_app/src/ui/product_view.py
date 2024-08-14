@@ -48,7 +48,7 @@ class ProductView(QWidget):
             actions_widget = QWidget()
             actions_layout = QHBoxLayout(actions_widget)
             edit_button = StyledButton("Edit")
-            edit_button.clicked.connect(lambda _, pid=product.product_id: self.edit_product(pid))
+            edit_button.clicked.connect(lambda _, pid=product.id: self.edit_product(pid))
             actions_layout.addWidget(edit_button)
             self.products_table.setCellWidget(row, 5, actions_widget)
 

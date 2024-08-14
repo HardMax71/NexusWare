@@ -1,5 +1,4 @@
-# /server/app/crud/user.py
-from datetime import datetime, timedelta
+from datetime import timedelta, datetime
 from typing import Optional, List, Any, Dict, Union
 
 from sqlalchemy.orm import Session, joinedload
@@ -18,7 +17,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         return db.query(User).filter(User.username == username).first()
 
     def get_by_id(self, db: Session, *, user_id: int) -> Optional[User]:
-        return db.query(User).filter(User.user_id == user_id).first()
+        return db.query(User).filter(User.id == user_id).first()
 
     def get_multi_with_role(self, db: Session, *, skip: int = 0, limit: int = 100) -> List[User]:
         return db.query(User).options(joinedload(User.role)).offset(skip).limit(limit).all()
@@ -74,7 +73,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
 
     def set_reset_password_token(self, db: Session, *, user: User, token: str) -> User:
         user.password_reset_token = token
-        user.password_reset_expiration = datetime.utcnow() + timedelta(hours=1)
+        user.password_reset_expiration = int((datetime.utcnow() + timedelta(hours=1)).timestamp())
         db.add(user)
         db.commit()
         db.refresh(user)

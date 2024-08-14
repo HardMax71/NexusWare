@@ -8,10 +8,10 @@ from .base import Base
 class DockAppointment(Base):
     __tablename__ = "dock_appointments"
 
-    appointment_id = Column(Integer, primary_key=True, index=True)
-    yard_location_id = Column(Integer, ForeignKey("yard_locations.yard_location_id"))
+    id = Column(Integer, primary_key=True, index=True)
+    yard_location_id = Column(Integer, ForeignKey("yard_locations.id"))
     appointment_time = Column(Integer)
-    carrier_id = Column(Integer, ForeignKey("carriers.carrier_id"))
+    carrier_id = Column(Integer, ForeignKey("carriers.id"))
     type = Column(String(20))
     status = Column(String(20))
     actual_arrival_time = Column(Integer)

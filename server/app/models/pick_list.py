@@ -10,8 +10,8 @@ from .base import Base
 class PickList(Base):
     __tablename__ = "pick_lists"
 
-    pick_list_id = Column(Integer, primary_key=True, index=True)
-    order_id = Column(Integer, ForeignKey("orders.order_id"))
+    id = Column(Integer, primary_key=True, index=True)
+    order_id = Column(Integer, ForeignKey("orders.id"))
     status = Column(String(20))
     created_at = Column(Integer, default=lambda: int(time.time()))
     completed_at = Column(Integer)
@@ -24,9 +24,9 @@ class PickListItem(Base):
     __tablename__ = "pick_list_items"
 
     pick_list_item_id = Column(Integer, primary_key=True, index=True)
-    pick_list_id = Column(Integer, ForeignKey("pick_lists.pick_list_id"))
-    product_id = Column(Integer, ForeignKey("products.product_id"))
-    location_id = Column(Integer, ForeignKey("locations.location_id"))
+    pick_list_id = Column(Integer, ForeignKey("pick_lists.id"))
+    product_id = Column(Integer, ForeignKey("products.id"))
+    location_id = Column(Integer, ForeignKey("locations.id"))
     quantity = Column(Integer)
     picked_quantity = Column(Integer, default=0)
 

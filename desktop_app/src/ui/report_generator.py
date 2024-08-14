@@ -5,7 +5,6 @@ from public_api.api import ReportsAPI, APIClient
 from desktop_app.src.ui.components import StyledButton
 
 
-# TODO: implement missing functions
 class ReportGeneratorWidget(QWidget):
     def __init__(self, api_client: APIClient):
         super().__init__()
@@ -37,8 +36,10 @@ class ReportGeneratorWidget(QWidget):
 
     def generate_report(self):
         report_type = self.report_type_combo.currentText()
-        start_date = self.start_date.date().toString(Qt.ISODate)
-        end_date = self.end_date.date().toString(Qt.ISODate)
+
+        # Convert QDate to Unix timestamp
+        start_date = int(self.start_date.dateTime().toSecsSinceEpoch())
+        end_date = int(self.end_date.dateTime().toSecsSinceEpoch())
 
         if report_type == "Inventory Summary":
             report_data = self.reports_api.get_inventory_summary()

@@ -36,7 +36,7 @@ class CRUDLocation(CRUDBase[Location, LocationCreate, LocationUpdate]):
         return [LocationWithInventorySchema.model_validate(location) for location in locations]
 
     def get_with_inventory(self, db: Session, id: int) -> Optional[LocationWithInventorySchema]:
-        location = db.query(Location).filter(Location.location_id == id).options(
+        location = db.query(Location).filter(Location.id == id).options(
             joinedload(Location.inventory_items)).first()
         return LocationWithInventorySchema.model_validate(location) if location else None
 

@@ -27,7 +27,7 @@ class CRUDYardLocation(CRUDBase[YardLocation, YardLocationCreate, YardLocationUp
 
     def get_with_appointments(self, db: Session, id: int) -> Optional[YardLocationWithAppointments]:
         location = (db.query(self.model)
-                    .filter(self.model.yard_location_id == id)
+                    .filter(self.model.id == id)
                     .options(selectinload(YardLocation.appointments))
                     .first())
         return YardLocationWithAppointments.model_validate(location) if location else None

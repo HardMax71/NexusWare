@@ -10,8 +10,8 @@ from .base import Base
 class AuditLog(Base):
     __tablename__ = "audit_log"
 
-    log_id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.user_id"))
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
     action_type = Column(String(50))
     table_name = Column(String(50))
     record_id = Column(Integer)

@@ -3,6 +3,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, Q
 
 from public_api.api import APIClient, AuditAPI
 from desktop_app.src.ui.components import StyledButton
+import time
 
 
 class AuditLogView(QWidget):
@@ -37,13 +38,20 @@ class AuditLogView(QWidget):
         self.refresh_logs()
 
     def refresh_logs(self):
-        start_date = self.start_date.date().toString(Qt.ISODate)
-        end_date = self.end_date.date().toString(Qt.ISODate)
-        audit_summary = self.audit_log_api.get_audit_summary(start_date, end_date)
+        # Convert QDate to Unix timestamp (int)
+        start_date_timestamp = int(self.start_date.dateTime().toSecsSinceEpoch())
+        end_date_timestamp = int(self.end_date.dateTime().toSecsSinceEpoch())
 
-        self.log_table.setRowCount(audit_summary.total_logs)
-        for row, log in enumerate(audit_summary):
-            self.log_table.setItem(row, 0, QTableWidgetItem(log['timestamp']))
+        # Fetch audit summary with timestamps
+        audit_summary = self.audit_log_api.get_audit_summary(start_date_timestamp, end_date_timestamp)
+
+        # Clear the table before updating
+        self.log_table.setRowCount(0)
+
+        for row, log in enumerate(audit_summary.logs):
+            self.log_table.insertRow(row)
+            self.log_table.setItem(row, 0, QTableWidgetItem(
+                time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(log['timestamp']))))
             self.log_table.setItem(row, 1, QTableWidgetItem(log['username']))
             self.log_table.setItem(row, 2, QTableWidgetItem(log['action']))
             self.log_table.setItem(row, 3, QTableWidgetItem(log['table_name']))

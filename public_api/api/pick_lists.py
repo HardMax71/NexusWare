@@ -37,7 +37,7 @@ class PickListsAPI:
         return PickList.model_validate(response)
 
     def optimize_picking_route(self, pick_list_id: int) -> OptimizedPickingRoute:
-        response = self.client.get(f"/pick_lists/optimize_route", params={"pick_list_id": pick_list_id})
+        response = self.client.get("/pick_lists/optimize_route", params={"pick_list_id": pick_list_id})
         return OptimizedPickingRoute.model_validate(response)
 
     def start_pick_list(self, pick_list_id: int) -> PickList:
