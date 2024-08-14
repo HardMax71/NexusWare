@@ -5,7 +5,7 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 
 from server.app.models import PurchaseOrder, POItem, Supplier
-from server.app.schemas import (
+from public_api.shared_schemas import (
     PurchaseOrder as PurchaseOrderSchema,
     PurchaseOrderWithDetails as PurchaseOrderWithDetailsSchema,
     POItem as POItemSchema,
@@ -17,7 +17,7 @@ from .base import CRUDBase
 
 class CRUDPurchaseOrder(CRUDBase[PurchaseOrder, PurchaseOrderCreate, PurchaseOrderUpdate]):
     def create(self, db: Session, *, obj_in: PurchaseOrderCreate) -> PurchaseOrderSchema:
-        obj_in_data = jsonable_encoder(obj_in)
+        obj_in_data = obj_in.model_dump()
         items = obj_in_data.pop("items")
         db_obj = self.model(**obj_in_data)
         for item in items:

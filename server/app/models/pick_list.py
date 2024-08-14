@@ -1,5 +1,7 @@
 # /server/app/models/pick_list.py
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func
+import time
+
+from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 
 from .base import Base
@@ -11,8 +13,8 @@ class PickList(Base):
     pick_list_id = Column(Integer, primary_key=True, index=True)
     order_id = Column(Integer, ForeignKey("orders.order_id"))
     status = Column(String(20))
-    created_at = Column(DateTime, server_default=func.now())
-    completed_at = Column(DateTime)
+    created_at = Column(Integer, default=lambda: int(time.time()))
+    completed_at = Column(Integer)
 
     order = relationship("Order")
     pick_list_items = relationship("PickListItem", back_populates="pick_list")

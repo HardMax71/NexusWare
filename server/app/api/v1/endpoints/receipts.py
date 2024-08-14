@@ -4,33 +4,34 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Path, Body
 from sqlalchemy.orm import Session
 
-from .... import crud, models, schemas
+from .... import crud, models
+from public_api import shared_schemas
 from ....api import deps
 
 router = APIRouter()
 
 
-@router.post("/", response_model=schemas.Receipt)
+@router.post("/", response_model=shared_schemas.Receipt)
 def create_receipt(
-        receipt: schemas.ReceiptCreate,
+        receipt: shared_schemas.ReceiptCreate,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.receipt.create_with_items(db=db, obj_in=receipt)
 
 
-@router.get("/", response_model=List[schemas.Receipt])
+@router.get("/", response_model=List[shared_schemas.Receipt])
 def read_receipts(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
         limit: int = 100,
-        filter_params: schemas.ReceiptFilter = Depends(),
+        filter_params: shared_schemas.ReceiptFilter = Depends(),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.receipt.get_multi_with_filter(db, skip=skip, limit=limit, filter_params=filter_params)
 
 
-@router.get("/expected_today", response_model=List[schemas.Receipt])
+@router.get("/expected_today", response_model=List[shared_schemas.Receipt])
 def get_expected_receipts_today(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
@@ -38,7 +39,7 @@ def get_expected_receipts_today(
     return crud.receipt.get_expected_today(db)
 
 
-@router.get("/{receipt_id}", response_model=schemas.Receipt)
+@router.get("/{receipt_id}", response_model=shared_schemas.Receipt)
 def read_receipt(
         receipt_id: int = Path(..., title="The ID of the receipt to get"),
         db: Session = Depends(deps.get_db),
@@ -50,10 +51,10 @@ def read_receipt(
     return receipt
 
 
-@router.put("/{receipt_id}", response_model=schemas.Receipt)
+@router.put("/{receipt_id}", response_model=shared_schemas.Receipt)
 def update_receipt(
         receipt_id: int = Path(..., title="The ID of the receipt to update"),
-        receipt_in: schemas.ReceiptUpdate = Body(..., title="Receipt update data"),
+        receipt_in: shared_schemas.ReceiptUpdate = Body(..., title="Receipt update data"),
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
@@ -63,7 +64,7 @@ def update_receipt(
     return crud.receipt.update_with_items(db, db_obj=receipt, obj_in=receipt_in)
 
 
-@router.delete("/{receipt_id}", response_model=schemas.Receipt)
+@router.delete("/{receipt_id}", response_model=shared_schemas.Receipt)
 def delete_receipt(
         receipt_id: int = Path(..., title="The ID of the receipt to delete"),
         db: Session = Depends(deps.get_db),
@@ -75,20 +76,20 @@ def delete_receipt(
     return crud.receipt.remove(db, id=receipt_id)
 
 
-@router.post("/{receipt_id}/quality_check", response_model=schemas.Receipt)
+@router.post("/{receipt_id}/quality_check", response_model=shared_schemas.Receipt)
 def perform_receipt_quality_check(
         receipt_id: int,
-        quality_check: schemas.QualityCheckCreate,
+        quality_check: shared_schemas.QualityCheckCreate,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.receipt.perform_quality_check(db, receipt_id=receipt_id, quality_check=quality_check)
 
 
-@router.post("/{receipt_id}/discrepancy", response_model=schemas.Receipt)
+@router.post("/{receipt_id}/discrepancy", response_model=shared_schemas.Receipt)
 def report_receipt_discrepancy(
         receipt_id: int,
-        discrepancy: schemas.ReceiptDiscrepancy,
+        discrepancy: shared_schemas.ReceiptDiscrepancy,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):

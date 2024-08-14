@@ -4,34 +4,42 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
 
-from .... import crud, models, schemas
+from .... import crud, models
+from public_api import shared_schemas
 from ....api import deps
 
 router = APIRouter()
 
 
-@router.post("/", response_model=schemas.Product)
+@router.post("/", response_model=shared_schemas.Product)
 def create_product(
-        product: schemas.ProductCreate,
+        product: shared_schemas.ProductCreate,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.product.create(db=db, obj_in=product)
 
 
-@router.get("/", response_model=List[schemas.ProductWithCategoryAndInventory])
+@router.get("/", response_model=List[shared_schemas.ProductWithCategoryAndInventory])
 def read_products(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
         limit: int = 100,
-        product_filter: schemas.ProductFilter = Depends(),
+        product_filter: shared_schemas.ProductFilter = Depends(),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.product.get_multi_with_category_and_inventory(db, skip=skip, limit=limit, filter_params=product_filter)
 
-@router.post("/barcode", response_model=schemas.Product)
+@router.get("/max_id", response_model=int)
+def get_max_product_id(
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.product.get_max_id(db)
+
+@router.post("/barcode", response_model=shared_schemas.Product)
 def get_product_by_barcode(
-        barcode_data: schemas.BarcodeData,
+        barcode_data: shared_schemas.BarcodeData,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
@@ -40,7 +48,7 @@ def get_product_by_barcode(
         raise HTTPException(status_code=404, detail="Product not found")
     return product
 
-@router.get("/{product_id}", response_model=schemas.ProductWithCategoryAndInventory)
+@router.get("/{product_id}", response_model=shared_schemas.ProductWithCategoryAndInventory)
 def read_product(
         product_id: int,
         db: Session = Depends(deps.get_db),
@@ -52,10 +60,10 @@ def read_product(
     return product
 
 
-@router.put("/{product_id}", response_model=schemas.Product)
+@router.put("/{product_id}", response_model=shared_schemas.Product)
 def update_product(
         product_id: int,
-        product_in: schemas.ProductUpdate,
+        product_in: shared_schemas.ProductUpdate,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
@@ -65,7 +73,7 @@ def update_product(
     return crud.product.update(db, db_obj=product, obj_in=product_in)
 
 
-@router.delete("/{product_id}", response_model=schemas.Product)
+@router.delete("/{product_id}", response_model=shared_schemas.Product)
 def delete_product(
         product_id: int,
         db: Session = Depends(deps.get_db),
@@ -78,7 +86,7 @@ def delete_product(
 
 
 
-@router.get("/{product_id}/substitutes", response_model=List[schemas.Product])
+@router.get("/{product_id}/substitutes", response_model=List[shared_schemas.Product])
 def get_product_substitutes(
         product_id: int,
         db: Session = Depends(deps.get_db),
@@ -87,7 +95,7 @@ def get_product_substitutes(
     return crud.product.get_substitutes(db, product_id=product_id)
 
 
-@router.post("/{product_id}/substitutes", response_model=schemas.Product)
+@router.post("/{product_id}/substitutes", response_model=shared_schemas.Product)
 def add_product_substitute(
         product_id: int,
         substitute_id: int = Body(..., embed=True),

@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session, joinedload
 from server.app.models import (
     Zone
 )
-from server.app.schemas import (
+from public_api.shared_schemas import (
     ZoneCreate, ZoneUpdate, LocationFilter, ZoneWithLocations
 )
 from .base import CRUDBase

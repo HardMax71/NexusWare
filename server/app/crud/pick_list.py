@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from server.app.models import (
     PickList, PickListItem
 )
-from server.app.schemas import (
+from public_api.shared_schemas import (
     PickList as PickListSchema, PickListCreate, PickListUpdate,
     PickListItem as PickListItemSchema, PickListItemCreate, PickListItemUpdate,
     PickListFilter, PickingPerformance, OptimizedPickingRoute
@@ -24,14 +24,14 @@ class CRUDPickList(CRUDBase[PickList, PickListCreate, PickListUpdate]):
         db.add(db_obj)
         db.flush()
         for item in obj_in.items:
-            db_item = PickListItem(**item.dict(), pick_list_id=db_obj.pick_list_id)
+            db_item = PickListItem(**item.model_dump(), pick_list_id=db_obj.pick_list_id)
             db.add(db_item)
         db.commit()
         db.refresh(db_obj)
         return PickListSchema.model_validate(db_obj)
 
     def update_with_items(self, db: Session, *, db_obj: PickList, obj_in: PickListUpdate) -> PickListSchema:
-        update_data = obj_in.dict(exclude_unset=True)
+        update_data = obj_in.model_dump(exclude_unset=True)
         if "items" in update_data:
             items = update_data.pop("items")
             for item in db_obj.pick_list_items:

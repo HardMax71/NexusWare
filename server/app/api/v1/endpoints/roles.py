@@ -4,13 +4,14 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from .... import crud, models, schemas
+from .... import crud, models
+from public_api import shared_schemas
 from ....api import deps
 
 router = APIRouter()
 
 
-@router.get("/", response_model=List[schemas.Role])
+@router.get("/", response_model=List[shared_schemas.Role])
 def read_roles(
         skip: int = 0,
         limit: int = 100,
@@ -18,10 +19,10 @@ def read_roles(
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     roles = crud.role.get_multi(db, skip=skip, limit=limit)
-    return [schemas.Role.model_validate(role) for role in roles]
+    return [shared_schemas.Role.model_validate(role) for role in roles]
 
 
-@router.get("/{role_id}", response_model=schemas.Role)
+@router.get("/{role_id}", response_model=shared_schemas.Role)
 def read_role(
         role_id: int,
         db: Session = Depends(deps.get_db),
@@ -30,13 +31,13 @@ def read_role(
     role = crud.role.get(db, id=role_id)
     if not role:
         raise HTTPException(status_code=404, detail="Role not found")
-    return schemas.Role.model_validate(role)
+    return shared_schemas.Role.model_validate(role)
 
 
-@router.put("/{role_id}", response_model=schemas.Role)
+@router.put("/{role_id}", response_model=shared_schemas.Role)
 def update_role(
         role_id: int,
-        role_in: schemas.RoleUpdate,
+        role_in: shared_schemas.RoleUpdate,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_admin)
 ):
@@ -44,10 +45,10 @@ def update_role(
     if not role:
         raise HTTPException(status_code=404, detail="Role not found")
     updated_role = crud.role.update(db, db_obj=role, obj_in=role_in)
-    return schemas.Role.model_validate(updated_role)
+    return shared_schemas.Role.model_validate(updated_role)
 
 
-@router.delete("/{role_id}", response_model=schemas.Role)
+@router.delete("/{role_id}", response_model=shared_schemas.Role)
 def delete_role(
         role_id: int,
         db: Session = Depends(deps.get_db),
@@ -57,4 +58,4 @@ def delete_role(
     if not role:
         raise HTTPException(status_code=404, detail="Role not found")
     deleted_role = crud.role.remove(db, id=role_id)
-    return schemas.Role.model_validate(deleted_role)
+    return shared_schemas.Role.model_validate(deleted_role)

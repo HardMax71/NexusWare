@@ -1,11 +1,13 @@
 from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QTextEdit, QProgressBar
 
+from public_api.api import APIClient
 from .components import StyledButton
+
 
 # TODO: Implement in full
 class SystemDiagnosticsWidget(QWidget):
-    def __init__(self, api_client):
+    def __init__(self, api_client: APIClient):
         super().__init__()
         self.api_client = api_client
         self.init_ui()

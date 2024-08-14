@@ -5,7 +5,7 @@ from typing import Optional
 from sqlalchemy.orm import Session, joinedload
 
 from server.app.models import Asset, AssetMaintenance, Location
-from server.app.schemas import (
+from public_api.shared_schemas import (
     Asset as AssetSchema,
     Location as LocationSchema,
     AssetWithMaintenance as AssetWithMaintenanceSchema,

@@ -4,22 +4,23 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from .... import crud, models, schemas
+from .... import crud, models
+from public_api import shared_schemas
 from ....api import deps
 
 router = APIRouter()
 
 
-@router.post("/", response_model=schemas.ProductCategory)
+@router.post("/", response_model=shared_schemas.ProductCategory)
 def create_category(
-        category: schemas.ProductCategoryCreate,
+        category: shared_schemas.ProductCategoryCreate,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.product_category.create(db=db, obj_in=category)
 
 
-@router.get("/", response_model=List[schemas.ProductCategory])
+@router.get("/", response_model=List[shared_schemas.ProductCategory])
 def read_categories(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
@@ -29,7 +30,7 @@ def read_categories(
     return crud.product_category.get_multi(db, skip=skip, limit=limit)
 
 
-@router.get("/{category_id}", response_model=schemas.ProductCategory)
+@router.get("/{category_id}", response_model=shared_schemas.ProductCategory)
 def read_category(
         category_id: int,
         db: Session = Depends(deps.get_db),
@@ -41,10 +42,10 @@ def read_category(
     return category
 
 
-@router.put("/{category_id}", response_model=schemas.ProductCategory)
+@router.put("/{category_id}", response_model=shared_schemas.ProductCategory)
 def update_category(
         category_id: int,
-        category_in: schemas.ProductCategoryUpdate,
+        category_in: shared_schemas.ProductCategoryUpdate,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
@@ -54,7 +55,7 @@ def update_category(
     return crud.product_category.update(db, db_obj=category, obj_in=category_in)
 
 
-@router.delete("/{category_id}", response_model=schemas.ProductCategory)
+@router.delete("/{category_id}", response_model=shared_schemas.ProductCategory)
 def delete_category(
         category_id: int,
         db: Session = Depends(deps.get_db),

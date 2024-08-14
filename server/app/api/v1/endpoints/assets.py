@@ -1,31 +1,32 @@
 # /server/app/api/v1/endpoints/assets.py
-from datetime import date
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from .... import crud, models, schemas
+from public_api import shared_schemas
+from .... import crud, models
 from ....api import deps
 
 router = APIRouter()
 
 
 # Asset routes
-@router.post("/", response_model=schemas.Asset)
+@router.post("/", response_model=shared_schemas.Asset)
 def create_asset(
-        asset: schemas.AssetCreate,
+        asset: shared_schemas.AssetCreate,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.asset.create(db=db, obj_in=asset)
 
 
-@router.get("/", response_model=schemas.AssetWithMaintenanceList)
+@router.get("/", response_model=shared_schemas.AssetWithMaintenanceList)
 def read_assets(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
         limit: int = 100,
-        asset_filter: schemas.AssetFilter = Depends(),
+        asset_filter: shared_schemas.AssetFilter = Depends(),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     assets = crud.asset.get_multi_with_filter(db, skip=skip, limit=limit, filter_params=asset_filter)
@@ -50,27 +51,27 @@ def read_asset_statuses(
 
 
 # Asset Maintenance routes
-@router.post("/maintenance", response_model=schemas.AssetMaintenance)
+@router.post("/maintenance", response_model=shared_schemas.AssetMaintenance)
 def create_asset_maintenance(
-        maintenance: schemas.AssetMaintenanceCreate,
+        maintenance: shared_schemas.AssetMaintenanceCreate,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.asset_maintenance.create(db=db, obj_in=maintenance)
 
 
-@router.get("/maintenance", response_model=list[schemas.AssetMaintenance])
+@router.get("/maintenance", response_model=list[shared_schemas.AssetMaintenance])
 def read_asset_maintenances(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
         limit: int = 100,
-        maintenance_filter: schemas.AssetMaintenanceFilter = Depends(),
+        maintenance_filter: shared_schemas.AssetMaintenanceFilter = Depends(),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.asset_maintenance.get_multi_with_filter(db, skip=skip, limit=limit, filter_params=maintenance_filter)
 
 
-@router.get("/maintenance/{maintenance_id}", response_model=schemas.AssetMaintenance)
+@router.get("/maintenance/{maintenance_id}", response_model=shared_schemas.AssetMaintenance)
 def read_asset_maintenance(
         maintenance_id: int,
         db: Session = Depends(deps.get_db),
@@ -82,10 +83,10 @@ def read_asset_maintenance(
     return maintenance
 
 
-@router.put("/maintenance/{maintenance_id}", response_model=schemas.AssetMaintenance)
+@router.put("/maintenance/{maintenance_id}", response_model=shared_schemas.AssetMaintenance)
 def update_asset_maintenance(
         maintenance_id: int,
-        maintenance_in: schemas.AssetMaintenanceUpdate,
+        maintenance_in: shared_schemas.AssetMaintenanceUpdate,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
@@ -95,7 +96,7 @@ def update_asset_maintenance(
     return crud.asset_maintenance.update(db, db_obj=maintenance, obj_in=maintenance_in)
 
 
-@router.delete("/maintenance/{maintenance_id}", response_model=schemas.AssetMaintenance)
+@router.delete("/maintenance/{maintenance_id}", response_model=shared_schemas.AssetMaintenance)
 def delete_asset_maintenance(
         maintenance_id: int,
         db: Session = Depends(deps.get_db),
@@ -115,7 +116,7 @@ def read_maintenance_types(
     return crud.asset_maintenance.get_all_types(db)
 
 
-@router.get("/{asset_id}/maintenance_history", response_model=list[schemas.AssetMaintenance])
+@router.get("/{asset_id}/maintenance_history", response_model=list[shared_schemas.AssetMaintenance])
 def read_asset_maintenance_history(
         asset_id: int,
         db: Session = Depends(deps.get_db),
@@ -126,10 +127,10 @@ def read_asset_maintenance_history(
     return crud.asset_maintenance.get_multi_by_asset(db, asset_id=asset_id, skip=skip, limit=limit)
 
 
-@router.post("/{asset_id}/schedule_maintenance", response_model=schemas.AssetMaintenance)
+@router.post("/{asset_id}/schedule_maintenance", response_model=shared_schemas.AssetMaintenance)
 def schedule_asset_maintenance(
         asset_id: int,
-        maintenance: schemas.AssetMaintenanceCreate,
+        maintenance: shared_schemas.AssetMaintenanceCreate,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
@@ -140,22 +141,22 @@ def schedule_asset_maintenance(
     return crud.asset_maintenance.create(db=db, obj_in=maintenance)
 
 
-@router.put("/maintenance/{maintenance_id}/complete", response_model=schemas.AssetMaintenance)
+@router.put("/maintenance/{maintenance_id}/complete", response_model=shared_schemas.AssetMaintenance)
 def complete_asset_maintenance(
         maintenance_id: int,
-        completion_data: schemas.AssetMaintenanceUpdate,
+        completion_data: shared_schemas.AssetMaintenanceUpdate,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     maintenance = crud.asset_maintenance.get(db, id=maintenance_id)
     if maintenance is None:
         raise HTTPException(status_code=404, detail="Asset maintenance record not found")
-    completion_data.completed_date = date.today()
+    completion_data.completed_date = int(datetime.now().timestamp())
     completion_data.performed_by = current_user.user_id
     return crud.asset_maintenance.update(db, db_obj=maintenance, obj_in=completion_data)
 
 
-@router.get("/due_for_maintenance", response_model=list[schemas.AssetWithMaintenance])
+@router.get("/due_for_maintenance", response_model=list[shared_schemas.AssetWithMaintenance])
 def get_assets_due_for_maintenance(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
@@ -163,7 +164,7 @@ def get_assets_due_for_maintenance(
     return crud.asset.get_due_for_maintenance(db)
 
 
-@router.get("/{asset_id}", response_model=schemas.AssetWithMaintenance)
+@router.get("/{asset_id}", response_model=shared_schemas.AssetWithMaintenance)
 def read_asset(
         asset_id: int,
         db: Session = Depends(deps.get_db),
@@ -175,10 +176,10 @@ def read_asset(
     return asset
 
 
-@router.put("/{asset_id}", response_model=schemas.Asset)
+@router.put("/{asset_id}", response_model=shared_schemas.Asset)
 def update_asset(
         asset_id: int,
-        asset_in: schemas.AssetUpdate,
+        asset_in: shared_schemas.AssetUpdate,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
@@ -188,7 +189,7 @@ def update_asset(
     return crud.asset.update(db, db_obj=asset, obj_in=asset_in)
 
 
-@router.delete("/{asset_id}", response_model=schemas.Asset)
+@router.delete("/{asset_id}", response_model=shared_schemas.Asset)
 def delete_asset(
         asset_id: int,
         db: Session = Depends(deps.get_db),
@@ -200,7 +201,7 @@ def delete_asset(
     return crud.asset.remove(db, id=asset_id)
 
 
-@router.get("/{asset_id}/current_location", response_model=schemas.Location)
+@router.get("/{asset_id}/current_location", response_model=shared_schemas.Location)
 def get_asset_current_location(
         asset_id: int,
         db: Session = Depends(deps.get_db),
@@ -212,10 +213,10 @@ def get_asset_current_location(
     return location
 
 
-@router.post("/{asset_id}/transfer", response_model=schemas.Asset)
+@router.post("/{asset_id}/transfer", response_model=shared_schemas.Asset)
 def transfer_asset(
         asset_id: int,
-        transfer: schemas.AssetTransfer,
+        transfer: shared_schemas.AssetTransfer,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):

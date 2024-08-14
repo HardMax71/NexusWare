@@ -4,8 +4,9 @@ from PySide6.QtCore import QFile, QTextStream
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
 
-from api.client import APIClient
-from api.users import UsersAPI
+from public_api.api import APIClient
+from public_api.api import UsersAPI
+from desktop_app.src.config import API_BASE_URL
 from services.authentication import AuthenticationService
 from services.offline_manager import OfflineManager
 from services.update_manager import UpdateManager
@@ -41,7 +42,7 @@ def main():
     config_manager = ConfigManager()
 
     # Initialize API client
-    api_client = APIClient()
+    api_client = APIClient(base_url=API_BASE_URL)
 
     # Initialize services
     users_api = UsersAPI(api_client)

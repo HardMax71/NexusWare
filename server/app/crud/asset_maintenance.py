@@ -3,7 +3,7 @@
 from sqlalchemy.orm import Session
 
 from server.app.models import AssetMaintenance
-from server.app.schemas import (
+from public_api.shared_schemas import (
     AssetMaintenance as AssetMaintenanceSchema,
     AssetMaintenanceCreate,
     AssetMaintenanceUpdate,

@@ -1,5 +1,5 @@
 # /server/app/models/asset.py
-from sqlalchemy import Column, Integer, String, Date, ForeignKey, Text
+from sqlalchemy import Column, Integer, String, ForeignKey, Text
 from sqlalchemy.orm import relationship
 
 from .base import Base
@@ -12,7 +12,7 @@ class Asset(Base):
     asset_type = Column(String(50))
     asset_name = Column(String(100))
     serial_number = Column(String(50))
-    purchase_date = Column(Date)
+    purchase_date = Column(Integer)
     status = Column(String(20))
     location_id = Column(Integer, ForeignKey("locations.location_id"))
 
@@ -26,8 +26,8 @@ class AssetMaintenance(Base):
     maintenance_id = Column(Integer, primary_key=True, index=True)
     asset_id = Column(Integer, ForeignKey("assets.asset_id"))
     maintenance_type = Column(String(50))
-    scheduled_date = Column(Date)
-    completed_date = Column(Date)
+    scheduled_date = Column(Integer)
+    completed_date = Column(Integer)
     performed_by = Column(Integer, ForeignKey("users.user_id"))
     notes = Column(Text)
 

@@ -1,5 +1,7 @@
 # /server/app/models/receipt.py
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func
+import time
+
+from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 
 from .base import Base
@@ -10,7 +12,7 @@ class Receipt(Base):
 
     receipt_id = Column(Integer, primary_key=True, index=True)
     po_id = Column(Integer, ForeignKey("purchase_orders.po_id"))
-    received_date = Column(DateTime, server_default=func.now())
+    received_date = Column(Integer, default=lambda: int(time.time()))
     status = Column(String(20))
 
     purchase_order = relationship("PurchaseOrder")

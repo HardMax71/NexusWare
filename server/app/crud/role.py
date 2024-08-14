@@ -3,8 +3,8 @@ from typing import Optional, Any, Dict, Union
 
 from sqlalchemy.orm import Session
 
+from public_api.shared_schemas import RoleCreate, RoleUpdate, Role as RoleSchema
 from server.app.models import Role, RolePermission
-from server.app.schemas import RoleCreate, RoleUpdate, Role as RoleSchema
 from .base import CRUDBase
 
 
@@ -25,7 +25,7 @@ class CRUDRole(CRUDBase[Role, RoleCreate, RoleUpdate]):
         if isinstance(obj_in, dict):
             update_data = obj_in
         else:
-            update_data = obj_in.dict(exclude_unset=True)
+            update_data = obj_in.model_dump(exclude_unset=True)
 
         if "permissions" in update_data:
             db.query(RolePermission).filter(RolePermission.role_id == db_obj.role_id).delete()

@@ -6,7 +6,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from server.app.models import YardLocation, DockAppointment, Carrier
-from server.app.schemas import (
+from public_api.shared_schemas import (
     YardStats, YardUtilizationReport,
     CarrierPerformance, YardLocationCapacity
 )

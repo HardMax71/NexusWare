@@ -1,11 +1,12 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTextEdit, QLabel
 
+from public_api.api import APIClient
 from .components import StyledButton
 
 # TODO: IMplement in full
 class TrainingModeWidget(QWidget):
-    def __init__(self, api_client):
+    def __init__(self, api_client: APIClient):
         super().__init__()
         self.api_client = api_client
         self.current_step = 0

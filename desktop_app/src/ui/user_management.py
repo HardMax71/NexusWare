@@ -1,12 +1,12 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem
 
-from desktop_app.src.api import UsersAPI
 from desktop_app.src.ui.components import StyledButton
+from public_api.api import UsersAPI, APIClient
 
 
 # TODO: Implement missing functions
 class UserManagementWidget(QWidget):
-    def __init__(self, api_client):
+    def __init__(self, api_client: APIClient):
         super().__init__()
         self.api_client = api_client
         self.users_api = UsersAPI(api_client)
@@ -37,17 +37,17 @@ class UserManagementWidget(QWidget):
         users = self.users_api.get_users()
         self.users_table.setRowCount(len(users))
         for row, user in enumerate(users):
-            self.users_table.setItem(row, 0, QTableWidgetItem(user['username']))
-            self.users_table.setItem(row, 1, QTableWidgetItem(user['email']))
-            self.users_table.setItem(row, 2, QTableWidgetItem(user['role']['role_name']))
-            self.users_table.setItem(row, 3, QTableWidgetItem("Active" if user['is_active'] else "Inactive"))
+            self.users_table.setItem(row, 0, QTableWidgetItem(user.username))
+            self.users_table.setItem(row, 1, QTableWidgetItem(user.email))
+            self.users_table.setItem(row, 2, QTableWidgetItem(user.role.role_name))
+            self.users_table.setItem(row, 3, QTableWidgetItem("Active" if user.is_active else "Inactive"))
 
             actions_widget = QWidget()
             actions_layout = QHBoxLayout(actions_widget)
             edit_button = StyledButton("Edit")
-            edit_button.clicked.connect(lambda _, uid=user['user_id']: self.edit_user(uid))
+            edit_button.clicked.connect(lambda _, uid=user.user_id: self.edit_user(uid))
             delete_button = StyledButton("Delete")
-            delete_button.clicked.connect(lambda _, uid=user['user_id']: self.delete_user(uid))
+            delete_button.clicked.connect(lambda _, uid=user.user_id: self.delete_user(uid))
             actions_layout.addWidget(edit_button)
             actions_layout.addWidget(delete_button)
             self.users_table.setCellWidget(row, 4, actions_widget)

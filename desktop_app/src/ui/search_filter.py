@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QComboBox, QTableWidget, QTableWidgetItem
 
-from desktop_app.src.api import APIClient
+from public_api.api import APIClient
 from desktop_app.src.ui.components import StyledButton
 
 

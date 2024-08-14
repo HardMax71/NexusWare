@@ -5,7 +5,7 @@ from typing import Optional, List
 from sqlalchemy.orm import Session
 
 from server.app.models import DockAppointment
-from server.app.schemas import (
+from public_api.shared_schemas import (
     DockAppointment as DockAppointmentSchema,
     DockAppointmentCreate, DockAppointmentUpdate,
     DockAppointmentFilter,

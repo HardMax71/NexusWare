@@ -2,11 +2,12 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit
 from requests import HTTPError
 
+from desktop_app.src.services.authentication import AuthenticationService
 from .components import StyledLineEdit, StyledButton, ErrorDialog
 
 
 class LoginDialog(QDialog):
-    def __init__(self, auth_service, parent=None):
+    def __init__(self, auth_service: AuthenticationService, parent=None):
         super().__init__(parent)
         self.auth_service = auth_service
         self.init_ui()
@@ -45,8 +46,8 @@ class LoginDialog(QDialog):
         password = self.password_input.text()
 
         try:
-            response = self.auth_service.login(username, password)
-            if response.get("access_token"):
+            token = self.auth_service.login(username, password)
+            if token:
                 self.accept()
             else:
                 self.show_error_dialog("Invalid username or password")
@@ -65,6 +66,6 @@ class LoginDialog(QDialog):
         else:
             super().keyPressEvent(event)
 
-    def show_error_dialog(self, message):
+    def show_error_dialog(self, message: str):
         error_dialog = ErrorDialog(message, self)
         error_dialog.exec_()

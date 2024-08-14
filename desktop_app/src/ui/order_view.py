@@ -1,13 +1,14 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem, QComboBox
 
-from desktop_app.src.api import OrdersAPI
+from public_api.api import OrdersAPI, APIClient
 from desktop_app.src.ui.components import StyledButton
+from public_api.shared_schemas import OrderFilter
 
 
 # TODO: Implement missing functions
 
 class OrderView(QWidget):
-    def __init__(self, api_client):
+    def __init__(self, api_client: APIClient):
         super().__init__()
         self.api_client = api_client
         self.orders_api = OrdersAPI(api_client)
@@ -42,19 +43,20 @@ class OrderView(QWidget):
         if status_filter == "All":
             status_filter = None
 
-        orders = self.orders_api.get_orders(filter_params={"status": status_filter})
+        filter = OrderFilter(status=status_filter)
+        orders = self.orders_api.get_orders(filter_params=filter)
         self.orders_table.setRowCount(len(orders))
         for row, order in enumerate(orders):
-            self.orders_table.setItem(row, 0, QTableWidgetItem(str(order['order_id'])))
-            self.orders_table.setItem(row, 1, QTableWidgetItem(order['customer']['name']))
-            self.orders_table.setItem(row, 2, QTableWidgetItem(order['order_date']))
-            self.orders_table.setItem(row, 3, QTableWidgetItem(f"${order['total_amount']:.2f}"))
-            self.orders_table.setItem(row, 4, QTableWidgetItem(order['status']))
+            self.orders_table.setItem(row, 0, QTableWidgetItem(str(order.order_id)))
+            self.orders_table.setItem(row, 1, QTableWidgetItem(order.customer.name))
+            self.orders_table.setItem(row, 2, QTableWidgetItem(order.order_date.strftime("%Y-%m-%d")))
+            self.orders_table.setItem(row, 3, QTableWidgetItem(f"${order.total_amount:.2f}"))
+            self.orders_table.setItem(row, 4, QTableWidgetItem(order.status))
 
             actions_widget = QWidget()
             actions_layout = QHBoxLayout(actions_widget)
             view_button = StyledButton("View")
-            view_button.clicked.connect(lambda _, oid=order['order_id']: self.view_order(oid))
+            view_button.clicked.connect(lambda _, oid=order.order_id: self.view_order(oid))
             actions_layout.addWidget(view_button)
             self.orders_table.setCellWidget(row, 5, actions_widget)
 

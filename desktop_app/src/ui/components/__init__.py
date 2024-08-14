@@ -17,6 +17,10 @@ from .dialogs import (
     FileDialog
 )
 from .error_dialog import ErrorDialog
+from .inventory_widget_dialogs import (
+    InventoryDialog,
+    AdjustmentDialog
+)
 
 __all__ = [
     "StyledButton",
@@ -33,5 +37,7 @@ __all__ = [
     "ProgressDialog",
     "MessageBox",
     "FileDialog",
-    "ErrorDialog"
+    "ErrorDialog",
+    "InventoryDialog",
+    "AdjustmentDialog"
 ]

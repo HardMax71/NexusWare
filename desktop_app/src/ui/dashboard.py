@@ -5,8 +5,8 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QPainter
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel
 
-from desktop_app.src.api import APIClient, ReportsAPI, InventoryAPI, PickListsAPI
 from desktop_app.src.ui.components import CardWidget
+from public_api.api import APIClient, ReportsAPI, InventoryAPI, PickListsAPI
 
 
 class DashboardWidget(QWidget):
@@ -24,8 +24,8 @@ class DashboardWidget(QWidget):
         # Add summary cards
         cards_layout = QHBoxLayout()
         kpi_data = self.reports_api.get_kpi_dashboard()
-        for metric in kpi_data.get("metrics", []):
-            cards_layout.addWidget(self.create_summary_card(metric["name"], metric["value"]))
+        for metric in kpi_data.metrics:
+            cards_layout.addWidget(self.create_summary_card(metric.name, metric.value))
         layout.addLayout(cards_layout)
 
         # Add charts
@@ -43,7 +43,7 @@ class DashboardWidget(QWidget):
     def create_inventory_chart(self):
         inventory_data = self.inventory_api.get_inventory_summary()
         series = QPieSeries()
-        for category, quantity in inventory_data.get("category_quantities", {}).items():
+        for category, quantity in inventory_data.category_quantities.items():
             series.append(category, quantity)
 
         chart = QChart()
@@ -60,12 +60,12 @@ class DashboardWidget(QWidget):
     def create_performance_chart(self):
         start_date = datetime(2023, 1, 1)
         end_date = datetime(2024, 12, 31)
-        performance_data = self.pick_lists_api.get_picking_performance(start_date=start_date, end_date=end_date)
+        picking_performance = self.pick_lists_api.get_picking_performance(start_date=start_date, end_date=end_date)
 
         set0 = QBarSet("Average Picking Time")
         set1 = QBarSet("Items Picked Per Hour")
-        set0.append(performance_data.get("average_picking_time", 0))
-        set1.append(performance_data.get("items_picked_per_hour", 0))
+        set0.append(picking_performance.average_picking_time)
+        set1.append(picking_performance.items_picked_per_hour)
 
         series = QBarSeries()
         series.append(set0)

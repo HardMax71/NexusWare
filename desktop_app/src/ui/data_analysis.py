@@ -3,12 +3,12 @@ from PySide6.QtCore import Qt, QDateTime
 from PySide6.QtGui import QPainter
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QDateEdit
 
-from desktop_app.src.api import ReportsAPI
+from public_api.api import ReportsAPI, APIClient
 from desktop_app.src.ui.components import StyledButton
 
 
 class DataAnalysisWidget(QWidget):
-    def __init__(self, api_client):
+    def __init__(self, api_client: APIClient):
         super().__init__()
         self.api_client = api_client
         self.reports_api = ReportsAPI(api_client)

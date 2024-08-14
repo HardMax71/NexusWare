@@ -1,5 +1,7 @@
 # /server/app/models/audit_log.py
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, func
+import time
+
+from sqlalchemy import Column, Integer, String, ForeignKey, Text
 from sqlalchemy.orm import relationship
 
 from .base import Base
@@ -15,6 +17,6 @@ class AuditLog(Base):
     record_id = Column(Integer)
     old_value = Column(Text)
     new_value = Column(Text)
-    timestamp = Column(DateTime, server_default=func.now())
+    timestamp = Column(Integer, default=lambda: int(time.time()))
 
     user = relationship("User", back_populates="audit_logs")

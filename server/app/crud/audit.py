@@ -6,7 +6,7 @@ from sqlalchemy import func, desc
 from sqlalchemy.orm import Session
 
 from server.app.models import AuditLog, User
-from server.app.schemas import AuditLog as AuditLogSchema, AuditLogCreate, AuditLogFilter, AuditSummary, \
+from public_api.shared_schemas import AuditLog as AuditLogSchema, AuditLogCreate, AuditLogFilter, AuditSummary, \
     UserActivitySummary
 from .base import CRUDBase
 

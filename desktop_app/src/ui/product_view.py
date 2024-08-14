@@ -1,11 +1,11 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem
 
-from desktop_app.src.api import ProductsAPI
 from desktop_app.src.ui.components import StyledButton
+from public_api.api import ProductsAPI, APIClient
 
 
 class ProductView(QWidget):
-    def __init__(self, api_client):
+    def __init__(self, api_client: APIClient):
         super().__init__()
         self.api_client = api_client
         self.products_api = ProductsAPI(api_client)
@@ -36,19 +36,19 @@ class ProductView(QWidget):
         products = self.products_api.get_products()
         self.products_table.setRowCount(len(products))
         for row, product in enumerate(products):
-            self.products_table.setItem(row, 0, QTableWidgetItem(product['sku']))
-            self.products_table.setItem(row, 1, QTableWidgetItem(product['name']))
-            self.products_table.setItem(row, 2, QTableWidgetItem(product['category']['name']))
-            self.products_table.setItem(row, 3, QTableWidgetItem(f"${product['price']:.2f}"))
+            self.products_table.setItem(row, 0, QTableWidgetItem(product.sku))
+            self.products_table.setItem(row, 1, QTableWidgetItem(product.name))
+            self.products_table.setItem(row, 2, QTableWidgetItem(product.category.name))
+            self.products_table.setItem(row, 3, QTableWidgetItem(f"${product.price:.2f}"))
 
             # Calculate total stock across all inventory items
-            total_stock = sum(item['quantity'] for item in product['inventory_items'])
+            total_stock = sum(item.quantity for item in product.inventory_items)
             self.products_table.setItem(row, 4, QTableWidgetItem(str(total_stock)))
 
             actions_widget = QWidget()
             actions_layout = QHBoxLayout(actions_widget)
             edit_button = StyledButton("Edit")
-            edit_button.clicked.connect(lambda _, pid=product['product_id']: self.edit_product(pid))
+            edit_button.clicked.connect(lambda _, pid=product.product_id: self.edit_product(pid))
             actions_layout.addWidget(edit_button)
             self.products_table.setCellWidget(row, 5, actions_widget)
 

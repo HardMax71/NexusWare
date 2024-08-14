@@ -1,47 +1,48 @@
 # /server/app/api/v1/endpoints/orders.py
-from datetime import datetime
+
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from sqlalchemy.orm import Session
 
-from .... import crud, models, schemas
+from public_api import shared_schemas
+from .... import crud, models
 from ....api import deps
 
 router = APIRouter()
 
 
-@router.post("/", response_model=schemas.Order)
+@router.post("/", response_model=shared_schemas.Order)
 def create_order(
-        order: schemas.OrderCreate,
+        order: shared_schemas.OrderCreate,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.order.create(db=db, obj_in=order)
 
 
-@router.get("/", response_model=List[schemas.OrderWithDetails])
+@router.get("/", response_model=List[shared_schemas.OrderWithDetails])
 def read_orders(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
         limit: int = 100,
-        filter_params: schemas.OrderFilter = Depends(),
+        filter_params: shared_schemas.OrderFilter = Depends(),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.order.get_multi_with_details(db, skip=skip, limit=limit, filter_params=filter_params)
 
 
-@router.get("/summary", response_model=schemas.OrderSummary)
+@router.get("/summary", response_model=shared_schemas.OrderSummary)
 def get_order_summary(
         db: Session = Depends(deps.get_db),
-        date_from: datetime = Query(None),
-        date_to: datetime = Query(None),
+        date_from: int = Query(None),
+        date_to: int = Query(None),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.order.get_summary(db, date_from=date_from, date_to=date_to)
 
 
-@router.get("/backorders", response_model=List[schemas.Order])
+@router.get("/backorders", response_model=List[shared_schemas.Order])
 def get_backorders(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
@@ -49,26 +50,26 @@ def get_backorders(
     return crud.order.get_backorders(db)
 
 
-@router.post("/bulk_import", response_model=schemas.BulkImportResult)
+@router.post("/bulk_import", response_model=shared_schemas.BulkImportResult)
 def bulk_import_orders(
-        import_data: schemas.BulkImportData,
+        import_data: shared_schemas.BulkImportData,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_admin)
 ):
     return crud.order.bulk_import(db, import_data=import_data)
 
 
-@router.get("/processing_times", response_model=schemas.OrderProcessingTimes)
+@router.get("/processing_times", response_model=shared_schemas.OrderProcessingTimes)
 def get_order_processing_times(
-        start_date: datetime = Query(...),
-        end_date: datetime = Query(...),
+        start_date: int = Query(...),
+        end_date: int = Query(...),
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.order.get_processing_times(db, start_date=start_date, end_date=end_date)
 
 
-@router.get("/{order_id}", response_model=schemas.OrderWithDetails)
+@router.get("/{order_id}", response_model=shared_schemas.OrderWithDetails)
 def read_order(
         order_id: int,
         db: Session = Depends(deps.get_db),
@@ -80,10 +81,10 @@ def read_order(
     return order
 
 
-@router.put("/{order_id}", response_model=schemas.Order)
+@router.put("/{order_id}", response_model=shared_schemas.Order)
 def update_order(
         order_id: int,
-        order_in: schemas.OrderUpdate,
+        order_in: shared_schemas.OrderUpdate,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
@@ -93,7 +94,7 @@ def update_order(
     return crud.order.update(db, db_obj=order, obj_in=order_in)
 
 
-@router.delete("/{order_id}", response_model=schemas.Order)
+@router.delete("/{order_id}", response_model=shared_schemas.Order)
 def delete_order(
         order_id: int,
         db: Session = Depends(deps.get_db),
@@ -105,7 +106,7 @@ def delete_order(
     return crud.order.remove(db, id=order_id)
 
 
-@router.post("/{order_id}/cancel", response_model=schemas.Order)
+@router.post("/{order_id}/cancel", response_model=shared_schemas.Order)
 def cancel_order(
         order_id: int,
         db: Session = Depends(deps.get_db),
@@ -117,10 +118,10 @@ def cancel_order(
     return crud.order.cancel(db, db_obj=order)
 
 
-@router.post("/{order_id}/ship", response_model=schemas.Order)
+@router.post("/{order_id}/ship", response_model=shared_schemas.Order)
 def ship_order(
         order_id: int,
-        shipping_info: schemas.ShippingInfo,
+        shipping_info: shared_schemas.ShippingInfo,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
@@ -130,7 +131,7 @@ def ship_order(
     return crud.order.ship(db, db_obj=order, shipping_info=shipping_info)
 
 
-@router.post("/{order_id}/cancel_item", response_model=schemas.Order)
+@router.post("/{order_id}/cancel_item", response_model=shared_schemas.Order)
 def cancel_order_item(
         order_id: int,
         item_id: int = Body(..., embed=True),
@@ -140,10 +141,10 @@ def cancel_order_item(
     return crud.order.cancel_item(db, order_id=order_id, item_id=item_id)
 
 
-@router.post("/{order_id}/add_item", response_model=schemas.Order)
+@router.post("/{order_id}/add_item", response_model=shared_schemas.Order)
 def add_order_item(
         order_id: int,
-        item: schemas.OrderItemCreate,
+        item: shared_schemas.OrderItemCreate,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):

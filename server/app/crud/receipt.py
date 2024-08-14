@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from server.app.models import (
     Receipt, ReceiptItem
 )
-from server.app.schemas import (
+from public_api.shared_schemas import (
     Receipt as ReceiptSchema, ReceiptCreate, ReceiptUpdate,
     ReceiptItem as ReceiptItemSchema, ReceiptItemCreate, ReceiptItemUpdate,
     ReceiptFilter, QualityCheckCreate
@@ -23,14 +23,14 @@ class CRUDReceipt(CRUDBase[Receipt, ReceiptCreate, ReceiptUpdate]):
         db.add(db_obj)
         db.flush()
         for item in obj_in.items:
-            db_item = ReceiptItem(**item.dict(), receipt_id=db_obj.receipt_id)
+            db_item = ReceiptItem(**item.model_dump(), receipt_id=db_obj.receipt_id)
             db.add(db_item)
         db.commit()
         db.refresh(db_obj)
         return ReceiptSchema.model_validate(db_obj)
 
     def update_with_items(self, db: Session, *, db_obj: Receipt, obj_in: ReceiptUpdate) -> ReceiptSchema:
-        update_data = obj_in.dict(exclude_unset=True)
+        update_data = obj_in.model_dump(exclude_unset=True)
         if "items" in update_data:
             items = update_data.pop("items")
             for item in db_obj.receipt_items:

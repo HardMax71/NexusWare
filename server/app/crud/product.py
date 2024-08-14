@@ -1,16 +1,17 @@
 # /server/app/crud/product.py
 from typing import Optional
 
+from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
-from server.app.models import (
-    Product
-)
-from server.app.schemas import (
+from public_api.shared_schemas import (
     Product as ProductSchema,
     ProductWithInventory as ProductWithInventorySchema,
     ProductCreate, ProductUpdate,
     ProductFilter, ProductWithCategoryAndInventory
+)
+from server.app.models import (
+    Product
 )
 from .base import CRUDBase
 
@@ -48,6 +49,10 @@ class CRUDProduct(CRUDBase[Product, ProductCreate, ProductUpdate]):
     def get_by_barcode(self, db: Session, barcode: str) -> Optional[ProductSchema]:
         current_product = db.query(Product).filter(Product.barcode == barcode).first()
         return ProductSchema.model_validate(current_product) if current_product else None
+
+    def get_max_id(self, db: Session) -> int:
+        max_id = db.query(func.max(Product.product_id)).scalar()
+        return max_id if max_id is not None else 0
 
 
 product = CRUDProduct(Product)

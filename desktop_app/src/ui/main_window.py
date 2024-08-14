@@ -1,22 +1,24 @@
-from PySide6.QtWidgets import QMainWindow, QTabWidget, QVBoxLayout, QWidget, QStatusBar, QMessageBox
-from PySide6.QtGui import QIcon
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QMainWindow, QTabWidget, QVBoxLayout, QWidget, QStatusBar, QMessageBox
 
+from public_api.api import APIClient
 from .components.dialogs import UserManualDialog, AboutDialog
+from .customer_view import CustomerView
 from .dashboard import DashboardWidget
 from .inventory_view import InventoryView
+from .notification_center import NotificationCenter
 from .order_view import OrderView
 from .product_view import ProductView
-from .settings.settings_dialog import SettingsDialog
-from .supplier_view import SupplierView
-from .customer_view import CustomerView
-from .shipment_view import ShipmentView
 from .report_generator import ReportGeneratorWidget
+from .settings.settings_dialog import SettingsDialog
+from .shipment_view import ShipmentView
+from .supplier_view import SupplierView
 from .user_management import UserManagementWidget
-from .notification_center import NotificationCenter
+
 
 class MainWindow(QMainWindow):
-    def __init__(self, api_client):
+    def __init__(self, api_client: APIClient):
         super().__init__()
         self.api_client = api_client
         self.init_ui()

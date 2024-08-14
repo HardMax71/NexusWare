@@ -1,9 +1,11 @@
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import QDockWidget, QVBoxLayout, QWidget, QListWidget, QListWidgetItem, QLabel
 
+from public_api.api import APIClient
+
 
 class NotificationCenter(QDockWidget):
-    def __init__(self, api_client):
+    def __init__(self, api_client: APIClient):
         super().__init__("Notifications")
         self.api_client = api_client
         self.init_ui()
@@ -30,7 +32,6 @@ class NotificationCenter(QDockWidget):
         self.setWidget(content)
 
         self.fetch_notifications()
-
 
     # TODO: notifications api doesnt exist yet, so this is just a placeholder
     def fetch_notifications(self):

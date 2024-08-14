@@ -1,17 +1,18 @@
 # /server/app/api/v1/endpoints/search.py
-from datetime import date
+
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from .... import crud, models, schemas
+from public_api import shared_schemas
+from .... import crud, models
 from ....api import deps
 
 router = APIRouter()
 
 
-@router.get("/products", response_model=List[schemas.Product])
+@router.get("/products", response_model=List[shared_schemas.Product])
 def search_products(
         q: Optional[str] = Query(None, description="Search query string"),
         category_id: Optional[int] = Query(None),
@@ -30,14 +31,14 @@ def search_products(
     )
 
 
-@router.get("/orders", response_model=List[schemas.Order])
+@router.get("/orders", response_model=List[shared_schemas.Order])
 def search_orders(
         q: Optional[str] = Query(None, description="Search query string"),
         status: Optional[str] = Query(None),
         min_total: Optional[float] = Query(None),
         max_total: Optional[float] = Query(None),
-        start_date: Optional[date] = Query(None),
-        end_date: Optional[date] = Query(None),
+        start_date: Optional[int] = Query(None),
+        end_date: Optional[int] = Query(None),
         sort_by: Optional[str] = Query(None),
         sort_order: Optional[str] = Query("asc"),
         db: Session = Depends(deps.get_db),

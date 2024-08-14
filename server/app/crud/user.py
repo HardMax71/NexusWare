@@ -4,9 +4,9 @@ from typing import Optional, List, Any, Dict, Union
 
 from sqlalchemy.orm import Session, joinedload
 
+from public_api.shared_schemas import UserCreate, UserUpdate
 from server.app.core.security import get_password_hash, verify_password
 from server.app.models import User
-from server.app.schemas import UserCreate, UserUpdate
 from .base import CRUDBase
 
 
@@ -40,7 +40,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         if isinstance(obj_in, dict):
             update_data = obj_in
         else:
-            update_data = obj_in.dict(exclude_unset=True)
+            update_data = obj_in.model_dump(exclude_unset=True)
         if update_data.get("password"):
             hashed_password = get_password_hash(update_data["password"])
             del update_data["password"]

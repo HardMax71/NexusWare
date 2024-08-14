@@ -5,9 +5,9 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from server.app.models import Order, Shipment, Carrier
-from server.app.schemas import CarrierCreate, CarrierUpdate
-from server.app.schemas import (Shipment as ShipmentSchema, ShipmentCreate, ShipmentUpdate,
-                                ShipmentFilter, ShipmentTracking, CarrierRate, ShippingLabel)
+from public_api.shared_schemas import CarrierCreate, CarrierUpdate
+from public_api.shared_schemas import (Shipment as ShipmentSchema, ShipmentCreate, ShipmentUpdate,
+                                       ShipmentFilter, ShipmentTracking, CarrierRate, ShippingLabel)
 from .base import CRUDBase
 from ..utils.generate_label import shipengine_api_call
 

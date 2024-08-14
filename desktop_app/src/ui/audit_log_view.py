@@ -1,7 +1,7 @@
 from PySide6.QtCore import Qt, QDate
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem, QDateEdit, QLabel
 
-from desktop_app.src.api import APIClient, AuditAPI
+from public_api.api import APIClient, AuditAPI
 from desktop_app.src.ui.components import StyledButton
 
 
@@ -39,10 +39,10 @@ class AuditLogView(QWidget):
     def refresh_logs(self):
         start_date = self.start_date.date().toString(Qt.ISODate)
         end_date = self.end_date.date().toString(Qt.ISODate)
-        logs = self.audit_log_api.get_audit_summary(start_date, end_date)
+        audit_summary = self.audit_log_api.get_audit_summary(start_date, end_date)
 
-        self.log_table.setRowCount(len(logs))
-        for row, log in enumerate(logs):
+        self.log_table.setRowCount(audit_summary.total_logs)
+        for row, log in enumerate(audit_summary):
             self.log_table.setItem(row, 0, QTableWidgetItem(log['timestamp']))
             self.log_table.setItem(row, 1, QTableWidgetItem(log['username']))
             self.log_table.setItem(row, 2, QTableWidgetItem(log['action']))

@@ -1,7 +1,8 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem, QComboBox
 
-from desktop_app.src.api.shipments import ShipmentsAPI
 from desktop_app.src.ui.components import StyledButton
+from public_api.api import ShipmentsAPI
+from public_api.shared_schemas import ShipmentFilter
 
 
 # TODO: Implement shipment tracking dialog
@@ -39,19 +40,20 @@ class ShipmentView(QWidget):
         if status_filter == "All":
             status_filter = None
 
-        shipments = self.shipments_api.get_shipments(filter_params={"status": status_filter})
+        filter = ShipmentFilter(status=status_filter)
+        shipments = self.shipments_api.get_shipments(filter_params=filter)
         self.shipments_table.setRowCount(len(shipments))
         for row, shipment in enumerate(shipments):
-            self.shipments_table.setItem(row, 0, QTableWidgetItem(str(shipment['shipment_id'])))
-            self.shipments_table.setItem(row, 1, QTableWidgetItem(str(shipment['order_id'])))
-            self.shipments_table.setItem(row, 2, QTableWidgetItem(shipment['label_id']))
-            self.shipments_table.setItem(row, 3, QTableWidgetItem(shipment['status']))
-            self.shipments_table.setItem(row, 4, QTableWidgetItem(shipment['tracking_number']))
+            self.shipments_table.setItem(row, 0, QTableWidgetItem(str(shipment.shipment_id)))
+            self.shipments_table.setItem(row, 1, QTableWidgetItem(str(shipment.order_id)))
+            self.shipments_table.setItem(row, 2, QTableWidgetItem(shipment.label_id))
+            self.shipments_table.setItem(row, 3, QTableWidgetItem(shipment.status))
+            self.shipments_table.setItem(row, 4, QTableWidgetItem(shipment.tracking_number))
 
             actions_widget = QWidget()
             actions_layout = QHBoxLayout(actions_widget)
             track_button = StyledButton("Track")
-            track_button.clicked.connect(lambda _, sid=shipment['shipment_id']: self.track_shipment(sid))
+            track_button.clicked.connect(lambda _, sid=shipment.shipment_id: self.track_shipment(sid))
             actions_layout.addWidget(track_button)
             self.shipments_table.setCellWidget(row, 5, actions_widget)
 

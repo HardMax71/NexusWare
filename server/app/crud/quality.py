@@ -6,7 +6,7 @@ from sqlalchemy import func, case
 from sqlalchemy.orm import Session
 
 from server.app.models import QualityCheck, QualityStandard, QualityAlert, Product
-from server.app.schemas import (
+from public_api.shared_schemas import (
     QualityCheck as QualityCheckSchema,
     QualityCheckWithProduct as QualityCheckWithProductSchema,
     QualityCheckCreate, QualityCheckUpdate, QualityCheckFilter,
@@ -88,7 +88,7 @@ class CRUDQualityCheck(CRUDBase[QualityCheck, QualityCheckCreate, QualityCheckUp
         }
 
     def create_batch(self, db: Session, *, obj_in_list: list[QualityCheckCreate]) -> list[QualityCheckSchema]:
-        db_objs = [QualityCheck(**obj_in.dict()) for obj_in in obj_in_list]
+        db_objs = [QualityCheck(**obj_in.model_dump()) for obj_in in obj_in_list]
         db.add_all(db_objs)
         db.commit()
         for obj in db_objs:

@@ -4,13 +4,14 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Path, Body
 from sqlalchemy.orm import Session
 
-from .... import crud, models, schemas
+from .... import crud, models
+from public_api import shared_schemas
 from ....api import deps
 
 router = APIRouter()
 
 
-@router.get("/", response_model=List[schemas.POItem])
+@router.get("/", response_model=List[shared_schemas.POItem])
 def read_po_items(
         skip: int = 0,
         limit: int = 100,
@@ -21,7 +22,7 @@ def read_po_items(
     return po_items
 
 
-@router.get("/by_product/{product_id}", response_model=List[schemas.POItem])
+@router.get("/by_product/{product_id}", response_model=List[shared_schemas.POItem])
 def read_po_items_by_product(
         product_id: int = Path(..., title="The ID of the product to filter by"),
         skip: int = 0,
@@ -33,7 +34,7 @@ def read_po_items_by_product(
     return po_items
 
 
-@router.get("/pending_receipt", response_model=List[schemas.POItem])
+@router.get("/pending_receipt", response_model=List[shared_schemas.POItem])
 def read_pending_receipt_po_items(
         skip: int = 0,
         limit: int = 100,
@@ -44,7 +45,7 @@ def read_pending_receipt_po_items(
     return po_items
 
 
-@router.get("/{po_item_id}", response_model=schemas.POItem)
+@router.get("/{po_item_id}", response_model=shared_schemas.POItem)
 def read_po_item(
         po_item_id: int = Path(..., title="The ID of the PO item to get"),
         db: Session = Depends(deps.get_db),
@@ -56,10 +57,10 @@ def read_po_item(
     return po_item
 
 
-@router.put("/{po_item_id}", response_model=schemas.POItem)
+@router.put("/{po_item_id}", response_model=shared_schemas.POItem)
 def update_po_item(
         po_item_id: int = Path(..., title="The ID of the PO item to update"),
-        po_item_in: schemas.POItemUpdate = Body(..., title="PO Item update data"),
+        po_item_in: shared_schemas.POItemUpdate = Body(..., title="PO Item update data"),
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):

@@ -3,7 +3,7 @@
 from sqlalchemy.orm import Session
 
 from server.app.models import Supplier
-from server.app.schemas import (
+from public_api.shared_schemas import (
     Supplier as SupplierSchema,
     SupplierCreate, SupplierUpdate,
     SupplierFilter

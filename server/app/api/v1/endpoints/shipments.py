@@ -4,33 +4,34 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Path, Body, Query
 from sqlalchemy.orm import Session
 
-from .... import crud, models, schemas
+from .... import crud, models
+from public_api import shared_schemas
 from ....api import deps
 
 router = APIRouter()
 
 
-@router.post("/", response_model=schemas.Shipment)
+@router.post("/", response_model=shared_schemas.Shipment)
 def create_shipment(
-        shipment: schemas.ShipmentCreate,
+        shipment: shared_schemas.ShipmentCreate,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.shipment.create(db=db, obj_in=shipment)
 
 
-@router.get("/", response_model=List[schemas.Shipment])
+@router.get("/", response_model=List[shared_schemas.Shipment])
 def read_shipments(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
         limit: int = 100,
-        filter_params: schemas.ShipmentFilter = Depends(),
+        filter_params: shared_schemas.ShipmentFilter = Depends(),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.shipment.get_multi_with_filter(db, skip=skip, limit=limit, filter_params=filter_params)
 
 
-@router.get("/carrier_rates", response_model=List[schemas.CarrierRate])
+@router.get("/carrier_rates", response_model=List[shared_schemas.CarrierRate])
 def get_carrier_rates(
         weight: float = Query(...),
         dimensions: str = Query(...),
@@ -41,7 +42,7 @@ def get_carrier_rates(
     return crud.shipment.get_carrier_rates(db, weight=weight, dimensions=dimensions, destination_zip=destination_zip)
 
 
-@router.get("/{shipment_id}", response_model=schemas.Shipment)
+@router.get("/{shipment_id}", response_model=shared_schemas.Shipment)
 def read_shipment(
         shipment_id: int = Path(..., title="The ID of the shipment to get"),
         db: Session = Depends(deps.get_db),
@@ -53,10 +54,10 @@ def read_shipment(
     return shipment
 
 
-@router.put("/{shipment_id}", response_model=schemas.Shipment)
+@router.put("/{shipment_id}", response_model=shared_schemas.Shipment)
 def update_shipment(
         shipment_id: int = Path(..., title="The ID of the shipment to update"),
-        shipment_in: schemas.ShipmentUpdate = Body(..., title="Shipment update data"),
+        shipment_in: shared_schemas.ShipmentUpdate = Body(..., title="Shipment update data"),
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
@@ -66,7 +67,7 @@ def update_shipment(
     return crud.shipment.update(db, db_obj=shipment, obj_in=shipment_in)
 
 
-@router.delete("/{shipment_id}", response_model=schemas.Shipment)
+@router.delete("/{shipment_id}", response_model=shared_schemas.Shipment)
 def delete_shipment(
         shipment_id: int = Path(..., title="The ID of the shipment to delete"),
         db: Session = Depends(deps.get_db),
@@ -78,7 +79,7 @@ def delete_shipment(
     return crud.shipment.remove(db, id=shipment_id)
 
 
-@router.post("/{shipment_id}/generate_label", response_model=schemas.ShippingLabel)
+@router.post("/{shipment_id}/generate_label", response_model=shared_schemas.ShippingLabel)
 def generate_shipping_label(
         shipment_id: int,
         db: Session = Depends(deps.get_db),
@@ -87,7 +88,7 @@ def generate_shipping_label(
     return crud.shipment.generate_label(db, shipment_id=shipment_id)
 
 
-@router.post("/{shipment_id}/track", response_model=schemas.ShipmentTracking)
+@router.post("/{shipment_id}/track", response_model=shared_schemas.ShipmentTracking)
 def track_shipment(
         shipment_id: int,
         db: Session = Depends(deps.get_db),

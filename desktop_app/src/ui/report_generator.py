@@ -1,13 +1,13 @@
 from PySide6.QtCore import Qt, QDate
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QDateEdit, QTextEdit
 
-from desktop_app.src.api import ReportsAPI
+from public_api.api import ReportsAPI, APIClient
 from desktop_app.src.ui.components import StyledButton
 
 
 # TODO: implement missing functions
 class ReportGeneratorWidget(QWidget):
-    def __init__(self, api_client):
+    def __init__(self, api_client: APIClient):
         super().__init__()
         self.api_client = api_client
         self.reports_api = ReportsAPI(api_client)

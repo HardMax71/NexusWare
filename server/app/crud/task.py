@@ -5,9 +5,10 @@ from typing import Optional
 from sqlalchemy import func, case
 from sqlalchemy.orm import Session
 
-from server.app.models import Task, User, TaskComment
-from server.app.schemas import TaskCreate, TaskUpdate, TaskFilter, TaskCommentCreate, TaskStatistics, UserTaskSummary, \
+from public_api.shared_schemas import TaskCreate, TaskUpdate, TaskFilter, TaskCommentCreate, TaskStatistics, \
+    UserTaskSummary, \
     Task as TaskSchema, TaskWithAssignee, TaskComment as TaskCommentSchema
+from server.app.models import Task, User, TaskComment
 from .base import CRUDBase
 
 
@@ -101,7 +102,7 @@ class CRUDTask(CRUDBase[Task, TaskCreate, TaskUpdate]):
         return [TaskSchema.model_validate(task) for task in overdue_tasks]
 
     def create_batch(self, db: Session, *, obj_in_list: list[TaskCreate]) -> list[TaskSchema]:
-        db_objs = [Task(**obj_in.dict()) for obj_in in obj_in_list]
+        db_objs = [Task(**obj_in.model_dump()) for obj_in in obj_in_list]
         db.add_all(db_objs)
         db.commit()
         for obj in db_objs:

@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from server.app.models import (
     PickList, Receipt, Shipment, LocationInventory, InventoryMovement, InventoryAdjustment
 )
-from server.app.schemas import (
+from public_api.shared_schemas import (
     InventoryMovement as InventoryMovementSchema,
     InventoryAdjustment as InventoryAdjustmentSchema,
     InventoryAdjustmentCreate,
@@ -79,7 +79,7 @@ class CRUDWarehouse:
             )
             db.add(to_location_inventory)
 
-        db_movement = InventoryMovement(**movement.dict())
+        db_movement = InventoryMovement(**movement.model_dump())
         db.add(db_movement)
         db.commit()
         db.refresh(db_movement)
@@ -101,7 +101,7 @@ class CRUDWarehouse:
             )
             db.add(location_inventory)
 
-        db_adjustment = InventoryAdjustment(**adjustment.dict())
+        db_adjustment = InventoryAdjustment(**adjustment.model_dump())
         db.add(db_adjustment)
         db.commit()
         db.refresh(db_adjustment)

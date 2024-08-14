@@ -1,7 +1,8 @@
 # /server/app/models/order.py
 from sqlalchemy import (Column, Integer, String, ForeignKey,
-                        Numeric, DateTime, func)
+                        Numeric)
 from sqlalchemy.orm import relationship
+import time
 
 from .base import Base
 
@@ -11,8 +12,8 @@ class Order(Base):
 
     order_id = Column(Integer, primary_key=True, index=True)
     customer_id = Column(Integer, ForeignKey("customers.customer_id"))
-    order_date = Column(DateTime, server_default=func.now())
-    ship_date = Column(DateTime)
+    order_date = Column(Integer, default=lambda: int(time.time()))
+    ship_date = Column(Integer)
     status = Column(String(20))
     total_amount = Column(Numeric(10, 2))
     shipping_name = Column(String(100))
@@ -45,9 +46,9 @@ class PurchaseOrder(Base):
 
     po_id = Column(Integer, primary_key=True, index=True)
     supplier_id = Column(Integer, ForeignKey("suppliers.supplier_id"))
-    order_date = Column(DateTime, server_default=func.now())
+    order_date = Column(Integer, default=lambda: int(time.time()))
     status = Column(String(20))
-    expected_delivery_date = Column(DateTime)
+    expected_delivery_date = Column(Integer)
 
     supplier = relationship("Supplier", back_populates="purchase_orders")
     po_items = relationship("POItem", back_populates="purchase_order")

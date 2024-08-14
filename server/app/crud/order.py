@@ -7,7 +7,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
 from server.app.models import Order, OrderItem
-from server.app.schemas import (
+from public_api.shared_schemas import (
     Order as OrderSchema,
     OrderWithDetails as OrderWithDetailsSchema,
     OrderCreate, OrderUpdate, OrderItemCreate, OrderItemUpdate,
@@ -19,7 +19,7 @@ from .base import CRUDBase
 
 class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
     def create(self, db: Session, *, obj_in: OrderCreate) -> OrderSchema:
-        obj_in_data = jsonable_encoder(obj_in)
+        obj_in_data = obj_in.model_dump()
         items = obj_in_data.pop("items")
         db_obj = self.model(**obj_in_data)
         for item in items:
@@ -122,7 +122,7 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
         if not order:
             raise ValueError("Order not found")
 
-        new_item = OrderItem(**item.dict(), order_id=order_id)
+        new_item = OrderItem(**item.model_dump(), order_id=order_id)
         order.order_items.append(new_item)
         order.total_amount += item.quantity * item.unit_price
 

@@ -2,7 +2,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QPen, QBrush, QColor
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QGraphicsView, QGraphicsScene
 
-from desktop_app.src.api import WarehouseAPI, APIClient
+from public_api.api import WarehouseAPI, APIClient
 
 
 class WarehouseVisualizerWidget(QWidget):

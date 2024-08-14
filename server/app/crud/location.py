@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session, joinedload
 from server.app.models import (
     Location
 )
-from server.app.schemas import (
+from public_api.shared_schemas import (
     LocationCreate,
     LocationUpdate, LocationWithInventory as LocationWithInventorySchema, LocationFilter
 )

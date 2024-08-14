@@ -5,7 +5,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from server.app.models import Product, Inventory, Order, OrderItem, Task
-from server.app.schemas import InventorySummaryReport, InventoryItem, OrderSummaryReport, OrderSummary, \
+from public_api.shared_schemas import InventorySummaryReport, InventoryItem, OrderSummaryReport, OrderSummary, \
     WarehousePerformanceReport, WarehousePerformanceMetric, KPIDashboard, KPIMetric
 
 

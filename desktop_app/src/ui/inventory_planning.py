@@ -1,16 +1,16 @@
-from PySide6.QtCharts import QChart, QChartView, QLineSeries
-from PySide6.QtCore import QPointF
-from PySide6.QtGui import QPainter
+from PySide6.QtCharts import QChart, QChartView, QLineSeries, QValueAxis, QDateTimeAxis
+from PySide6.QtCore import QDateTime
+from PySide6.QtGui import QPainter, Qt
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem, QComboBox
 
-from desktop_app.src.api import ProductsAPI, InventoryAPI
+from public_api.api import ProductsAPI, InventoryAPI, APIClient
 from desktop_app.src.ui.components import StyledButton
 
 
 # TODO: Implement all missing inventory api methods
 
 class InventoryPlanningWidget(QWidget):
-    def __init__(self, api_client):
+    def __init__(self, api_client: APIClient):
         super().__init__()
         self.api_client = api_client
         self.products_api = ProductsAPI(api_client)
@@ -47,7 +47,7 @@ class InventoryPlanningWidget(QWidget):
         products = self.products_api.get_products()
         self.product_combo.clear()
         for product in products:
-            self.product_combo.addItem(product['name'], product['product_id'])
+            self.product_combo.addItem(product.name, product.product_id)
 
     def update_forecast(self):
         product_id = self.product_combo.currentData()
@@ -65,12 +65,29 @@ class InventoryPlanningWidget(QWidget):
     def update_chart(self, forecast_data):
         series = QLineSeries()
         for point in forecast_data['forecast']:
-            series.append(QPointF(point['date'], point['quantity']))
+            date = QDateTime.fromString(point['date'], Qt.ISODate)
+            x = date.toMSecsSinceEpoch()  # Convert date to milliseconds
+            y = float(point['quantity'])  # Convert quantity to float
+            series.append(x, y)
 
         chart = QChart()
         chart.addSeries(series)
         chart.setTitle("Inventory Forecast")
-        chart.createDefaultAxes()
+
+        # Create X axis
+        axis_x = QDateTimeAxis()
+        axis_x.setTickCount(5)
+        axis_x.setFormat("dd-MM-yyyy")
+        axis_x.setTitleText("Date")
+        chart.addAxis(axis_x, Qt.AlignBottom)
+        series.attachAxis(axis_x)
+
+        # Create Y axis
+        axis_y = QValueAxis()
+        axis_y.setLabelFormat("%i")
+        axis_y.setTitleText("Quantity")
+        chart.addAxis(axis_y, Qt.AlignLeft)
+        series.attachAxis(axis_y)
 
         self.chart_view.setChart(chart)
 

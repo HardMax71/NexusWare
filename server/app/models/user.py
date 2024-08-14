@@ -1,5 +1,7 @@
 # /server/app/models/user.py
-from sqlalchemy import Boolean, Column, Integer, String, ForeignKey, DateTime, func
+import time
+
+from sqlalchemy import Boolean, Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 
 from .base import Base
@@ -14,10 +16,10 @@ class User(Base):
     password_hash = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=True)
     role_id = Column(Integer, ForeignKey("roles.role_id"))
-    created_at = Column(DateTime, server_default=func.now())
-    last_login = Column(DateTime)
+    created_at = Column(Integer, default=lambda: int(time.time()))
+    last_login = Column(Integer)
     password_reset_token = Column(String(255))
-    password_reset_expiration = Column(DateTime)
+    password_reset_expiration = Column(Integer)
 
     role = relationship("Role", back_populates="users")
     assigned_tasks = relationship("Task", back_populates="assigned_user")

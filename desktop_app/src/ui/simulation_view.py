@@ -1,13 +1,14 @@
 from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTextEdit, QComboBox, QSpinBox
 
+from public_api.api import APIClient
 from .components import StyledButton
 
 
 # TODO: Implement simulation stuff
 
 class SimulationView(QWidget):
-    def __init__(self, api_client):
+    def __init__(self, api_client: APIClient):
         super().__init__()
         self.api_client = api_client
         self.init_ui()

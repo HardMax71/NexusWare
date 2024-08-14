@@ -1,11 +1,11 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem
 
-from desktop_app.src.api import CustomersAPI
 from desktop_app.src.ui.components import StyledButton
+from public_api.api import CustomersAPI, APIClient
 
 
 class CustomerView(QWidget):
-    def __init__(self, api_client):
+    def __init__(self, api_client: APIClient):
         super().__init__()
         self.api_client = api_client
         self.customers_api = CustomersAPI(api_client)
@@ -36,15 +36,15 @@ class CustomerView(QWidget):
         customers = self.customers_api.get_customers()
         self.customers_table.setRowCount(len(customers))
         for row, customer in enumerate(customers):
-            self.customers_table.setItem(row, 0, QTableWidgetItem(customer['name']))
-            self.customers_table.setItem(row, 1, QTableWidgetItem(customer['email']))
-            self.customers_table.setItem(row, 2, QTableWidgetItem(customer['phone']))
-            self.customers_table.setItem(row, 3, QTableWidgetItem(customer['address']))
+            self.customers_table.setItem(row, 0, QTableWidgetItem(customer.name))
+            self.customers_table.setItem(row, 1, QTableWidgetItem(customer.email))
+            self.customers_table.setItem(row, 2, QTableWidgetItem(customer.phone))
+            self.customers_table.setItem(row, 3, QTableWidgetItem(customer.address))
 
             actions_widget = QWidget()
             actions_layout = QHBoxLayout(actions_widget)
             edit_button = StyledButton("Edit")
-            edit_button.clicked.connect(lambda _, cid=customer['customer_id']: self.edit_customer(cid))
+            edit_button.clicked.connect(lambda _, cid=customer.customer_id: self.edit_customer(cid))
             actions_layout.addWidget(edit_button)
             self.customers_table.setCellWidget(row, 4, actions_widget)
 

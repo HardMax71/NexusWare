@@ -48,10 +48,13 @@ class GeneralSettingsWidget(QWidget):
         layout.addStretch()
 
     def on_language_changed(self, language):
-        self.config_manager.set("language", language)
+        pass
+        # self.config_manager.set("language", language)
 
     def on_auto_update_toggled(self, state):
-        self.config_manager.set("auto_update", state)
+        pass
+        # self.config_manager.set("auto_update", state)
 
     def on_startup_toggled(self, state):
-        self.config_manager.set("start_on_startup", state)
+        pass
+        # self.config_manager.set("start_on_startup", state)
