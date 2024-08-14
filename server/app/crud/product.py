@@ -17,12 +17,14 @@ from .base import CRUDBase
 
 
 class CRUDProduct(CRUDBase[Product, ProductCreate, ProductUpdate]):
-    def get_with_category_and_inventory(self, db: Session, id: int) -> Optional[ProductWithInventorySchema]:
+    def get_with_category_and_inventory(self, db: Session, id: int) -> Optional[ProductWithCategoryAndInventory]:
         current_product = db.query(Product).filter(Product.id == id).options(
             joinedload(Product.category),
             joinedload(Product.inventory_items)
         ).first()
-        return ProductWithInventorySchema.model_validate(current_product) if current_product else None
+        if current_product:
+            return ProductWithCategoryAndInventory.model_validate(current_product)
+        return None
 
     def get_multi_with_category_and_inventory(
             self, db: Session,
