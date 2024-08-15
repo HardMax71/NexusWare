@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from public_api.shared_schemas import (
     Shipment, ShipmentCreate, ShipmentUpdate, ShipmentFilter,
-    CarrierRate, ShippingLabel, ShipmentTracking
+    CarrierRate, ShippingLabel, ShipmentTracking, ShipmentWithDetails
 )
 from .client import APIClient
 
@@ -48,3 +48,7 @@ class ShipmentsAPI:
     def track_shipment(self, shipment_id: int) -> ShipmentTracking:
         response = self.client.post(f"/shipments/{shipment_id}/track")
         return ShipmentTracking.model_validate(response)
+
+    def get_shipment_with_details(self, shipment_id: int) -> ShipmentWithDetails:
+        response = self.client.get(f"/shipments/{shipment_id}/details")
+        return ShipmentWithDetails.model_validate(response)

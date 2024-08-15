@@ -1,13 +1,13 @@
 # /server/app/crud/shipment.py
-from typing import Optional
+from typing import Optional, List
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from server.app.models import Order, Shipment, Carrier
 from public_api.shared_schemas import CarrierCreate, CarrierUpdate
 from public_api.shared_schemas import (Shipment as ShipmentSchema, ShipmentCreate, ShipmentUpdate,
                                        ShipmentFilter, ShipmentTracking, CarrierRate, ShippingLabel)
+from server.app.models import Order, Shipment, Carrier
 from .base import CRUDBase
 from ..utils.generate_label import shipengine_api_call
 
@@ -29,40 +29,54 @@ class CRUDShipment(CRUDBase[Shipment, ShipmentCreate, ShipmentUpdate]):
         shipments = query.offset(skip).limit(limit).all()
         return [ShipmentSchema.model_validate(shipment) for shipment in shipments]
 
+    def get_carrier_rates(self, db: Session, weight: float, dimensions: str, destination_zip: str) -> List[CarrierRate]:
+        try:
+            params = {
+                "weight": weight,
+                "dimensions": dimensions,
+                "destination_zip": destination_zip
+            }
+            response = shipengine_api_call("rates/estimate", method="GET", data=params)
+
+            return [CarrierRate(
+                carrier_id=rate["carrier_id"],
+                carrier_name=rate["carrier_name"],
+                rate=rate["shipping_amount"]["amount"],
+                estimated_delivery_time=rate["delivery_days"]
+            ) for rate in response]
+        except HTTPException as e:
+            if e.status_code == 401:
+                raise HTTPException(status_code=401, detail="Invalid ShipEngine API key")
+            raise e
+
     def track(self, db: Session, *, shipment_id: int) -> Optional[ShipmentTracking]:
-        shipment = db.query(Shipment).filter(Shipment.id == shipment_id).first()
-        if not shipment:
-            return None
-
-        tracking_data = shipengine_api_call(f"tracking/{shipment.tracking_number}", method="GET")
-
-        return ShipmentTracking(
-            shipment_id=shipment.id,
-            tracking_number=shipment.tracking_number,
-            current_status=tracking_data["status"],
-            estimated_delivery_date=tracking_data.get("estimated_delivery_date"),
-            tracking_history=tracking_data["events"]
-        )
-
-    def get_carrier_rates(self, db: Session, weight: float, dimensions: str, destination_zip: str) -> list[CarrierRate]:
-        carriers = db.query(Carrier).all()
-        return [
-            CarrierRate(
-                carrier_id=possible_carrier.id,
-                carrier_name=possible_carrier.name,
-                rate=weight * 2.5 * len(dimensions) * len(destination_zip),  # Placeholder calculation
-                estimated_delivery_time="3-5 business days"
-            )
-            for possible_carrier in carriers
-        ]
-
-    def generate_label(self, db: Session, shipment_id: int) -> ShippingLabel:
-        shipment = db.query(Shipment).filter(Shipment.id == shipment_id).first()
+        shipment = self.get(db, id=shipment_id)
         if not shipment:
             raise HTTPException(status_code=404, detail="Shipment not found")
 
-        order = db.query(Order).filter(Order.id == shipment.id).first()
-        carrier = db.query(Carrier).filter(Carrier.id == shipment.id).first()
+        try:
+            tracking_data = shipengine_api_call(
+                f"tracking?carrier_code={shipment.carrier.name}&tracking_number={shipment.tracking_number}")
+
+            return ShipmentTracking(
+                shipment_id=shipment.id,
+                tracking_number=shipment.tracking_number,
+                current_status=tracking_data["status_description"],
+                estimated_delivery_date=tracking_data.get("estimated_delivery_date"),
+                tracking_history=tracking_data["events"]
+            )
+        except HTTPException as e:
+            if e.status_code == 401:
+                raise HTTPException(status_code=401, detail="Invalid ShipEngine API key")
+            raise e
+
+    def generate_label(self, db: Session, shipment_id: int) -> ShippingLabel:
+        shipment = self.get(db, id=shipment_id)
+        if not shipment:
+            raise HTTPException(status_code=404, detail="Shipment not found")
+
+        order = db.query(Order).filter(Order.id == shipment.order_id).first()
+        carrier = db.query(Carrier).filter(Carrier.id == shipment.carrier_id).first()
 
         if not order or not carrier:
             raise HTTPException(status_code=404, detail="Related order or carrier not found")
@@ -99,19 +113,24 @@ class CRUDShipment(CRUDBase[Shipment, ShipmentCreate, ShipmentUpdate]):
             }
         }
 
-        response = shipengine_api_call("labels", method="POST", data=label_data)
+        try:
+            response = shipengine_api_call("labels", method="POST", data=label_data)
 
-        shipment.tracking_number = response["tracking_number"]
-        shipment.label_id = response["label_id"]
-        shipment.label_download_url = response["label_download_url"]
-        db.commit()
+            shipment.tracking_number = response["tracking_number"]
+            shipment.label_id = response["label_id"]
+            shipment.label_download_url = response["label_download"]["pdf"]
+            db.commit()
 
-        return ShippingLabel(
-            shipment_id=shipment_id,
-            tracking_number=shipment.tracking_number,
-            label_id=shipment.label_id,
-            label_download_url=shipment.label_download_url
-        )
+            return ShippingLabel(
+                shipment_id=shipment_id,
+                tracking_number=shipment.tracking_number,
+                label_id=shipment.label_id,
+                label_download_url=shipment.label_download_url
+            )
+        except HTTPException as e:
+            if e.status_code == 401:
+                raise HTTPException(status_code=401, detail="Invalid ShipEngine API key")
+            raise e
 
 
 class CRUDCarrier(CRUDBase[Carrier, CarrierCreate, CarrierUpdate]):

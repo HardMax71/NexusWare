@@ -4,6 +4,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Path, Body, Query
 from sqlalchemy.orm import Session
 
+from public_api.shared_schemas import ShipmentWithDetails
 from .... import crud, models
 from public_api import shared_schemas
 from ....api import deps
@@ -87,6 +88,25 @@ def generate_shipping_label(
 ):
     return crud.shipment.generate_label(db, shipment_id=shipment_id)
 
+
+@router.get("/{shipment_id}/details", response_model=ShipmentWithDetails)
+def get_shipment_with_details(
+        shipment_id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    shipment = crud.shipment.get(db, id=shipment_id)
+    if not shipment:
+        raise HTTPException(status_code=404, detail="Shipment not found")
+
+    order = crud.order.get(db, id=shipment.order_id) if shipment.order_id else None
+    carrier = crud.carrier.get(db, id=shipment.carrier_id) if shipment.carrier_id else None
+
+    return ShipmentWithDetails(
+        **shipment.__dict__,
+        order=order,
+        carrier=carrier
+    )
 
 @router.post("/{shipment_id}/track", response_model=shared_schemas.ShipmentTracking)
 def track_shipment(

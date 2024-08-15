@@ -81,7 +81,8 @@ from .warehouse import (
     PickListFilter, ReceiptFilter, ShipmentFilter, WarehouseStats, LocationInventory,
     LocationInventoryUpdate, OptimizedPickingRoute, PickingPerformance,
     ReceiptDiscrepancy, ShippingLabel, CarrierRate, ShipmentTracking,
-    InventoryMovementCreate, InventoryAdjustmentCreate
+    InventoryMovementCreate, InventoryAdjustmentCreate,
+    ShipmentWithDetails
 )
 # Yard shared_schemas
 from .yard import (
