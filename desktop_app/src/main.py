@@ -4,16 +4,18 @@ from PySide6.QtCore import QFile, QTextStream
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
 
+from desktop_app.src.config import API_BASE_URL
 from public_api.api import APIClient
 from public_api.api import UsersAPI
-from desktop_app.src.config import API_BASE_URL
 from services.authentication import AuthenticationService
-from services.offline_manager import OfflineManager
+# from services.offline_manager import OfflineManager
 from services.update_manager import UpdateManager
 from ui.login_dialog import LoginDialog
 from ui.main_window import MainWindow
 from utils.config_manager import ConfigManager
-from utils.logger import setup_logger
+
+
+# from utils.logger import setup_logger
 
 
 def load_stylesheet(filename):

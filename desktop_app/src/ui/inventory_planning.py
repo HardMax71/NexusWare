@@ -1,10 +1,10 @@
 from PySide6.QtCharts import QChart, QChartView, QLineSeries, QValueAxis, QDateTimeAxis
-from PySide6.QtCore import QDateTime, Qt
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QPainter
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem, QComboBox
 
-from public_api.api import ProductsAPI, InventoryAPI, APIClient
 from desktop_app.src.ui.components import StyledButton
+from public_api.api import ProductsAPI, InventoryAPI, APIClient
 
 
 class InventoryPlanningWidget(QWidget):

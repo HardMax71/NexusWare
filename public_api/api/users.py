@@ -45,7 +45,8 @@ class UsersAPI:
         response = self.client.put("/users/me", json=user_update.model_dump(mode="json", exclude_unset=True))
         return User.model_validate(response)
 
-    def get_users(self, filter_params: Optional[UserFilter] = None, skip: int = 0, limit: int = 100) -> List[UserSanitizedWithRole]:
+    def get_users(self, filter_params: Optional[UserFilter] = None,
+                  skip: int = 0, limit: int = 100) -> List[UserSanitizedWithRole]:
         params = {"skip": skip, "limit": limit}
         if filter_params:
             params.update(filter_params.model_dump(exclude_unset=True))

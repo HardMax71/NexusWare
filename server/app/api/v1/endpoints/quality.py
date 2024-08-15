@@ -38,10 +38,11 @@ def read_quality_check(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    check = crud.quality_check.get_with_product(db, id=check_id)
-    if check is None:
+    filter_params = shared_schemas.QualityCheckFilter(id=check_id)
+    check = crud.quality_check.get_multi_with_filter(db, filter_params=filter_params)
+    if check is None or len(check) == 0:
         raise HTTPException(status_code=404, detail="Quality check not found")
-    return check
+    return check[0]
 
 
 @router.put("/checks/{check_id}", response_model=shared_schemas.QualityCheck)
@@ -175,7 +176,8 @@ def get_product_quality_history(
         limit: int = 100,
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    return crud.quality_check.get_product_history(db, product_id=product_id, skip=skip, limit=limit)
+    filter_params = shared_schemas.QualityCheckFilter(product_id=product_id)
+    return crud.quality_check.get_multi_with_filter(db, skip=skip, limit=limit, filter_params=filter_params)
 
 
 @router.get("/checks/summary", response_model=dict[str, int])

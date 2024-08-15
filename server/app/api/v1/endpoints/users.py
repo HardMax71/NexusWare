@@ -1,6 +1,6 @@
 # /server/app/api/v1/endpoints/users.py
 from datetime import datetime
-from typing import List, Optional
+from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Body, Query
 from fastapi.security import OAuth2PasswordRequestForm
@@ -40,7 +40,7 @@ def register_user(
         user: shared_schemas.UserCreate,
         db: Session = Depends(deps.get_db)
 ):
-    db_user = crud.user.get_by_email(db, email=user.email)
+    db_user = crud.user.get(db, email=user.email)
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     new_user = crud.user.create(db=db, obj_in=user)
@@ -52,7 +52,7 @@ def reset_password(
         email: str = Body(..., embed=True),
         db: Session = Depends(deps.get_db)
 ):
-    user = crud.user.get_by_email(db, email=email)
+    user = crud.user.get(db, email=email)
     if not user:
         raise HTTPException(
             status_code=404,
@@ -117,7 +117,7 @@ def create_user(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_admin)
 ):
-    db_user = crud.user.get_by_email(db, email=user.email)
+    db_user = crud.user.get(db, email=user.email)
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     new_user = crud.user.create(db=db, obj_in=user)

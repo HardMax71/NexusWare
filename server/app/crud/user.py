@@ -10,17 +10,6 @@ from .base import CRUDBase
 
 
 class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
-    def get_by_email(self, db: Session, *, email: str) -> Optional[User]:
-        return db.query(User).filter(User.email == email).first()
-
-    def get_by_username(self, db: Session, *, username: str) -> Optional[User]:
-        return db.query(User).filter(User.username == username).first()
-
-    def get_by_id(self, db: Session, *, user_id: int) -> Optional[User]:
-        return db.query(User).filter(User.id == user_id).first()
-
-    def get_multi_with_role(self, db: Session, *, skip: int = 0, limit: int = 100) -> List[User]:
-        return db.query(User).options(joinedload(User.role)).offset(skip).limit(limit).all()
 
     def get_multi_with_filters(
             self,
@@ -42,21 +31,8 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
 
         return query.offset(skip).limit(limit).all()
 
-    def get(self, db: Session, *, id: int) -> Optional[User]:
-        return db.query(User).options(joinedload(User.role)).filter(User.id == id).first()
-
-    def create(self, db: Session, *, obj_in: UserCreate) -> User:
-        db_obj = User(
-            email=obj_in.email,
-            password_hash=get_password_hash(obj_in.password),
-            username=obj_in.username,
-            role_id=obj_in.role_id,
-            is_active=obj_in.is_active
-        )
-        db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
-        return db_obj
+    def get_by_username(self, db: Session, username: str) -> Optional[User]:
+        return db.query(User).filter(User.username == username).first()
 
     def update(self, db: Session, *, db_obj: User, obj_in: Union[UserUpdate, Dict[str, Any]]) -> User:
         if isinstance(obj_in, dict):
@@ -70,7 +46,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         return super().update(db, db_obj=db_obj, obj_in=update_data)
 
     def authenticate(self, db: Session, *, email: str, password: str) -> Optional[User]:
-        user = self.get_by_email(db, email=email)
+        user = db.query(User).filter(User.email == email).first()
         if not user:
             return None
         if not verify_password(password, user.password_hash):
@@ -83,8 +59,6 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     def is_admin(self, user: User) -> bool:
         return user.role.role_name.lower() == "admin"
 
-    def get_multi_by_role(self, db: Session, *, role_id: int, skip: int = 0, limit: int = 100) -> List[User]:
-        return db.query(User).filter(User.role_id == role_id).offset(skip).limit(limit).all()
 
     def change_role(self, db: Session, *, user_id: int, new_role_id: int) -> Optional[User]:
         user = self.get(db, id=user_id)

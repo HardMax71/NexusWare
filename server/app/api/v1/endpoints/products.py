@@ -4,8 +4,8 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
 
-from .... import crud, models
 from public_api import shared_schemas
+from .... import crud, models
 from ....api import deps
 
 router = APIRouter()
@@ -30,12 +30,14 @@ def read_products(
 ):
     return crud.product.get_multi_with_category_and_inventory(db, skip=skip, limit=limit, filter_params=product_filter)
 
+
 @router.get("/max_id", response_model=int)
 def get_max_product_id(
-    db: Session = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_active_user)
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.product.get_max_id(db)
+
 
 @router.post("/barcode", response_model=shared_schemas.Product)
 def get_product_by_barcode(
@@ -43,10 +45,12 @@ def get_product_by_barcode(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    product = crud.product.get_by_barcode(db, barcode=barcode_data.barcode)
-    if product is None:
+    filter_params = shared_schemas.ProductFilter(barcode=barcode_data.barcode)
+    product = crud.product.get_multi_with_category_and_inventory(db, filter_params=filter_params)
+    if product is None or len(product) == 0:
         raise HTTPException(status_code=404, detail="Product not found")
-    return product
+    return product[0]
+
 
 @router.get("/{product_id}", response_model=shared_schemas.ProductWithCategoryAndInventory)
 def read_product(
@@ -54,10 +58,11 @@ def read_product(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    product = crud.product.get_with_category_and_inventory(db, id=product_id)
-    if product is None:
+    filter_params = shared_schemas.ProductFilter(id=product_id)
+    product = crud.product.get_multi_with_category_and_inventory(db, filter_params=filter_params)
+    if product is None or len(product) == 0:
         raise HTTPException(status_code=404, detail="Product not found")
-    return product
+    return product[0]
 
 
 @router.put("/{product_id}", response_model=shared_schemas.Product)
@@ -83,7 +88,6 @@ def delete_product(
     if product is None:
         raise HTTPException(status_code=404, detail="Product not found")
     return crud.product.remove(db, id=product_id)
-
 
 
 @router.get("/{product_id}/substitutes", response_model=List[shared_schemas.Product])

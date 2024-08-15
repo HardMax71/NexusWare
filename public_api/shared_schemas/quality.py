@@ -37,6 +37,7 @@ class QualityCheckWithProduct(QualityCheck):
 
 
 class QualityCheckFilter(BaseModel):
+    id: Optional[int] = None
     product_id: Optional[int] = None
     performed_by: Optional[int] = None
     result: Optional[str] = None

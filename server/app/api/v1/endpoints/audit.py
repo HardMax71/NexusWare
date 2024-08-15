@@ -32,16 +32,17 @@ def read_audit_logs(
     return crud.audit_log.get_multi_with_filter(db, skip=skip, limit=limit, filter_params=filter_params)
 
 
-@router.get("/logs/{log_id:int}", response_model=shared_schemas.AuditLogWithUser)
+@router.get("/logs/{log_id}", response_model=shared_schemas.AuditLogWithUser)
 def read_audit_log(
         log_id: int = Path(..., title="The ID of the audit log to get"),
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    log = crud.audit_log.get_with_user(db, id=log_id)
-    if log is None:
+    filter_params = shared_schemas.AuditLogFilter(id=log_id)
+    logs = crud.audit_log.get_multi_with_filter(db, filter_params=filter_params)
+    if logs is None or len(logs) == 0:
         raise HTTPException(status_code=404, detail="Audit log not found")
-    return log
+    return logs[0]  # Only one log should be returned
 
 
 @router.get("/logs/summary", response_model=shared_schemas.AuditSummary)
@@ -62,7 +63,8 @@ def get_user_audit_logs(
         limit: int = 100,
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    return crud.audit_log.get_by_user(db, user_id=user_id, skip=skip, limit=limit)
+    filter_params = shared_schemas.AuditLogFilter(user_id=user_id)
+    return crud.audit_log.get_multi_with_filter(db, skip=skip, limit=limit, filter_params=filter_params)
 
 
 @router.get("/logs/table/{table_name}", response_model=List[shared_schemas.AuditLog])
@@ -73,7 +75,8 @@ def get_table_audit_logs(
         limit: int = 100,
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    return crud.audit_log.get_by_table(db, table_name=table_name, skip=skip, limit=limit)
+    filter_params = shared_schemas.AuditLogFilter(table_name=table_name)
+    return crud.audit_log.get_multi_with_filter(db, skip=skip, limit=limit, filter_params=filter_params)
 
 
 @router.get("/logs/record/{table_name}/{record_id}", response_model=List[shared_schemas.AuditLog])
@@ -85,7 +88,8 @@ def get_record_audit_logs(
         limit: int = 100,
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    return crud.audit_log.get_by_record(db, table_name=table_name, record_id=record_id, skip=skip, limit=limit)
+    filter_params = shared_schemas.AuditLogFilter(table_name=table_name, record_id=record_id)
+    return crud.audit_log.get_multi_with_filter(db, skip=skip, limit=limit, filter_params=filter_params)
 
 
 @router.get("/logs/export", response_model=shared_schemas.AuditLogExport)
@@ -95,7 +99,8 @@ def export_audit_logs(
         date_to: int = Query(None),
         current_user: models.User = Depends(deps.get_current_admin)
 ):
-    logs = crud.audit_log.get_for_export(db, date_from=date_from, date_to=date_to)
+    filter_params = shared_schemas.AuditLogFilter(date_from=date_from, date_to=date_to)
+    logs = crud.audit_log.get_multi_with_filter(db, filter_params=filter_params)
     return shared_schemas.AuditLogExport(logs=logs, export_timestamp=int(datetime.now().timestamp()))
 
 

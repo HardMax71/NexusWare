@@ -1,6 +1,6 @@
 import logging
 import os
-from datetime import datetime
+
 
 def setup_logger(name, log_file=None, level=logging.INFO):
     """Set up a logger with file and console handlers."""

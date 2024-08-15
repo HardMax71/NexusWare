@@ -1,10 +1,10 @@
-from PySide6.QtCore import Qt, QDate, QDateTime
-from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QDateEdit, QTextEdit,
-                               QLabel, QTableWidget, QTableWidgetItem, QHeaderView, QScrollArea)
+from PySide6.QtCore import QDate, QDateTime
 from PySide6.QtGui import QFont
+from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QDateEdit, QLabel, QTableWidget,
+                               QTableWidgetItem, QHeaderView, QScrollArea)
 
-from public_api.api import ReportsAPI, APIClient
 from desktop_app.src.ui.components import StyledButton
+from public_api.api import ReportsAPI, APIClient
 from public_api.shared_schemas.reports import (InventorySummaryReport, OrderSummaryReport,
                                                WarehousePerformanceReport, KPIDashboard)
 
@@ -22,7 +22,8 @@ class ReportGeneratorWidget(QWidget):
         # Controls
         controls_layout = QHBoxLayout()
         self.report_type_combo = QComboBox()
-        self.report_type_combo.addItems(["Inventory Summary", "Order Summary", "Warehouse Performance", "KPI Dashboard"])
+        self.report_type_combo.addItems(["Inventory Summary", "Order Summary",
+                                         "Warehouse Performance", "KPI Dashboard"])
         self.start_date = QDateEdit(QDate.currentDate().addDays(-30))
         self.end_date = QDateEdit(QDate.currentDate())
         self.generate_button = StyledButton("Generate Report")

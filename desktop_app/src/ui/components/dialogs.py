@@ -1,10 +1,10 @@
+import markdown
 from PySide6.QtGui import QFont, Qt
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QLabel, QLineEdit,
     QProgressBar, QDialogButtonBox, QFileDialog, QMessageBox, QTextBrowser, QPushButton, QHBoxLayout, QTextEdit
 )
-from .custom_widgets import StyledButton, StyledLabel
-import markdown
+
 
 class ConfirmDialog(QDialog):
     def __init__(self, title, message, parent=None):
@@ -104,6 +104,7 @@ class UserManualDialog(QDialog):
         close_button = QPushButton("Close", self)
         close_button.clicked.connect(self.accept)
         layout.addWidget(close_button, alignment=Qt.AlignRight)
+
 
 class AboutDialog(QDialog):
     def __init__(self, parent=None):

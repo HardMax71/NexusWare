@@ -1,10 +1,10 @@
 from typing import Optional
+
 from sqlalchemy import func, case
 from sqlalchemy.orm import Session
-from server.app.models import QualityCheck, QualityStandard, QualityAlert, Product
+
 from public_api.shared_schemas import (
     QualityCheck as QualityCheckSchema,
-    QualityCheckWithProduct as QualityCheckWithProductSchema,
     QualityCheckCreate, QualityCheckUpdate, QualityCheckFilter,
     QualityStandard as QualityStandardSchema,
     QualityStandardCreate, QualityStandardUpdate,
@@ -13,6 +13,7 @@ from public_api.shared_schemas import (
     QualityMetrics, ProductDefectRate, QualityCheckCommentCreate,
     QualityCheckComment as QualityCheckCommentSchema
 )
+from server.app.models import QualityCheck, QualityStandard, QualityAlert, Product
 from .base import CRUDBase
 
 
@@ -33,10 +34,6 @@ class CRUDQualityCheck(CRUDBase[QualityCheck, QualityCheckCreate, QualityCheckUp
 
         quality_checks = query.offset(skip).limit(limit).all()
         return [QualityCheckSchema.model_validate(check) for check in quality_checks]
-
-    def get_with_product(self, db: Session, id: int) -> Optional[QualityCheckWithProductSchema]:
-        quality_check = db.query(self.model).filter(self.model.id == id).join(Product).first()
-        return QualityCheckWithProductSchema.model_validate(quality_check) if quality_check else None
 
     def get_metrics(self, db: Session, date_from: Optional[int], date_to: Optional[int]) -> QualityMetrics:
         query = db.query(
@@ -59,15 +56,6 @@ class CRUDQualityCheck(CRUDBase[QualityCheck, QualityCheckCreate, QualityCheckUp
             pass_rate=passes / total if total > 0 else 0,
             fail_rate=fails / total if total > 0 else 0
         )
-
-    def get_product_history(self, db: Session, *,
-                            product_id: int, skip: int = 0, limit: int = 100) -> list[QualityCheckSchema]:
-        quality_checks = (db.query(self.model)
-                          .filter(QualityCheck.product_id == product_id)
-                          .order_by(QualityCheck.check_date.desc())
-                          .offset(skip).limit(limit)
-                          .all())
-        return [QualityCheckSchema.model_validate(check) for check in quality_checks]
 
     def get_summary(self, db: Session, date_from: Optional[int], date_to: Optional[int]) -> dict[str, int]:
         query = db.query(QualityCheck.result, func.count(QualityCheck.id))

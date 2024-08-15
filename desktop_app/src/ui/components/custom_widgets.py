@@ -1,9 +1,9 @@
+from PySide6.QtCore import Qt, QPropertyAnimation, Property, QEasingCurve, Signal
+from PySide6.QtGui import QPainter, QColor
 from PySide6.QtWidgets import (
-    QPushButton, QLineEdit, QComboBox, QLabel, QWidget, QVBoxLayout, QHBoxLayout,
-    QGraphicsOpacityEffect, QFrame
+    QPushButton, QLineEdit, QComboBox, QLabel, QWidget, QVBoxLayout, QGraphicsOpacityEffect, QFrame
 )
-from PySide6.QtCore import Qt, QPropertyAnimation, Property, QEasingCurve, Signal, QSize
-from PySide6.QtGui import QPainter, QColor, QPen
+
 
 class StyledButton(QPushButton):
     def __init__(self, text, parent=None):
@@ -11,20 +11,24 @@ class StyledButton(QPushButton):
         self.setCursor(Qt.PointingHandCursor)
         self.setMinimumHeight(40)
 
+
 class StyledLineEdit(QLineEdit):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setMinimumHeight(40)
+
 
 class StyledComboBox(QComboBox):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setMinimumHeight(40)
 
+
 class StyledLabel(QLabel):
     def __init__(self, text, parent=None):
         super().__init__(text, parent)
         self.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+
 
 class CollapsibleBox(QWidget):
     def __init__(self, title="", parent=None):
@@ -60,6 +64,7 @@ class CollapsibleBox(QWidget):
         self.toggle_animation.setStartValue(collapsed_height)
         self.toggle_animation.setEndValue(collapsed_height)
 
+
 class ClickableLabel(QLabel):
     clicked = Signal()
 
@@ -70,6 +75,7 @@ class ClickableLabel(QLabel):
     def mousePressEvent(self, event):
         self.clicked.emit()
         super().mousePressEvent(event)
+
 
 class LoadingSpinner(QWidget):
     def __init__(self, parent=None, size=40, num_dots=8, dot_size=10):
@@ -92,8 +98,8 @@ class LoadingSpinner(QWidget):
 
         for i in range(self.num_dots):
             x = self.width() / 2 + (self.width() / 2 - self.dot_size) * \
-                 (1 - i / self.num_dots) * 0.7 * \
-                 (1 - (self.counter + i) % self.num_dots / self.num_dots)
+                (1 - i / self.num_dots) * 0.7 * \
+                (1 - (self.counter + i) % self.num_dots / self.num_dots)
             y = self.height() / 2
             painter.setBrush(QColor(100, 100, 100, 255 * (1 - (self.counter + i) % self.num_dots / self.num_dots)))
             painter.setPen(Qt.NoPen)
@@ -114,6 +120,7 @@ class LoadingSpinner(QWidget):
 
     rotation = Property(int, get_rotation, set_rotation)
 
+
 class CardWidget(QFrame):
     def __init__(self, title, content, parent=None):
         super().__init__(parent)
@@ -125,6 +132,7 @@ class CardWidget(QFrame):
         title_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(title_label)
         layout.addWidget(content)
+
 
 class ToggleSwitch(QWidget):
     toggled = Signal(bool)
