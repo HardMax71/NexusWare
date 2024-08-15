@@ -156,3 +156,20 @@ class BulkUserCreateResult(BaseModel):
     success_count: int
     failure_count: int
     errors: List[str]
+
+
+class UserPermissionUpdate(BaseModel):
+    user_id: int
+    permissions: List[int]
+
+class UserWithPermissions(UserSanitizedWithRole):
+    permissions: List[Permission]
+
+    class Config:
+        from_attributes = True
+
+class AllRoles(BaseModel):
+    roles: List[Role]
+
+class AllPermissions(BaseModel):
+    permissions: List[Permission]

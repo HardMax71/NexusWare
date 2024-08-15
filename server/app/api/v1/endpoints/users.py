@@ -1,12 +1,14 @@
 # /server/app/api/v1/endpoints/users.py
-from typing import List
+from datetime import datetime
+from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Depends, HTTPException, Body, Query
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 
-from .... import crud, models
 from public_api import shared_schemas
+from public_api.shared_schemas import UserFilter
+from .... import crud, models
 from ....api import deps
 from ....core import security
 from ....core.email import send_reset_password_email
@@ -24,6 +26,11 @@ def login(
         raise HTTPException(status_code=400, detail="Incorrect email or password")
     elif not crud.user.is_active(user):
         raise HTTPException(status_code=400, detail="Inactive user")
+
+    # Update the last_login field
+    user.last_login = int(datetime.utcnow().timestamp())
+    db.commit()
+
     access_token = security.create_access_token(user.username)
     return {"access_token": access_token, "token_type": "bearer"}
 
@@ -59,18 +66,6 @@ def reset_password(
     return {"message": result}
 
 
-@router.get("/me", response_model=shared_schemas.UserSanitizedWithRole)
-def read_users_me(
-        current_user: models.User = Depends(deps.get_current_active_user),
-        db: Session = Depends(deps.get_db)
-):
-    user = (db.query(models.User)
-            .options(joinedload(models.User.role))
-            .filter(models.User.id == current_user.id)
-            .first())
-    return shared_schemas.UserSanitizedWithRole.model_validate(user)
-
-
 @router.put("/me", response_model=shared_schemas.User)
 def update_user_me(
         user_in: shared_schemas.UserUpdate,
@@ -81,14 +76,38 @@ def update_user_me(
     return shared_schemas.User.model_validate(user)
 
 
-@router.get("/", response_model=List[shared_schemas.UserSanitizedWithRole])
-def read_users(
-        skip: int = 0,
-        limit: int = 100,
+@router.get("/permissions", response_model=shared_schemas.AllPermissions)
+def get_all_permissions(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_admin)
 ):
-    users = crud.user.get_multi_with_role(db, skip=skip, limit=limit)
+    permissions = crud.user.get_all_permissions(db)
+    return shared_schemas.AllPermissions(permissions=permissions)
+
+
+@router.get("/roles", response_model=shared_schemas.AllRoles)
+def get_all_roles(
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_admin)
+):
+    roles = crud.user.get_all_roles(db)
+    return shared_schemas.AllRoles(roles=roles)
+
+
+@router.get("/", response_model=List[shared_schemas.UserSanitizedWithRole])
+def read_users(
+        filter_params: UserFilter = Depends(),
+        skip: int = Query(0),
+        limit: int = Query(100),
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_admin)
+):
+    users = crud.user.get_multi_with_filters(
+        db,
+        filter_params=filter_params,
+        skip=skip,
+        limit=limit
+    )
     return [shared_schemas.UserSanitizedWithRole.model_validate(user) for user in users]
 
 
@@ -105,17 +124,43 @@ def create_user(
     return shared_schemas.UserSanitizedWithRole.model_validate(new_user)
 
 
+@router.get("/{user_id}/permissions", response_model=shared_schemas.UserWithPermissions)
+def get_user_permissions(
+        user_id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_admin)
+):
+    user = crud.user.get_user_with_permissions(db, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return shared_schemas.UserWithPermissions.model_validate(user)
+
+
+@router.put("/{user_id}/permissions", response_model=shared_schemas.UserWithPermissions)
+def update_user_permissions(
+        user_id: int,
+        permissions: shared_schemas.UserPermissionUpdate,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_admin)
+):
+    try:
+        user = crud.user.update_user_permissions(db, user_id=user_id, permission_ids=permissions.permissions)
+        return shared_schemas.UserWithPermissions.model_validate(user)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
 @router.get("/{user_id}", response_model=shared_schemas.UserSanitizedWithRole)
 def read_user(
         user_id: int,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_admin)
 ):
-    user = crud.user.get(db, id=user_id)
+    user = crud.user.get_user_with_permissions(db, user_id=user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    if user.id == current_user.user_id:
-        return shared_schemas.User.model_validate(user)
+    if user.id == current_user.id:
+        return shared_schemas.UserSanitizedWithRole.model_validate(user)
     if not crud.user.is_admin(current_user):
         raise HTTPException(status_code=400, detail="Not enough permissions")
     return shared_schemas.UserSanitizedWithRole.model_validate(user)
@@ -146,7 +191,3 @@ def delete_user(
         raise HTTPException(status_code=404, detail="User not found")
     user = crud.user.remove(db, id=user_id)
     return shared_schemas.User.model_validate(user)
-
-
-
-

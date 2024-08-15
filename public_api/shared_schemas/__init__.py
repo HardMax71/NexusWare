@@ -68,7 +68,8 @@ from .user import (
     UserBase, UserCreate, UserUpdate, User, UserInDB, Token, TokenData,
     Message, UserSanitizedWithRole, PasswordResetConfirm, UserFilter,
     UserActivity, RoleWithUsers, UserPermissions, BulkUserCreate,
-    BulkUserCreateResult
+    BulkUserCreateResult, UserWithPermissions, UserPermissionUpdate,
+    AllRoles, AllPermissions, UserWithRole
 )
 # Warehouse shared_schemas
 from .warehouse import (

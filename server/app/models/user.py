@@ -27,6 +27,19 @@ class User(Base):
     audit_logs = relationship("AuditLog", back_populates="user")
 
 
+
+    @property
+    def permissions(self):
+        return self.role.permissions if self.role else []
+
+    @permissions.setter
+    def permissions(self, new_permissions):
+        if self.role:
+            self.role.permissions = new_permissions
+        else:
+            raise ValueError("User does not have a role assigned. Cannot set permissions.")
+
+
 class Role(Base):
     __tablename__ = "roles"
 
