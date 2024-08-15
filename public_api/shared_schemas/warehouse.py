@@ -3,6 +3,8 @@ from typing import Optional, List
 
 from pydantic import BaseModel
 
+from public_api.shared_schemas import Order
+
 
 class PickListItemBase(BaseModel):
     product_id: int
@@ -113,6 +115,7 @@ class ShipmentBase(BaseModel):
 
 
 class ShipmentCreate(ShipmentBase):
+    ship_date: Optional[int] = None
     pass
 
 
@@ -357,3 +360,8 @@ class YardManagementStats(BaseModel):
     total_appointments: int
     on_time_appointments: int
     delayed_appointments: int
+
+
+class ShipmentWithDetails(Shipment):
+    order: Optional[Order] = None
+    carrier: Optional[Carrier] = None

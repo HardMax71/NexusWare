@@ -1,12 +1,10 @@
 from PySide6.QtWidgets import QDialog, QTabWidget, QVBoxLayout, QDialogButtonBox
-from PySide6.QtCore import Qt
 
-from .general_settings import GeneralSettingsWidget
+from .advanced_settings import AdvancedSettingsWidget
 from .appearance_settings import AppearanceSettingsWidget
+from .general_settings import GeneralSettingsWidget
 from .network_settings import NetworkSettingsWidget
 from .security_settings import SecuritySettingsWidget
-from .advanced_settings import AdvancedSettingsWidget
-from ..components import StyledButton
 
 
 class SettingsDialog(QDialog):
@@ -67,4 +65,3 @@ class SettingsDialog(QDialog):
     def reject(self):
         # Optionally, you could add logic here to warn the user if they have unsaved changes
         super().reject()
-

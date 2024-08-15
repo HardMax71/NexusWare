@@ -3,7 +3,7 @@ from typing import Optional, List
 from fastapi import HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
-from server.app.models import Order, OrderItem
+
 from public_api.shared_schemas import (
     Order as OrderSchema,
     OrderWithDetails as OrderWithDetailsSchema,
@@ -11,6 +11,7 @@ from public_api.shared_schemas import (
     OrderFilter, OrderSummary, ShippingInfo, BulkOrderImportData,
     BulkOrderImportResult, OrderProcessingTimes
 )
+from server.app.models import Order, OrderItem
 from .base import CRUDBase
 
 
@@ -49,13 +50,6 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
         orders = query.offset(skip).limit(limit).all()
         return [OrderWithDetailsSchema.model_validate(x) for x in orders]
 
-    def get_with_details(self, db: Session, id: int) -> Optional[OrderWithDetailsSchema]:
-        current_order = db.query(self.model).options(
-            joinedload(Order.customer),
-            joinedload(Order.order_items).joinedload(OrderItem.product)
-        ).filter(self.model.id == id).first()
-        return OrderWithDetailsSchema.model_validate(current_order) if current_order else None
-
     def get_summary(self, db: Session, date_from: Optional[int], date_to: Optional[int]) -> OrderSummary:
         query = db.query(func.count(Order.id).label("total_orders"),
                          func.sum(Order.total_amount).label("total_revenue"))
@@ -85,14 +79,6 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
         db.commit()
         db.refresh(db_obj)
         return OrderSchema.model_validate(db_obj)
-
-    def get_by_customer(self, db: Session, *,
-                        customer_id: int, skip: int = 0, limit: int = 100) -> list[OrderSchema]:
-        orders = (db.query(self.model)
-                  .filter(Order.customer_id == customer_id)
-                  .offset(skip).limit(limit)
-                  .all())
-        return [OrderSchema.model_validate(x) for x in orders]
 
     def cancel_item(self, db: Session, *, order_id: int, item_id: int) -> OrderSchema:
         order = db.query(self.model).filter(Order.id == order_id).first()

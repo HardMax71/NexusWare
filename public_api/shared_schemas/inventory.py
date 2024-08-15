@@ -151,6 +151,7 @@ class ZoneWithLocations(Zone):
 
 
 class ProductFilter(BaseModel):
+    id: Optional[int] = None
     name: Optional[str] = None
     category_id: Optional[int] = None
     sku: Optional[str] = None

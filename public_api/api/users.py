@@ -1,10 +1,10 @@
-from typing import List
+from typing import List, Optional
 
 from public_api.shared_schemas import (
     UserCreate, UserUpdate, User, UserSanitizedWithRole, Token,
     Message, PasswordResetConfirm, UserFilter,
-    UserActivity, RoleWithUsers, UserPermissions, BulkUserCreate,
-    BulkUserCreateResult
+    UserActivity, RoleWithUsers, BulkUserCreate,
+    BulkUserCreateResult, AllPermissions, AllRoles, UserWithPermissions, UserPermissionUpdate
 )
 from .client import APIClient
 
@@ -45,8 +45,12 @@ class UsersAPI:
         response = self.client.put("/users/me", json=user_update.model_dump(mode="json", exclude_unset=True))
         return User.model_validate(response)
 
-    def get_users(self, skip: int = 0, limit: int = 100) -> List[UserSanitizedWithRole]:
-        response = self.client.get("/users/", params={"skip": skip, "limit": limit})
+    def get_users(self, filter_params: Optional[UserFilter] = None,
+                  skip: int = 0, limit: int = 100) -> List[UserSanitizedWithRole]:
+        params = {"skip": skip, "limit": limit}
+        if filter_params:
+            params.update(filter_params.model_dump(exclude_unset=True))
+        response = self.client.get("/users/", params=params)
         return [UserSanitizedWithRole.model_validate(item) for item in response]
 
     def create_user(self, user: UserCreate) -> UserSanitizedWithRole:
@@ -82,10 +86,23 @@ class UsersAPI:
         response = self.client.get(f"/users/role/{role_id}")
         return RoleWithUsers.model_validate(response)
 
-    def get_user_permissions(self, user_id: int) -> UserPermissions:
-        response = self.client.get(f"/users/{user_id}/permissions")
-        return UserPermissions.model_validate(response)
-
     def bulk_create_users(self, users: BulkUserCreate) -> BulkUserCreateResult:
         response = self.client.post("/users/bulk", json=users.model_dump(mode="json"))
         return BulkUserCreateResult.model_validate(response)
+
+    def get_all_permissions(self) -> AllPermissions:
+        response = self.client.get("/users/permissions")
+        return AllPermissions.model_validate(response)
+
+    def get_all_roles(self) -> AllRoles:
+        response = self.client.get("/users/roles")
+        return AllRoles.model_validate(response)
+
+    def get_user_permissions(self, user_id: int) -> UserWithPermissions:
+        response = self.client.get(f"/users/{user_id}/permissions")
+        return UserWithPermissions.model_validate(response)
+
+    def update_user_permissions(self, user_id: int, permissions: List[int]) -> UserWithPermissions:
+        data = UserPermissionUpdate(user_id=user_id, permissions=permissions)
+        response = self.client.put(f"/users/{user_id}/permissions", json=data.model_dump())
+        return UserWithPermissions.model_validate(response)

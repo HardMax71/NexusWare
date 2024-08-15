@@ -1,9 +1,10 @@
-from PySide6.QtCore import Qt, QDate
+import time
+
+from PySide6.QtCore import QDate
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem, QDateEdit, QLabel
 
-from public_api.api import APIClient, AuditAPI
 from desktop_app.src.ui.components import StyledButton
-import time
+from public_api.api import APIClient, AuditAPI
 
 
 class AuditLogView(QWidget):

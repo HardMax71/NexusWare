@@ -76,4 +76,5 @@ def read_customer_orders(
         limit: int = 100,
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    return crud.order.get_by_customer(db, customer_id=customer_id, skip=skip, limit=limit)
+    filter_params = shared_schemas.OrderFilter(customer_id=customer_id)
+    return crud.order.get_multi_with_details(db, skip=skip, limit=limit, filter_params=filter_params)

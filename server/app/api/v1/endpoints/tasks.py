@@ -73,7 +73,8 @@ def get_my_tasks(
         limit: int = 100,
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    return crud.task.get_user_tasks(db, user_id=current_user.user_id, skip=skip, limit=limit)
+    filter_params = shared_schemas.TaskFilter(assigned_to=current_user.id)
+    return crud.task.get_multi_with_filter(db, skip=skip, limit=limit, filter_params=filter_params)
 
 
 @router.get("/{task_id}", response_model=shared_schemas.TaskWithAssignee)
@@ -82,10 +83,11 @@ def read_task(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    task = crud.task.get_with_assignee(db, id=task_id)
-    if task is None:
+    filter_params = shared_schemas.TaskFilter(id=task_id)
+    task = crud.task.get_multi_with_filter(db, filter_params=filter_params)
+    if task is None or len(task) == 0:
         raise HTTPException(status_code=404, detail="Task not found")
-    return task
+    return task[0]
 
 
 @router.put("/{task_id}", response_model=shared_schemas.Task)

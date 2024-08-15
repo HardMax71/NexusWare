@@ -18,7 +18,12 @@ class ReportsCRUD:
         ).join(Inventory).group_by(Product.id)
 
         items = [
-            InventoryItem.model_validate(row)
+            InventoryItem(
+                product_id=row.id,
+                product_name=row.product_name,
+                quantity=row.quantity,
+                value=float(row.value)
+            )
             for row in query.all()
         ]
 
@@ -42,16 +47,16 @@ class ReportsCRUD:
         total_revenue = result.total_revenue or 0
         average_order_value = total_revenue / total_orders if total_orders > 0 else 0
 
-        summary = OrderSummary.model_validate({
-            "total_orders": total_orders,
-            "total_revenue": total_revenue,
-            "average_order_value": average_order_value
-        })
+        summary = OrderSummary(
+            total_orders=total_orders,
+            total_revenue=float(total_revenue),
+            average_order_value=float(average_order_value)
+        )
 
         return OrderSummaryReport(
             start_date=start_date,
             end_date=end_date,
-            summary=summary
+            summary=summary.model_dump()
         )
 
     def get_warehouse_performance(self, db: Session, start_date: int, end_date: int) -> WarehousePerformanceReport:
@@ -85,7 +90,7 @@ class ReportsCRUD:
             Order.order_date.between(start_date, end_date)
         ).scalar() or 0
 
-        inventory_turnover = cogs / avg_inventory if avg_inventory > 0 else 0
+        inventory_turnover = float(cogs) / float(avg_inventory) if avg_inventory > 0 else 0
 
         metrics = [
             WarehousePerformanceMetric.model_validate({

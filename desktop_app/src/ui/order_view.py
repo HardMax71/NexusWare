@@ -1,16 +1,15 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import List
 
-from PySide6.QtCore import Signal, Qt
+from PySide6.QtCore import Signal
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
-                               QHeaderView, QDialog, QLineEdit, QStackedWidget, QMessageBox, QComboBox,
-                               QFormLayout, QDateEdit, QDoubleSpinBox, QSpinBox, QDialogButtonBox, QLabel)
+                               QHeaderView, QDialog, QLineEdit, QStackedWidget, QMessageBox, QComboBox)
 
 from desktop_app.src.ui.components import StyledButton, ShippingDialog, OrderDialog, OrderDetailsDialog
 from public_api.api import OrdersAPI, APIClient, CustomersAPI, ProductsAPI, ShipmentsAPI, CarriersAPI
-from public_api.shared_schemas import (OrderWithDetails, OrderFilter, OrderCreate, ShippingInfo,
-                                       OrderUpdate, OrderItemCreate, Customer, Product)
+from public_api.shared_schemas import (OrderWithDetails, OrderFilter)
+
 
 class OrderView(QWidget):
     order_updated = Signal()

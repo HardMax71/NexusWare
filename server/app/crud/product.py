@@ -5,8 +5,6 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
 from public_api.shared_schemas import (
-    Product as ProductSchema,
-    ProductWithInventory as ProductWithInventorySchema,
     ProductCreate, ProductUpdate,
     ProductFilter, ProductWithCategoryAndInventory
 )
@@ -17,12 +15,6 @@ from .base import CRUDBase
 
 
 class CRUDProduct(CRUDBase[Product, ProductCreate, ProductUpdate]):
-    def get_with_category_and_inventory(self, db: Session, id: int) -> Optional[ProductWithInventorySchema]:
-        current_product = db.query(Product).filter(Product.id == id).options(
-            joinedload(Product.category),
-            joinedload(Product.inventory_items)
-        ).first()
-        return ProductWithInventorySchema.model_validate(current_product) if current_product else None
 
     def get_multi_with_category_and_inventory(
             self, db: Session,
@@ -45,10 +37,6 @@ class CRUDProduct(CRUDBase[Product, ProductCreate, ProductUpdate]):
 
         products = query.offset(skip).limit(limit).all()
         return [ProductWithCategoryAndInventory.model_validate(product) for product in products]
-
-    def get_by_barcode(self, db: Session, barcode: str) -> Optional[ProductSchema]:
-        current_product = db.query(Product).filter(Product.barcode == barcode).first()
-        return ProductSchema.model_validate(current_product) if current_product else None
 
     def get_max_id(self, db: Session) -> int:
         max_id = db.query(func.max(Product.id)).scalar()

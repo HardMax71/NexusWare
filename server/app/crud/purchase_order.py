@@ -1,5 +1,4 @@
 # /server/app/crud/purchase_order.py
-from typing import Optional
 
 from sqlalchemy.orm import Session
 
@@ -41,13 +40,6 @@ class CRUDPurchaseOrder(CRUDBase[PurchaseOrder, PurchaseOrderCreate, PurchaseOrd
         purchase_orders = query.offset(skip).limit(limit).all()
         return [PurchaseOrderWithDetailsSchema.model_validate(po) for po in purchase_orders]
 
-    def get_with_details(self, db: Session, id: int) -> Optional[PurchaseOrderWithDetailsSchema]:
-        purchase_order = (db.query(self.model)
-                          .filter(self.model.id == id)
-                          .join(Supplier)
-                          .first())
-        return PurchaseOrderWithDetailsSchema.model_validate(purchase_order) if purchase_order else None
-
     def receive(self, db: Session, *, db_obj: PurchaseOrder,
                 received_items: list[POItemReceive]) -> PurchaseOrderSchema:
         for item in received_items:
@@ -59,14 +51,6 @@ class CRUDPurchaseOrder(CRUDBase[PurchaseOrder, PurchaseOrderCreate, PurchaseOrd
         db.commit()
         db.refresh(db_obj)
         return PurchaseOrderSchema.model_validate(db_obj)
-
-    def get_by_supplier(self, db: Session, *,
-                        supplier_id: int, skip: int = 0, limit: int = 100) -> list[PurchaseOrderSchema]:
-        purchase_orders = (db.query(self.model)
-                           .filter(PurchaseOrder.supplier_id == supplier_id)
-                           .offset(skip).limit(limit)
-                           .all())
-        return [PurchaseOrderSchema.model_validate(po) for po in purchase_orders]
 
 
 class CRUDPOItem(CRUDBase[POItem, POItemCreate, POItemUpdate]):

@@ -78,4 +78,5 @@ def read_supplier_purchase_orders(
         limit: int = 100,
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    return crud.purchase_order.get_by_supplier(db, supplier_id=supplier_id, skip=skip, limit=limit)
+    filter_params = shared_schemas.PurchaseOrderFilter(supplier_id=supplier_id)
+    return crud.purchase_order.get_multi_with_details(db, skip=skip, limit=limit, filter_params=filter_params)

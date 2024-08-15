@@ -68,7 +68,8 @@ from .user import (
     UserBase, UserCreate, UserUpdate, User, UserInDB, Token, TokenData,
     Message, UserSanitizedWithRole, PasswordResetConfirm, UserFilter,
     UserActivity, RoleWithUsers, UserPermissions, BulkUserCreate,
-    BulkUserCreateResult
+    BulkUserCreateResult, UserWithPermissions, UserPermissionUpdate,
+    AllRoles, AllPermissions, UserWithRole
 )
 # Warehouse shared_schemas
 from .warehouse import (
@@ -81,7 +82,8 @@ from .warehouse import (
     PickListFilter, ReceiptFilter, ShipmentFilter, WarehouseStats, LocationInventory,
     LocationInventoryUpdate, OptimizedPickingRoute, PickingPerformance,
     ReceiptDiscrepancy, ShippingLabel, CarrierRate, ShipmentTracking,
-    InventoryMovementCreate, InventoryAdjustmentCreate
+    InventoryMovementCreate, InventoryAdjustmentCreate,
+    ShipmentWithDetails
 )
 # Yard shared_schemas
 from .yard import (

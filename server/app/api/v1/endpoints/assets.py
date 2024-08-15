@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from public_api import shared_schemas
+from public_api.shared_schemas import AssetMaintenanceFilter
 from .... import crud, models
 from ....api import deps
 
@@ -124,7 +125,8 @@ def read_asset_maintenance_history(
         limit: int = 100,
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    return crud.asset_maintenance.get_multi_by_asset(db, asset_id=asset_id, skip=skip, limit=limit)
+    filter_params = AssetMaintenanceFilter(asset_id=asset_id)
+    return crud.asset_maintenance.get_multi_with_filter(db, skip=skip, limit=limit, filter_params=filter_params)
 
 
 @router.post("/{asset_id}/schedule_maintenance", response_model=shared_schemas.AssetMaintenance)
@@ -152,7 +154,7 @@ def complete_asset_maintenance(
     if maintenance is None:
         raise HTTPException(status_code=404, detail="Asset maintenance record not found")
     completion_data.completed_date = int(datetime.now().timestamp())
-    completion_data.performed_by = current_user.user_id
+    completion_data.performed_by = current_user.id
     return crud.asset_maintenance.update(db, db_obj=maintenance, obj_in=completion_data)
 
 

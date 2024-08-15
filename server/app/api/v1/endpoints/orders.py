@@ -85,7 +85,8 @@ def read_order(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    order = crud.order.get_with_details(db, id=order_id)
+    filter_params = shared_schemas.OrderFilter(id=order_id)
+    order = crud.order.get_multi_with_details(db, filter_params=filter_params)
     if order is None:
         raise HTTPException(status_code=404, detail="Order not found")
     return order

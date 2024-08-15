@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 from sqlalchemy.orm import Session, joinedload
 
@@ -17,7 +17,7 @@ from .base import CRUDBase
 
 class CRUDAsset(CRUDBase[Asset, AssetCreate, AssetUpdate]):
 
-    def get_due_for_maintenance(self, db: Session) -> list[AssetWithMaintenanceSchema]:
+    def get_due_for_maintenance(self, db: Session) -> List[AssetWithMaintenanceSchema]:
         current_timestamp = int(datetime.now().timestamp())
         assets = db.query(self.model).join(AssetMaintenance).filter(
             AssetMaintenance.scheduled_date <= current_timestamp,
@@ -53,7 +53,7 @@ class CRUDAsset(CRUDBase[Asset, AssetCreate, AssetUpdate]):
         return None
 
     def get_multi_with_filter(self, db: Session, *,
-                              skip: int = 0, limit: int = 100, filter_params: AssetFilter) -> list[AssetSchema]:
+                              skip: int = 0, limit: int = 100, filter_params: AssetFilter) -> List[AssetSchema]:
         query = db.query(self.model)
         if filter_params.asset_type:
             query = query.filter(self.model.asset_type == filter_params.asset_type)
@@ -80,10 +80,10 @@ class CRUDAsset(CRUDBase[Asset, AssetCreate, AssetUpdate]):
 
         return query.count()
 
-    def get_all_types(self, db: Session) -> list[str]:
+    def get_all_types(self, db: Session) -> List[str]:
         return [asset_type for (asset_type,) in db.query(self.model.asset_type).distinct().all()]
 
-    def get_all_statuses(self, db: Session) -> list[str]:
+    def get_all_statuses(self, db: Session) -> List[str]:
         return [status for (status,) in db.query(self.model.status).distinct().all()]
 
 

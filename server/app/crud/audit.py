@@ -13,6 +13,8 @@ class CRUDAuditLog(CRUDBase[AuditLog, AuditLogCreate, AuditLogCreate]):
     def get_multi_with_filter(self, db: Session, *,
                               skip: int = 0, limit: int = 100, filter_params: AuditLogFilter) -> list[AuditLogSchema]:
         query = db.query(self.model).join(User)
+        if filter_params.id:
+            query = query.filter(AuditLog.id == filter_params.id)
         if filter_params.user_id:
             query = query.filter(AuditLog.user_id == filter_params.user_id)
         if filter_params.action_type:
@@ -28,10 +30,6 @@ class CRUDAuditLog(CRUDBase[AuditLog, AuditLogCreate, AuditLogCreate]):
 
         audit_logs = query.order_by(desc(AuditLog.timestamp)).offset(skip).limit(limit).all()
         return [AuditLogSchema.model_validate(audit_log) for audit_log in audit_logs]
-
-    def get_with_user(self, db: Session, id: int) -> Optional[AuditLogSchema]:
-        audit_log = db.query(self.model).filter(self.model.id == id).join(User).first()
-        return AuditLogSchema.model_validate(audit_log) if audit_log else None
 
     def get_summary(self, db: Session, date_from: Optional[int], date_to: Optional[int]) -> AuditSummary:
         query = db.query(self.model)
@@ -65,41 +63,6 @@ class CRUDAuditLog(CRUDBase[AuditLog, AuditLogCreate, AuditLogCreate]):
             logs_by_table=logs_by_table,
             most_active_users=most_active_users
         )
-
-    def get_by_user(self, db: Session, *, user_id: int, skip: int = 0, limit: int = 100) -> list[AuditLogSchema]:
-        audit_logs = (db.query(self.model)
-                      .filter(AuditLog.user_id == user_id)
-                      .order_by(desc(AuditLog.timestamp))
-                      .offset(skip).limit(limit)
-                      .all())
-        return [AuditLogSchema.model_validate(audit_log) for audit_log in audit_logs]
-
-    def get_by_table(self, db: Session, *, table_name: str, skip: int = 0, limit: int = 100) -> list[AuditLogSchema]:
-        audit_logs = (db.query(self.model)
-                      .filter(AuditLog.table_name == table_name)
-                      .order_by(desc(AuditLog.timestamp))
-                      .offset(skip).limit(limit)
-                      .all())
-        return [AuditLogSchema.model_validate(audit_log) for audit_log in audit_logs]
-
-    def get_by_record(self, db: Session, *, table_name: str,
-                      record_id: int, skip: int = 0, limit: int = 100) -> list[AuditLogSchema]:
-        audit_logs = (db.query(self.model)
-                      .filter(AuditLog.table_name == table_name, AuditLog.record_id == record_id)
-                      .order_by(desc(AuditLog.timestamp))
-                      .offset(skip).limit(limit)
-                      .all())
-        return [AuditLogSchema.model_validate(audit_log) for audit_log in audit_logs]
-
-    def get_for_export(self, db: Session, *,
-                       date_from: Optional[int], date_to: Optional[int]) -> list[AuditLogSchema]:
-        query = db.query(self.model)
-        if date_from:
-            query = query.filter(AuditLog.timestamp >= date_from)
-        if date_to:
-            query = query.filter(AuditLog.timestamp <= date_to)
-        audit_logs = query.order_by(desc(AuditLog.timestamp)).all()
-        return [AuditLogSchema.model_validate(audit_log) for audit_log in audit_logs]
 
     def get_distinct_actions(self, db: Session) -> list[str]:
         return [action for (action,) in db.query(AuditLog.action_type).distinct().all()]

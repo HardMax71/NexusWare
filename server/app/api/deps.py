@@ -5,8 +5,8 @@ from jose import jwt
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
-from server.app import crud, models
 from public_api import shared_schemas
+from server.app import crud, models
 from server.app.core.config import settings
 from server.app.db.database import get_db
 

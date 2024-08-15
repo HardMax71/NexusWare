@@ -2,13 +2,13 @@
 
 from sqlalchemy.orm import Session
 
-from server.app.models import AssetMaintenance
 from public_api.shared_schemas import (
     AssetMaintenance as AssetMaintenanceSchema,
     AssetMaintenanceCreate,
     AssetMaintenanceUpdate,
     AssetMaintenanceFilter
 )
+from server.app.models import AssetMaintenance
 from .base import CRUDBase
 
 
@@ -33,15 +33,6 @@ class CRUDAssetMaintenance(CRUDBase[AssetMaintenance, AssetMaintenanceCreate, As
             query = query.filter(self.model.performed_by == filter_params.performed_by)
 
         maintenance_records = query.offset(skip).limit(limit).all()
-        return [AssetMaintenanceSchema.model_validate(record) for record in maintenance_records]
-
-    def get_multi_by_asset(self, db: Session, *,
-                           asset_id: int, skip: int = 0, limit: int = 100) -> list[AssetMaintenanceSchema]:
-        maintenance_records = (db.query(self.model)
-                               .filter(self.model.asset_id == asset_id)
-                               .offset(skip)
-                               .limit(limit)
-                               .all())
         return [AssetMaintenanceSchema.model_validate(record) for record in maintenance_records]
 
     def get_all_types(self, db: Session) -> list[str]:
