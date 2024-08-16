@@ -37,8 +37,7 @@ def read_purchase_order(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    filter_params = shared_schemas.PurchaseOrderFilter(id=po_id)
-    po = crud.purchase_order.get_multi_with_details(db, filter_params=filter_params)
+    po = crud.purchase_order.get(db, id=po_id)
     if po is None:
         raise HTTPException(status_code=404, detail="Purchase Order not found")
     return po

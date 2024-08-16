@@ -72,6 +72,7 @@ class InventoryCreate(InventoryBase):
 
 
 class InventoryUpdate(BaseModel):
+    product_id: Optional[int] = None
     location_id: Optional[int] = None
     quantity: Optional[int] = None
     expiration_date: Optional[int] = None
@@ -151,7 +152,6 @@ class ZoneWithLocations(Zone):
 
 
 class ProductFilter(BaseModel):
-    id: Optional[int] = None
     name: Optional[str] = None
     category_id: Optional[int] = None
     sku: Optional[str] = None

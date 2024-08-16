@@ -2,11 +2,13 @@
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Body
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from public_api import shared_schemas
+from public_api.shared_schemas import ProductWithCategoryAndInventory
 from .... import crud, models
 from ....api import deps
+from ....models import Product
 
 router = APIRouter()
 
@@ -45,11 +47,16 @@ def get_product_by_barcode(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    filter_params = shared_schemas.ProductFilter(barcode=barcode_data.barcode)
-    product = crud.product.get_single_with_category_and_inventory(db, filter_params=filter_params)
-    if product is None:
-        raise HTTPException(status_code=404, detail="Product not found")
-    return product
+    options = [
+        joinedload(Product.category),
+        joinedload(Product.inventory_items)
+    ]
+
+    product = crud.product.get(db, barcode=barcode_data.barcode, options=options)
+
+    if product:
+        return ProductWithCategoryAndInventory.model_validate(product)
+    raise HTTPException(status_code=404, detail="Product not found")
 
 
 @router.get("/{product_id}", response_model=shared_schemas.ProductWithCategoryAndInventory)
@@ -58,11 +65,16 @@ def read_product(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    filter_params = shared_schemas.ProductFilter(id=product_id)
-    product = crud.product.get_single_with_category_and_inventory(db, filter_params=filter_params)
-    if product is None:
-        raise HTTPException(status_code=404, detail="Product not found")
-    return product
+    options = [
+        joinedload(Product.category),
+        joinedload(Product.inventory_items)
+    ]
+
+    product = crud.product.get(db, id=product_id, options=options)
+
+    if product:
+        return ProductWithCategoryAndInventory.model_validate(product)
+    raise HTTPException(status_code=404, detail="Product not found")
 
 
 @router.put("/{product_id}", response_model=shared_schemas.Product)

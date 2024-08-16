@@ -13,8 +13,7 @@ class CRUDAuditLog(CRUDBase[AuditLog, AuditLogCreate, AuditLogCreate]):
     def get_multi_with_filter(self, db: Session, *,
                               skip: int = 0, limit: int = 100, filter_params: AuditLogFilter) -> list[AuditLogSchema]:
         query = db.query(self.model).join(User)
-        if filter_params.id:
-            query = query.filter(AuditLog.id == filter_params.id)
+
         if filter_params.user_id:
             query = query.filter(AuditLog.user_id == filter_params.user_id)
         if filter_params.action_type:

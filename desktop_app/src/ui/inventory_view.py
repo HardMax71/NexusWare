@@ -77,6 +77,7 @@ class InventoryView(QWidget):
 
     def update_table(self, items: list[InventoryWithDetails]):
         self.table.setRowCount(len(items))
+        self.table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         for row, item in enumerate(items):
             self.table.setItem(row, 0, QTableWidgetItem(item.product.sku))
             self.table.setItem(row, 1, QTableWidgetItem(item.product.name))

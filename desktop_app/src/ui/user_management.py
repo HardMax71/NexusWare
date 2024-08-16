@@ -75,6 +75,7 @@ class UserManagementWidget(QWidget):
 
     def update_table(self, users: list[UserSanitizedWithRole]):
         self.table.setRowCount(len(users))
+        self.table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         for row, user in enumerate(users):
             self.table.setItem(row, 0, QTableWidgetItem(user.username))
             self.table.setItem(row, 1, QTableWidgetItem(user.email))

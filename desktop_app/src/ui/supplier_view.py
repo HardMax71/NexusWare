@@ -65,6 +65,7 @@ class SupplierView(QWidget):
 
     def update_table(self, suppliers: List[Supplier]):
         self.suppliers_table.setRowCount(len(suppliers))
+        self.suppliers_table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         for row, supplier in enumerate(suppliers):
             self.suppliers_table.setItem(row, 0, QTableWidgetItem(supplier.name))
             self.suppliers_table.setItem(row, 1, QTableWidgetItem(supplier.contact_person or ""))

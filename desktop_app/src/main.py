@@ -2,7 +2,8 @@ import sys
 
 from PySide6.QtCore import QFile, QTextStream, QTranslator
 from PySide6.QtGui import QIcon, QFont
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QMessageBox
+from requests import HTTPError
 
 from public_api.api import APIClient
 from public_api.api import UsersAPI
@@ -47,6 +48,7 @@ def apply_appearance_settings(app, config_manager):
 def main():
     # Set up logging
     logger = setup_logger("nexusware")
+    logger.info("Starting NexusWare WMS")
 
     # Initialize the application
     app = QApplication(sys.argv)
@@ -78,6 +80,9 @@ def main():
     users_api = UsersAPI(api_client)
     auth_service = AuthenticationService(users_api)
     offline_manager = OfflineManager("offline_data.db")
+
+    # TODO: Implement the UpdateManager class correctly
+    offline_manager.clear_all_actions()
     update_manager = UpdateManager(config_manager)
 
     # Check for updates
@@ -93,11 +98,25 @@ def main():
     main_window = MainWindow(api_client=api_client,
                              config_manager=config_manager)
 
+    def handle_auth_error():
+        QMessageBox.warning(None, "Authentication Error", "Your session has expired. Please log in again.")
+        main_window.close()
+        if login_dialog.exec() == LoginDialog.Accepted:
+            main_window.show()
+        else:
+            sys.exit(0)
+
     # Show main window
     main_window.show()
 
-    # Start the event loop
-    sys.exit(app.exec())
+    # Start the event loop with error handling
+    try:
+        sys.exit(app.exec())
+    except HTTPError as e:
+        if e.response.status_code == 403:
+            handle_auth_error()
+        else:
+            raise
 
 
 if __name__ == "__main__":

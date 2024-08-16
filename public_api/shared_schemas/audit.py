@@ -35,7 +35,6 @@ class AuditLogWithUser(AuditLog):
 
 
 class AuditLogFilter(BaseModel):
-    id: Optional[int] = None
     user_id: Optional[int] = None
     action_type: Optional[str] = None
     table_name: Optional[str] = None
