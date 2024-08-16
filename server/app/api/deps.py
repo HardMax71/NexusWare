@@ -49,3 +49,19 @@ def get_current_admin(
             status_code=400, detail="The user doesn't have enough privileges"
         )
     return current_user
+
+
+# TODO: Implement RBAC in full and add in all endpoints
+def has_permission(name: str, action: str):  # dependency for RBAC
+    def permission_checker(
+            db: Session = Depends(get_db),
+            current_user: models.User = Depends(get_current_active_user)
+    ):
+        if not crud.user.check_permission(db, current_user.id, name, action):
+            raise HTTPException(
+                status_code=403,
+                detail=f"Not enough permissions to {action} {name}"
+            )
+        return current_user
+
+    return permission_checker

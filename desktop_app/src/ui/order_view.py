@@ -2,7 +2,6 @@ from datetime import datetime
 from typing import List
 
 from PySide6.QtCore import Signal
-from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
                                QHeaderView, QDialog, QLineEdit, QStackedWidget, QMessageBox, QComboBox)
 
@@ -58,6 +57,7 @@ class OrderView(QWidget):
         self.table.setColumnCount(5)
         self.table.setHorizontalHeaderLabels(["Customer", "Date", "Total", "Status", "Actions"])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         main_layout.addWidget(self.table)
 
         self.stacked_widget.addWidget(main_widget)
@@ -79,10 +79,7 @@ class OrderView(QWidget):
         self.update_table(orders)
 
     def update_table(self, items: List[OrderWithDetails]):
-        self.table.setColumnCount(5)
-        self.table.setHorizontalHeaderLabels(["Customer", "Date", "Total", "Status", "Actions"])
         self.table.setRowCount(len(items))
-        self.table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         for row, item in enumerate(items):
             self.table.setItem(row, 0, QTableWidgetItem(item.customer.name))
             self.table.setItem(row, 1, QTableWidgetItem(datetime.fromtimestamp(item.order_date).strftime("%Y-%m-%d")))
@@ -92,7 +89,7 @@ class OrderView(QWidget):
             actions_widget = QWidget()
             actions_layout = QHBoxLayout(actions_widget)
             actions_layout.setContentsMargins(0, 0, 0, 0)
-            actions_layout.setSpacing(2)  # Reduce spacing between buttons
+            actions_layout.setSpacing(2)
 
             view_button = StyledButton("View")
             view_button.clicked.connect(lambda _, i=item.id: self.view_order(i))
@@ -114,16 +111,6 @@ class OrderView(QWidget):
                 ship_button.setStyleSheet("background-color: #A9A9A9;")  # Dark gray color
 
             self.table.setCellWidget(row, 4, actions_widget)
-
-            # Color coding based on status
-            status_colors = {
-                "Pending": QColor(255, 255, 200),  # Light yellow
-                "Processing": QColor(200, 255, 200),  # Light green
-                "Shipped": QColor(200, 200, 255),  # Light blue
-                "Delivered": QColor(200, 255, 255),  # Light cyan
-                "Cancelled": QColor(255, 200, 200),  # Light red
-            }
-            self.table.item(row, 3).setBackground(status_colors.get(item.status, QColor(255, 255, 255)))
 
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 

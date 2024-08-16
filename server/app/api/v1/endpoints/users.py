@@ -7,11 +7,13 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from public_api import shared_schemas
-from public_api.shared_schemas import UserFilter
+from public_api.shared_schemas import UserFilter, UserPermissions, PermissionUpdate, UserWithPermissions, \
+    UserPermissionUpdate
 from .... import crud, models
 from ....api import deps
 from ....core import security
 from ....core.email import send_reset_password_email
+from ....core.security import get_password_hash
 
 router = APIRouter()
 
@@ -99,6 +101,15 @@ def get_all_permissions(
     return shared_schemas.AllPermissions(permissions=permissions)
 
 
+@router.get("/my_permissions", response_model=shared_schemas.AllPermissions)
+def get_my_permissions(
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    permissions = crud.user.get_user_with_permissions(db, current_user.id).permissions
+    return shared_schemas.AllPermissions(permissions=permissions)
+
+
 @router.get("/roles", response_model=shared_schemas.AllRoles)
 def get_all_roles(
         db: Session = Depends(deps.get_db),
@@ -131,38 +142,37 @@ def create_user(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_admin)
 ):
-    db_user = crud.user.get(db, email=user.email)
+    db_user = crud.user.get_by_email(db, email=user.email)
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
-    new_user = crud.user.create(db=db, obj_in=user)
+    user_data = user.model_dump()
+    password = user_data.pop('password')
+    user_data['password_hash'] = get_password_hash(password)
+
+    new_user = crud.user.create(db=db, obj_in=shared_schemas.UserCreate(**user_data))
     return shared_schemas.UserSanitizedWithRole.model_validate(new_user)
 
 
-@router.get("/{user_id}/permissions", response_model=shared_schemas.UserWithPermissions)
+@router.get("/{user_id}/permissions", response_model=UserWithPermissions)
 def get_user_permissions(
-        user_id: int,
-        db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_admin)
+    user_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user),
 ):
-    user = crud.user.get_user_with_permissions(db, user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return shared_schemas.UserWithPermissions.model_validate(user)
+    if not crud.user.is_admin(current_user) and current_user.id != user_id:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    user_with_permissions = crud.user.get_user_with_permissions(db, user_id)
+    return UserWithPermissions.model_validate(user_with_permissions)
 
-
-@router.put("/{user_id}/permissions", response_model=shared_schemas.UserWithPermissions)
+@router.put("/{user_id}/permissions", response_model=UserWithPermissions)
 def update_user_permissions(
-        user_id: int,
-        permissions: shared_schemas.UserPermissionUpdate,
-        db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_admin)
+    user_id: int,
+    permission_update: UserPermissionUpdate,
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_admin),
 ):
-    try:
-        user = crud.user.update_user_permissions(db, user_id=user_id, permission_ids=permissions.permissions)
-        return shared_schemas.UserWithPermissions.model_validate(user)
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-
+    updated_user = crud.user.update_user_permissions(db, user_id=user_id, permission_ids=permission_update.permissions)
+    return UserWithPermissions.model_validate(updated_user)
 
 @router.get("/{user_id}", response_model=shared_schemas.UserSanitizedWithRole)
 def read_user(
@@ -190,7 +200,13 @@ def update_user(
     user = crud.user.get(db, id=user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    updated_user = crud.user.update(db, db_obj=user, obj_in=user_in)
+
+    update_data = user_in.model_dump(exclude_unset=True)
+    if 'password' in update_data:
+        password = update_data.pop('password')
+        update_data['password_hash'] = get_password_hash(password)
+
+    updated_user = crud.user.update(db, db_obj=user, obj_in=update_data)
     return shared_schemas.User.model_validate(updated_user)
 
 

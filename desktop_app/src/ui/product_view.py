@@ -2,7 +2,6 @@ from datetime import datetime
 from typing import List, Optional
 
 from PySide6.QtCore import Signal
-from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
                                QHeaderView, QDialog, QLineEdit, QStackedWidget, QMessageBox, QComboBox,
                                QFormLayout, QDoubleSpinBox, QDialogButtonBox, QLabel)
@@ -110,12 +109,6 @@ class ProductView(QWidget):
             actions_layout.addWidget(delete_button)
 
             self.table.setCellWidget(row, 5, actions_widget)
-
-            # Color coding based on stock level
-            if total_stock == 0:
-                self.table.item(row, 4).setBackground(QColor(255, 200, 200))  # Light red for out of stock
-            elif total_stock < 10:
-                self.table.item(row, 4).setBackground(QColor(255, 255, 200))  # Light yellow for low stock
 
     def filter_products(self):
         search_text = self.search_input.text().lower()

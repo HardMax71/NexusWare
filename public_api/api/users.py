@@ -103,6 +103,10 @@ class UsersAPI:
         response = self.client.get("/users/roles")
         return AllRoles.model_validate(response)
 
+    def my_permissions(self) -> AllPermissions:
+        response = self.client.get("/users/my_permissions")
+        return AllPermissions.model_validate(response)
+
     def get_user_permissions(self, user_id: int) -> UserWithPermissions:
         response = self.client.get(f"/users/{user_id}/permissions")
         return UserWithPermissions.model_validate(response)

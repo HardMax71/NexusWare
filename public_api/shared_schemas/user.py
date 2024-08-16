@@ -1,18 +1,28 @@
 # /server/app/shared_schemas/user.py
+from enum import Enum
 from typing import Optional, List
 
 from pydantic import BaseModel, EmailStr
 
 
+class RoleName(str, Enum):
+    admin = "admin"
+    manager = "manager"
+    user = "user"
+
+
 class PermissionBase(BaseModel):
     permission_name: str
+    can_read: bool = False
+    can_write: bool = False
+    can_delete: bool = False
 
 
 class PermissionCreate(PermissionBase):
     pass
 
 
-class PermissionUpdate(BaseModel):
+class PermissionUpdate(PermissionBase):
     permission_name: Optional[str] = None
 
 
@@ -24,7 +34,7 @@ class Permission(PermissionBase):
 
 
 class RoleBase(BaseModel):
-    role_name: str
+    role_name: RoleName
 
 
 class RoleCreate(RoleBase):
@@ -32,7 +42,7 @@ class RoleCreate(RoleBase):
 
 
 class RoleUpdate(BaseModel):
-    role_name: Optional[str] = None
+    role_name: Optional[RoleName] = None
     permissions: Optional[List[int]] = None
 
 
@@ -162,14 +172,17 @@ class UserPermissionUpdate(BaseModel):
     user_id: int
     permissions: List[int]
 
+
 class UserWithPermissions(UserSanitizedWithRole):
     permissions: List[Permission]
 
     class Config:
         from_attributes = True
 
+
 class AllRoles(BaseModel):
     roles: List[Role]
+
 
 class AllPermissions(BaseModel):
     permissions: List[Permission]

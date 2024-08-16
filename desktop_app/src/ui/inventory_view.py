@@ -1,7 +1,6 @@
 from datetime import datetime
 
 from PySide6.QtCore import Signal
-from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
                                QHeaderView, QDialog, QLineEdit, QStackedWidget, QMessageBox)
 
@@ -51,6 +50,7 @@ class InventoryView(QWidget):
         self.table.setColumnCount(6)
         self.table.setHorizontalHeaderLabels(["SKU", "Name", "Quantity", "Location", "Last Updated", "Actions"])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         main_layout.addWidget(self.table)
 
         self.stacked_widget.addWidget(main_widget)
@@ -89,23 +89,21 @@ class InventoryView(QWidget):
 
             actions_widget = QWidget()
             actions_layout = QHBoxLayout(actions_widget)
+            actions_layout.setContentsMargins(0, 0, 0, 0)
+            actions_layout.setSpacing(2)
+
             edit_button = StyledButton("Edit")
             edit_button.clicked.connect(lambda _, i=item.id: self.edit_item(i))
             adjust_button = StyledButton("Adjust")
             adjust_button.clicked.connect(lambda _, i=item.id: self.adjust_item(i))
             delete_button = StyledButton("Delete")
             delete_button.clicked.connect(lambda _, i=item.id: self.delete_item(i))
+
             actions_layout.addWidget(edit_button)
             actions_layout.addWidget(adjust_button)
             actions_layout.addWidget(delete_button)
-            actions_layout.setContentsMargins(0, 0, 0, 0)
-            self.table.setCellWidget(row, 5, actions_widget)
 
-            # Color coding based on quantity
-            if item.quantity == 0:
-                self.table.item(row, 2).setBackground(QColor(255, 200, 200))  # Light red for out of stock
-            elif item.quantity < 10:
-                self.table.item(row, 2).setBackground(QColor(255, 255, 200))  # Light yellow for low stock
+            self.table.setCellWidget(row, 5, actions_widget)
 
     def filter_inventory(self):
         search_text = self.search_input.text().lower()
