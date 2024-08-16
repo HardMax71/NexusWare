@@ -16,6 +16,17 @@ from .base import CRUDBase
 
 class CRUDProduct(CRUDBase[Product, ProductCreate, ProductUpdate]):
 
+    def get_single_with_category_and_inventory(self, db: Session,
+                                               skip: int = 0, limit: int = 100,
+                                               filter_params: Optional[ProductFilter] = None) -> Optional[
+        ProductWithCategoryAndInventory]:
+        possible_orders = self.get_multi_with_category_and_inventory(db,
+                                                                     skip=skip, limit=limit,
+                                                                     filter_params=filter_params)
+        if len(possible_orders) == 1:
+            return ProductWithCategoryAndInventory.model_validate(possible_orders[0])
+        return None
+
     def get_multi_with_category_and_inventory(
             self, db: Session,
             skip: int = 0, limit: int = 100,

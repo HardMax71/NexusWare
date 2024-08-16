@@ -83,11 +83,10 @@ def read_task(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    filter_params = shared_schemas.TaskFilter(id=task_id)
-    task = crud.task.get_multi_with_filter(db, filter_params=filter_params)
-    if task is None or len(task) == 0:
+    task = crud.task.get(db, id=task_id)
+    if task is None:
         raise HTTPException(status_code=404, detail="Task not found")
-    return task[0]
+    return task
 
 
 @router.put("/{task_id}", response_model=shared_schemas.Task)

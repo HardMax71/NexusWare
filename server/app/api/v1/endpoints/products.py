@@ -46,10 +46,10 @@ def get_product_by_barcode(
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     filter_params = shared_schemas.ProductFilter(barcode=barcode_data.barcode)
-    product = crud.product.get_multi_with_category_and_inventory(db, filter_params=filter_params)
-    if product is None or len(product) == 0:
+    product = crud.product.get_single_with_category_and_inventory(db, filter_params=filter_params)
+    if product is None:
         raise HTTPException(status_code=404, detail="Product not found")
-    return product[0]
+    return product
 
 
 @router.get("/{product_id}", response_model=shared_schemas.ProductWithCategoryAndInventory)
@@ -59,10 +59,10 @@ def read_product(
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     filter_params = shared_schemas.ProductFilter(id=product_id)
-    product = crud.product.get_multi_with_category_and_inventory(db, filter_params=filter_params)
-    if product is None or len(product) == 0:
+    product = crud.product.get_single_with_category_and_inventory(db, filter_params=filter_params)
+    if product is None:
         raise HTTPException(status_code=404, detail="Product not found")
-    return product[0]
+    return product
 
 
 @router.put("/{product_id}", response_model=shared_schemas.Product)
