@@ -1,0 +1,16 @@
+{
+  "app_version": "1.0.0",
+  "update_check_url": "https://api.nexusware.com/update-check",
+  "update_download_url": "https://downloads.nexusware.com/releases",
+  "language": "Spanish",
+  "auto_update": false,
+  "start_on_startup": true,
+  "theme": "light",
+  "api_base_url": "http://127.0.0.1:8000/api/v1",
+  "api_test_url": "http://127.0.0.1:8000/",
+  "shipengine_api_key": "TEST_API",
+  "request_timeout": 10,
+  "font": "Candara",
+  "font_size": "Large",
+  "two_factor_auth": true
+}

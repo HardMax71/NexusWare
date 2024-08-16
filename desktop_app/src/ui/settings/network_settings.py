@@ -1,7 +1,8 @@
 import requests
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QSpinBox, QMessageBox
+from PySide6.QtGui import QFont
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QSpinBox, QMessageBox, QFrame, QToolButton, QStyle
 
-from ..components import StyledLabel, StyledLineEdit, StyledButton
+from desktop_app.src.ui.components import StyledLabel, StyledLineEdit, StyledButton
 
 
 class NetworkSettingsWidget(QWidget):
@@ -13,32 +14,32 @@ class NetworkSettingsWidget(QWidget):
     def init_ui(self):
         layout = QVBoxLayout(self)
 
-        # Server URL
-        url_layout = QHBoxLayout()
-        url_label = StyledLabel("Server URL:")
-        self.url_input = StyledLineEdit()
-        # self.url_input.setText(self.config_manager.get("server_url", ""))
-        self.url_input.textChanged.connect(self.on_url_changed)
-        url_layout.addWidget(url_label)
-        url_layout.addWidget(self.url_input)
-        layout.addLayout(url_layout)
+        # API Base URL (read-only)
+        base_url_layout = QHBoxLayout()
+        base_url_label = StyledLabel("API Base URL:")
+        self.base_url_input = StyledLineEdit()
+        self.base_url_input.setText(self.config_manager.get("api_base_url", "http://127.0.0.1:8000/api/v1"))
+        self.base_url_input.setReadOnly(True)
+        base_url_layout.addWidget(base_url_label)
+        base_url_layout.addWidget(self.base_url_input)
+        layout.addLayout(base_url_layout)
 
-        # API Key
-        api_layout = QHBoxLayout()
-        api_label = StyledLabel("API Key:")
-        self.api_input = StyledLineEdit()
-        # self.api_input.setText(self.config_manager.get("api_key", ""))
-        self.api_input.textChanged.connect(self.on_api_key_changed)
-        api_layout.addWidget(api_label)
-        api_layout.addWidget(self.api_input)
-        layout.addLayout(api_layout)
+        # Test URL
+        test_url_layout = QHBoxLayout()
+        test_url_label = StyledLabel("Test URL:")
+        self.test_url_input = StyledLineEdit()
+        self.test_url_input.setText(self.config_manager.get("api_test_url", "http://127.0.0.1:8000/"))
+        self.test_url_input.textChanged.connect(self.on_test_url_changed)
+        test_url_layout.addWidget(test_url_label)
+        test_url_layout.addWidget(self.test_url_input)
+        layout.addLayout(test_url_layout)
 
         # Timeout
         timeout_layout = QHBoxLayout()
         timeout_label = StyledLabel("Request Timeout (seconds):")
         self.timeout_input = QSpinBox()
         self.timeout_input.setRange(1, 60)
-        # self.timeout_input.setValue(self.config_manager.get("request_timeout", 30))
+        self.timeout_input.setValue(self.config_manager.get("request_timeout", 10))
         self.timeout_input.valueChanged.connect(self.on_timeout_changed)
         timeout_layout.addWidget(timeout_label)
         timeout_layout.addWidget(self.timeout_input)
@@ -49,25 +50,61 @@ class NetworkSettingsWidget(QWidget):
         self.test_button.clicked.connect(self.test_connection)
         layout.addWidget(self.test_button)
 
+        # Separator
+        separator = QFrame()
+        separator.setFrameShape(QFrame.HLine)
+        separator.setFrameShadow(QFrame.Sunken)
+        layout.addWidget(separator)
+
+        # ShipEngine API Key
+        api_layout = QVBoxLayout()
+        api_label = StyledLabel("ShipEngine API Key:")
+        api_label.setFont(QFont(api_label.font().family(), api_label.font().pointSize(), QFont.Bold))
+
+        api_input_layout = QHBoxLayout()
+        self.api_input = StyledLineEdit()
+        self.api_input.setText(self.config_manager.get("shipengine_api_key", "TEST_API"))
+        self.api_input.setEchoMode(StyledLineEdit.Password)
+        self.api_input.textChanged.connect(self.on_api_key_changed)
+
+        self.toggle_visibility_button = QToolButton()
+        self.toggle_visibility_button.setIcon(self.style().standardIcon(getattr(QStyle, "SP_DialogApplyButton")))
+        self.toggle_visibility_button.clicked.connect(self.toggle_api_key_visibility)
+
+        api_input_layout.addWidget(self.api_input)
+        api_input_layout.addWidget(self.toggle_visibility_button)
+
+        api_layout.addWidget(api_label)
+        api_layout.addLayout(api_input_layout)
+        layout.addLayout(api_layout)
+
         layout.addStretch()
 
-    def on_url_changed(self, url):
-        self.config_manager.set("server_url", url)
+    def on_test_url_changed(self, url):
+        self.config_manager.set("api_test_url", url)
 
     def on_api_key_changed(self, api_key):
-        self.config_manager.set("api_key", api_key)
+        self.config_manager.set("shipengine_api_key", api_key)
 
     def on_timeout_changed(self, timeout):
         self.config_manager.set("request_timeout", timeout)
 
+    def toggle_api_key_visibility(self):
+        if self.api_input.echoMode() == StyledLineEdit.Password:
+            self.api_input.setEchoMode(StyledLineEdit.Normal)
+            icon = self.style().standardIcon(getattr(QStyle, "SP_DialogCancelButton"))
+        else:
+            self.api_input.setEchoMode(StyledLineEdit.Password)
+            icon = self.style().standardIcon(getattr(QStyle, "SP_DialogApplyButton"))
+
+        self.toggle_visibility_button.setIcon(icon)
+
     def test_connection(self):
-        url = self.url_input.text().rstrip('/') + '/'  # Ensure the URL ends with a single '/'
-        api_key = self.api_input.text()
+        url = self.test_url_input.text()
         timeout = self.timeout_input.value()
 
         try:
-            headers = {'Authorization': f'Bearer {api_key}'} if api_key else {}
-            response = requests.get(url, headers=headers, timeout=timeout)
+            response = requests.get(url, timeout=timeout)
 
             if response.status_code == 200:
                 data = response.json()

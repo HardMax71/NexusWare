@@ -33,6 +33,11 @@ class UsersAPI:
         response = self.client.post("/users/register", json=user.model_dump(mode="json"))
         return User.model_validate(response)
 
+    def change_password(self, current_password: str, new_password: str) -> Message:
+        data = {"current_password": current_password, "new_password": new_password}
+        response = self.client.post("/users/change_password", json=data)
+        return Message.model_validate(response)
+
     def reset_password(self, email: str) -> Message:
         response = self.client.post("/users/reset_password", json={"email": email})
         return Message.model_validate(response)

@@ -1,4 +1,15 @@
-# NexusWare: Advanced Warehouse Management System
+<p align="center">
+  <img src="./diagrams/app_icon.png" alt="NexusWare Icon" width="200" height="200">
+</p>
+<p align="center">
+  <b><span style="font-size:24px;">NexusWare</span></b>
+</p>
+
+<p align="center">
+  <span style="font-size:18px;">Advanced Warehouse Management System</span>
+</p>
+
+
 
 NexusWare is a cutting-edge, multi-platform Warehouse Management System designed to revolutionize inventory control,
 order fulfillment, and warehouse operations. Built with Python and SQLite, NexusWare offers seamless integration
@@ -61,7 +72,8 @@ here.)
 
 ## Contributing
 
-We welcome contributions to NexusWare! Please refer to our [CONTRIBUTING.md](docs/CONTRIBUTING.md) file for guidelines on how to report issues, submit pull requests, and more.
+We welcome contributions to NexusWare! Please refer to our [CONTRIBUTING.md](docs/CONTRIBUTING.md) file for guidelines
+on how to report issues, submit pull requests, and more.
 
 ## License
 

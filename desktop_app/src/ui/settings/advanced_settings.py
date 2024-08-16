@@ -1,6 +1,6 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QSpinBox, QFileDialog
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QSpinBox
 
-from ..components import StyledLabel, StyledButton, StyledComboBox
+from desktop_app.src.ui.components import StyledLabel, StyledButton, StyledComboBox
 
 
 class AdvancedSettingsWidget(QWidget):
@@ -13,12 +13,11 @@ class AdvancedSettingsWidget(QWidget):
         layout = QVBoxLayout(self)
 
         # Logging level
-        # TODO: Implement logging level selection
         log_layout = QHBoxLayout()
         log_label = StyledLabel("Logging level:")
         self.log_combo = StyledComboBox()
         self.log_combo.addItems(["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"])
-        # self.log_combo.setCurrentText(self.config_manager.get("log_level", "INFO"))
+        self.log_combo.setCurrentText(self.config_manager.get("log_level", "INFO"))
         self.log_combo.currentTextChanged.connect(self.on_log_level_changed)
         log_layout.addWidget(log_label)
         log_layout.addWidget(self.log_combo)
@@ -29,21 +28,11 @@ class AdvancedSettingsWidget(QWidget):
         cache_label = StyledLabel("Cache size (MB):")
         self.cache_input = QSpinBox()
         self.cache_input.setRange(50, 1000)
-        # self.cache_input.setValue(self.config_manager.get("cache_size", 200))
+        self.cache_input.setValue(self.config_manager.get("cache_size", 200))
         self.cache_input.valueChanged.connect(self.on_cache_size_changed)
         cache_layout.addWidget(cache_label)
         cache_layout.addWidget(self.cache_input)
         layout.addLayout(cache_layout)
-
-        # Export data
-        self.export_button = StyledButton("Export Data")
-        self.export_button.clicked.connect(self.export_data)
-        layout.addWidget(self.export_button)
-
-        # Import data
-        self.import_button = StyledButton("Import Data")
-        self.import_button.clicked.connect(self.import_data)
-        layout.addWidget(self.import_button)
 
         # Reset settings
         self.reset_button = StyledButton("Reset All Settings")
@@ -58,18 +47,15 @@ class AdvancedSettingsWidget(QWidget):
     def on_cache_size_changed(self, size):
         self.config_manager.set("cache_size", size)
 
-    def export_data(self):
-        file_path, _ = QFileDialog.getSaveFileName(self, "Export Data", "", "JSON Files (*.json)")
-        if file_path:
-            # TODO - Implement data export logic here
-            pass
-
-    def import_data(self):
-        file_path, _ = QFileDialog.getOpenFileName(self, "Import Data", "", "JSON Files (*.json)")
-        if file_path:
-            # TODO - Implement data import logic here
-            pass
-
     def reset_settings(self):
-        # TODO - Implement settings reset logic here
-        pass
+        self.config_manager.set("log_level", "INFO")
+        self.config_manager.set("cache_size", 200)
+        self.refresh_settings()
+
+    def refresh_settings(self):
+        self.log_combo.setCurrentText(self.config_manager.get("log_level", "INFO"))
+        self.cache_input.setValue(self.config_manager.get("cache_size", 200))
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        self.refresh_settings()

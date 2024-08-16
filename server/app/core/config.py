@@ -23,6 +23,10 @@ class Settings(BaseSettings):
     SHIPENGINE_API_KEY: str = "SHIPENGINE_API_KEY"
     SHIPENGINE_API_URL: str = "https://api.shipengine.com/v1"
 
+    # User settings
+    CACHE_SIZE_MB: int = 100
+    LOG_LEVEL: str = "INFO"
+
     class Config:
         env_file = ".env"
 

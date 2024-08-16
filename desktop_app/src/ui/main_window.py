@@ -15,12 +15,14 @@ from .settings.settings_dialog import SettingsDialog
 from .shipment_view import ShipmentView
 from .supplier_view import SupplierView
 from .user_management import UserManagementWidget
+from desktop_app.src.utils import ConfigManager
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, api_client: APIClient):
+    def __init__(self, api_client: APIClient, config_manager: ConfigManager):
         super().__init__()
         self.api_client = api_client
+        self.config_manager = config_manager
         self.init_ui()
 
     def init_ui(self):
@@ -69,7 +71,7 @@ class MainWindow(QMainWindow):
         help_menu.addAction("About", self.show_about_dialog)
 
     def open_settings(self):
-        settings_dialog = SettingsDialog(self.api_client, self)
+        settings_dialog = SettingsDialog(self.config_manager, self, api_client=self.api_client)
         settings_dialog.exec_()
 
     def toggle_notification_center(self):
