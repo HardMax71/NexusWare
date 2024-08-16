@@ -8,9 +8,10 @@ from .security_settings import SecuritySettingsWidget
 
 
 class SettingsDialog(QDialog):
-    def __init__(self, config_manager, parent=None):
+    def __init__(self, config_manager, parent=None, api_client=None):
         super().__init__(parent)
         self.config_manager = config_manager
+        self.api_client = api_client
         self.setWindowTitle("Settings")
         self.setMinimumSize(500, 400)
         self.init_ui()
@@ -25,7 +26,7 @@ class SettingsDialog(QDialog):
         self.general_settings = GeneralSettingsWidget(self.config_manager)
         self.appearance_settings = AppearanceSettingsWidget(self.config_manager)
         self.network_settings = NetworkSettingsWidget(self.config_manager)
-        self.security_settings = SecuritySettingsWidget(self.config_manager)
+        self.security_settings = SecuritySettingsWidget(self.config_manager, self.api_client)
         self.advanced_settings = AdvancedSettingsWidget(self.config_manager)
 
         # Add tabs
@@ -52,16 +53,9 @@ class SettingsDialog(QDialog):
         layout.addWidget(button_box)
 
     def accept(self):
-        # Save all settings before closing
-        self.save_settings()
+        self.config_manager.apply_changes()
         super().accept()
 
-    def save_settings(self):
-        # Each settings widget is responsible for saving its own settings
-        # via the config_manager, so we don't need to do anything here.
-        # However, you could add any additional saving logic if needed.
-        pass
-
     def reject(self):
-        # Optionally, you could add logic here to warn the user if they have unsaved changes
+        self.config_manager.discard_changes()
         super().reject()

@@ -34,26 +34,25 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
             *,
             skip: int = 0,
             limit: int = 100,
-            filter_params: Optional[InventoryFilter] = None
+            filter_params: InventoryFilter
     ) -> List[InventoryWithDetails]:
         query = db.query(Inventory).options(
             joinedload(Inventory.product),
             joinedload(Inventory.location)
         )
 
-        if filter_params:
-            if filter_params.product_id:
-                query = query.filter(Inventory.product_id == filter_params.product_id)
-            if filter_params.location_id:
-                query = query.filter(Inventory.location_id == filter_params.location_id)
-            if filter_params.quantity_min is not None:
-                query = query.filter(Inventory.quantity >= filter_params.quantity_min)
-            if filter_params.quantity_max is not None:
-                query = query.filter(Inventory.quantity <= filter_params.quantity_max)
-            if filter_params.sku:
-                query = query.join(Product).filter(Product.sku.ilike(f"%{filter_params.sku}%"))
-            if filter_params.name:
-                query = query.join(Product).filter(Product.name.ilike(f"%{filter_params.name}%"))
+        if filter_params.product_id:
+            query = query.filter(Inventory.product_id == filter_params.product_id)
+        if filter_params.location_id:
+            query = query.filter(Inventory.location_id == filter_params.location_id)
+        if filter_params.sku:
+            query = query.join(Product).filter(Product.sku.ilike(f"%{filter_params.sku}%"))
+        if filter_params.name:
+            query = query.join(Product).filter(Product.name.ilike(f"%{filter_params.name}%"))
+        if filter_params.quantity_min is not None:
+            query = query.filter(Inventory.quantity >= filter_params.quantity_min)
+        if filter_params.quantity_max is not None:
+            query = query.filter(Inventory.quantity <= filter_params.quantity_max)
 
         items = query.offset(skip).limit(limit).all()
 
@@ -66,10 +65,14 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
             query = query.filter(Inventory.product_id == filter_params.product_id)
         if filter_params.location_id:
             query = query.filter(Inventory.location_id == filter_params.location_id)
-        if filter_params.quantity_max:
-            query = query.filter(Inventory.quantity <= filter_params.quantity_max)
-        if filter_params.quantity_min:
+        if filter_params.sku:
+            query = query.join(Product).filter(Product.sku.ilike(f"%{filter_params.sku}%"))
+        if filter_params.name:
+            query = query.join(Product).filter(Product.name.ilike(f"%{filter_params.name}%"))
+        if filter_params.quantity_min is not None:
             query = query.filter(Inventory.quantity >= filter_params.quantity_min)
+        if filter_params.quantity_max is not None:
+            query = query.filter(Inventory.quantity <= filter_params.quantity_max)
         return [InventorySchema.model_validate(x) for x in query.offset(skip).limit(limit).all()]
 
     def adjust_quantity(self, db: Session, id: int, adjustment: InventoryAdjustmentSchema) -> InventorySchema:

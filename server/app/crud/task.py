@@ -12,8 +12,6 @@ class CRUDTask(CRUDBase[Task, TaskCreate, TaskUpdate]):
     def get_multi_with_filter(self, db: Session, *,
                               skip: int = 0, limit: int = 100, filter_params: TaskFilter) -> list[TaskSchema]:
         query = db.query(self.model).join(User)
-        if filter_params.id:
-            query = query.filter(Task.id == filter_params.id)
         if filter_params.task_type:
             query = query.filter(Task.task_type == filter_params.task_type)
         if filter_params.assigned_to:

@@ -38,11 +38,10 @@ def read_audit_log(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    filter_params = shared_schemas.AuditLogFilter(id=log_id)
-    logs = crud.audit_log.get_multi_with_filter(db, filter_params=filter_params)
-    if logs is None or len(logs) == 0:
+    log = crud.audit_log.get(db, id=log_id)
+    if log is None:
         raise HTTPException(status_code=404, detail="Audit log not found")
-    return logs[0]  # Only one log should be returned
+    return log
 
 
 @router.get("/logs/summary", response_model=shared_schemas.AuditSummary)

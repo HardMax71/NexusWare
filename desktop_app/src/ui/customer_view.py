@@ -66,6 +66,7 @@ class CustomerView(QWidget):
 
     def update_table(self, customers: List[Customer]):
         self.customers_table.setRowCount(len(customers))
+        self.customers_table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         for row, customer in enumerate(customers):
             self.customers_table.setItem(row, 0, QTableWidgetItem(customer.name))
             self.customers_table.setItem(row, 1, QTableWidgetItem(customer.email or ""))

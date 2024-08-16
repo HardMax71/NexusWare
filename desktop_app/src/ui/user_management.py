@@ -75,6 +75,7 @@ class UserManagementWidget(QWidget):
 
     def update_table(self, users: list[UserSanitizedWithRole]):
         self.table.setRowCount(len(users))
+        self.table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         for row, user in enumerate(users):
             self.table.setItem(row, 0, QTableWidgetItem(user.username))
             self.table.setItem(row, 1, QTableWidgetItem(user.email))
@@ -131,8 +132,6 @@ class UserManagementWidget(QWidget):
             self.refresh_users()
             self.user_updated.emit()
             QMessageBox.information(self, "Success", "User added successfully.")
-        else:
-            QMessageBox.critical(self, "Error", "Failed to add user.")
 
     def edit_user(self, user_id):
         user = self.users_api.get_user(user_id)
@@ -141,8 +140,6 @@ class UserManagementWidget(QWidget):
             self.refresh_users()
             self.user_updated.emit()
             QMessageBox.information(self, "Success", "User updated successfully.")
-        else:
-            QMessageBox.critical(self, "Error", "Failed to update user.")
 
     def manage_permissions(self, user_id):
         dialog = PermissionManagementDialog(self.users_api, user_id, parent=self)
@@ -150,8 +147,6 @@ class UserManagementWidget(QWidget):
             self.refresh_users()
             self.user_updated.emit()
             QMessageBox.information(self, "Success", "User permissions updated successfully.")
-        else:
-            QMessageBox.critical(self, "Error", "Failed to update user permissions.")
 
     def delete_user(self, user_id):
         confirm = QMessageBox.question(self, 'Delete User',

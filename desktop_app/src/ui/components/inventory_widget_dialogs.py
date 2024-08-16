@@ -80,8 +80,8 @@ class InventoryDialog(QDialog):
 
     def set_existing_item_data(self):
         if self.item_data:
-            self.product_data = self.products_api.get_product(self.item_data.id)
-            index = self.product_input.findData(self.item_data.id)
+            self.product_data = self.products_api.get_product(self.item_data.product_id)
+            index = self.product_input.findData(self.item_data.product_id)
             if index >= 0:
                 self.product_input.setCurrentIndex(index)
             self.quantity_input.setValue(self.item_data.quantity)
@@ -108,9 +108,10 @@ class InventoryDialog(QDialog):
             if self.item_data:
                 # Update existing item
                 inventory_update = InventoryUpdate(
+                    product_id=product_id,
                     quantity=self.quantity_input.value(),
                     location_id=self.location_input.currentData(),
-                    expiration_date=expiration_date  # Pass timestamp
+                    expiration_date=expiration_date
                 )
                 self.inventory_api.update_inventory(self.item_data.id, inventory_update)
             else:

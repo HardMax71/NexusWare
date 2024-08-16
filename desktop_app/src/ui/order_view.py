@@ -82,6 +82,7 @@ class OrderView(QWidget):
         self.table.setColumnCount(5)
         self.table.setHorizontalHeaderLabels(["Customer", "Date", "Total", "Status", "Actions"])
         self.table.setRowCount(len(items))
+        self.table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         for row, item in enumerate(items):
             self.table.setItem(row, 0, QTableWidgetItem(item.customer.name))
             self.table.setItem(row, 1, QTableWidgetItem(datetime.fromtimestamp(item.order_date).strftime("%Y-%m-%d")))

@@ -1,7 +1,7 @@
 from PySide6.QtCore import Qt, QPropertyAnimation, Property, QEasingCurve, Signal
-from PySide6.QtGui import QPainter, QColor
+from PySide6.QtGui import QPainter, QColor, QIcon
 from PySide6.QtWidgets import (
-    QPushButton, QLineEdit, QComboBox, QLabel, QWidget, QVBoxLayout, QGraphicsOpacityEffect, QFrame
+    QPushButton, QLineEdit, QComboBox, QLabel, QWidget, QVBoxLayout, QGraphicsOpacityEffect, QFrame, QStyle
 )
 
 
@@ -10,6 +10,31 @@ class StyledButton(QPushButton):
         super().__init__(text, parent)
         self.setCursor(Qt.PointingHandCursor)
         self.setMinimumHeight(40)
+        self.setIcon(self.get_icon_for_text(text))
+
+        # If an icon is set, hide the text
+        if not self.icon().isNull():
+            self.setText("")
+            self.setToolTip(text)  # Set tooltip to original text
+
+    def get_icon_for_text(self, text):  # https://www.pythonguis.com/faq/built-in-qicons-pyqt/
+        icon_map = {
+            "+": "SP_FileDialogNewFolder",
+            "View": "SP_FileDialogContentsView",
+            "Refresh": "SP_BrowserReload",
+            "Edit": "SP_FileDialogDetailedView",
+            "Delete": "SP_TrashIcon",
+            "Adjust": "SP_ArrowUp",
+            "Ship": "SP_DialogApplyButton",
+            "Search": "SP_FileDialogContentsView",
+            "Track": "SP_FileDialogInfoView",
+            "Label": "SP_FileIcon",
+            "Permissions": "SP_DialogHelpButton"
+        }
+
+        if text in icon_map:
+            return self.style().standardIcon(getattr(QStyle, icon_map[text]))
+        return QIcon()
 
 
 class StyledLineEdit(QLineEdit):

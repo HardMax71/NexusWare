@@ -66,6 +66,20 @@ def reset_password(
     return {"message": result}
 
 
+@router.post("/change_password", response_model=shared_schemas.Message)
+def change_user_password(
+        current_password: str = Body(...),
+        new_password: str = Body(...),
+        current_user: models.User = Depends(deps.get_current_active_user),
+        db: Session = Depends(deps.get_db)
+):
+    if not crud.user.authenticate(db, email=current_user.email, password=current_password):
+        raise HTTPException(status_code=400, detail="Incorrect current password")
+
+    crud.user.update(db, db_obj=current_user, obj_in={"password": new_password})
+    return {"message": "Password updated successfully"}
+
+
 @router.put("/me", response_model=shared_schemas.User)
 def update_user_me(
         user_in: shared_schemas.UserUpdate,

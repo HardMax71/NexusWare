@@ -63,6 +63,8 @@ class CRUDAsset(CRUDBase[Asset, AssetCreate, AssetUpdate]):
             query = query.filter(self.model.purchase_date >= filter_params.purchase_date_from)
         if filter_params.purchase_date_to:
             query = query.filter(self.model.purchase_date <= filter_params.purchase_date_to)
+        if filter_params.location_id:
+            query = query.filter(self.model.location_id == filter_params.location_id)
 
         assets = query.offset(skip).limit(limit).all()
         return [AssetSchema.model_validate(asset) for asset in assets]

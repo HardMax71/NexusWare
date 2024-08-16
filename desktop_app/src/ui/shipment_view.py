@@ -83,6 +83,7 @@ class ShipmentView(QWidget):
         self.shipments_table.setHorizontalHeaderLabels(
             ["Order", "Carrier", "Status", "Tracking", "Ship Date", "Actions"])
         self.shipments_table.setRowCount(len(shipments))
+        self.shipments_table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         for row, shipment in enumerate(shipments):
             shipment_details = self.shipments_api.get_shipment_with_details(shipment.id)
 

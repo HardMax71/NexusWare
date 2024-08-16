@@ -176,7 +176,6 @@ class Supplier(SupplierBase):
 
 
 class OrderFilter(BaseModel):
-    id: Optional[int] = None
     customer_id: Optional[int] = None
     status: Optional[str] = None
     order_date_from: Optional[int] = None
@@ -197,7 +196,6 @@ class CustomerFilter(BaseModel):
 
 
 class PurchaseOrderFilter(BaseModel):
-    id: Optional[int] = None
     supplier_id: Optional[int] = None
     status: Optional[str] = None
     date_from: Optional[int] = None

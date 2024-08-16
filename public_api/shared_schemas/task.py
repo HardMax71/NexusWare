@@ -41,7 +41,6 @@ class TaskWithAssignee(Task):
 
 
 class TaskFilter(BaseModel):
-    id: Optional[int] = None
     task_type: Optional[str] = None
     assigned_to: Optional[int] = None
     priority: Optional[str] = None
