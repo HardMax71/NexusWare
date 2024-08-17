@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, 
                                QHeaderView, QDialog, QLineEdit, QStackedWidget, QMessageBox)
 
 from desktop_app.src.ui.components import StyledButton, AdjustmentDialog, InventoryDialog
-from public_api.api import InventoryAPI, APIClient, LocationsAPI, ProductsAPI
+from public_api.api import InventoryAPI, APIClient, LocationsAPI, ProductsAPI, UsersAPI
 from public_api.shared_schemas import InventoryWithDetails, Inventory
 from .inventory_planning import InventoryPlanningWidget
 
@@ -19,6 +19,8 @@ class InventoryView(QWidget):
         self.inventory_api = InventoryAPI(api_client)
         self.locations_api = LocationsAPI(api_client)
         self.products_api = ProductsAPI(api_client)
+        self.users_api = UsersAPI(api_client)
+        self.permission_manager = self.users_api.get_current_user_permissions()
         self.init_ui()
 
     def init_ui(self):
@@ -60,9 +62,10 @@ class InventoryView(QWidget):
         self.stacked_widget.addWidget(self.planning_widget)
 
         # Floating Action Button for adding new items
-        self.fab = StyledButton("+")
-        self.fab.clicked.connect(self.add_item)
-        layout.addWidget(self.fab)
+        if self.permission_manager.has_write_permission("inventory"):
+            self.fab = StyledButton("+")
+            self.fab.clicked.connect(self.add_item)
+            layout.addWidget(self.fab)
 
         # Planning toggle button
         self.planning_button = StyledButton("Inventory Planning")
@@ -92,16 +95,19 @@ class InventoryView(QWidget):
             actions_layout.setContentsMargins(0, 0, 0, 0)
             actions_layout.setSpacing(2)
 
-            edit_button = StyledButton("Edit")
-            edit_button.clicked.connect(lambda _, i=item.id: self.edit_item(i))
-            adjust_button = StyledButton("Adjust")
-            adjust_button.clicked.connect(lambda _, i=item.id: self.adjust_item(i))
-            delete_button = StyledButton("Delete")
-            delete_button.clicked.connect(lambda _, i=item.id: self.delete_item(i))
+            if self.permission_manager.has_write_permission("inventory"):
+                edit_button = StyledButton("Edit")
+                edit_button.clicked.connect(lambda _, i=item.id: self.edit_item(i))
+                actions_layout.addWidget(edit_button)
 
-            actions_layout.addWidget(edit_button)
-            actions_layout.addWidget(adjust_button)
-            actions_layout.addWidget(delete_button)
+                adjust_button = StyledButton("Adjust")
+                adjust_button.clicked.connect(lambda _, i=item.id: self.adjust_item(i))
+                actions_layout.addWidget(adjust_button)
+
+            if self.permission_manager.has_delete_permission("inventory"):
+                delete_button = StyledButton("Delete")
+                delete_button.clicked.connect(lambda _, i=item.id: self.delete_item(i))
+                actions_layout.addWidget(delete_button)
 
             self.table.setCellWidget(row, 5, actions_widget)
 

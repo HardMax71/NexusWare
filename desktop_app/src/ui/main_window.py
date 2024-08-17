@@ -2,7 +2,9 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMainWindow, QTabWidget, QVBoxLayout, QWidget, QStatusBar, QMessageBox
 
+from desktop_app.src.utils import ConfigManager
 from public_api.api import APIClient
+from public_api.permission_manager import PermissionManager
 from .components.dialogs import UserManualDialog, AboutDialog
 from .customer_view import CustomerView
 from .dashboard import DashboardWidget
@@ -14,15 +16,17 @@ from .report_generator import ReportGeneratorWidget
 from .settings.settings_dialog import SettingsDialog
 from .shipment_view import ShipmentView
 from .supplier_view import SupplierView
+from .task_view import TaskView
 from .user_management import UserManagementWidget
-from desktop_app.src.utils import ConfigManager
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, api_client: APIClient, config_manager: ConfigManager):
+    def __init__(self, api_client: APIClient, config_manager: ConfigManager,
+                 permission_manager: PermissionManager):
         super().__init__()
         self.api_client = api_client
         self.config_manager = config_manager
+        self.permission_manager = permission_manager
         self.init_ui()
 
     def init_ui(self):
@@ -37,15 +41,7 @@ class MainWindow(QMainWindow):
         self.tab_widget = QTabWidget()
         main_layout.addWidget(self.tab_widget)
 
-        self.tab_widget.addTab(DashboardWidget(self.api_client), "Dashboard")
-        self.tab_widget.addTab(InventoryView(self.api_client), "Inventory")
-        self.tab_widget.addTab(OrderView(self.api_client), "Orders")
-        self.tab_widget.addTab(ProductView(self.api_client), "Products")
-        self.tab_widget.addTab(SupplierView(self.api_client), "Suppliers")
-        self.tab_widget.addTab(CustomerView(self.api_client), "Customers")
-        self.tab_widget.addTab(ShipmentView(self.api_client), "Shipments")
-        self.tab_widget.addTab(ReportGeneratorWidget(self.api_client), "Reports")
-        self.tab_widget.addTab(UserManagementWidget(self.api_client), "User Management")
+        self.add_tabs_based_on_permissions()
 
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
@@ -56,15 +52,49 @@ class MainWindow(QMainWindow):
 
         self.create_menu_bar()
 
+    def add_tabs_based_on_permissions(self):
+        tab_permissions = {
+            "Dashboard": "dashboard",
+            "Inventory": "inventory",
+            "Orders": "orders",
+            "Products": "products",
+            "Suppliers": "suppliers",
+            "Customers": "customers",
+            "Shipments": "shipments",
+            "Reports": "reports",
+            "User Management": "user_management",
+            "Tasks Management": "tasks_management",
+        }
+
+        tab_classes = {
+            "Dashboard": DashboardWidget,
+            "Inventory": InventoryView,
+            "Orders": OrderView,
+            "Products": ProductView,
+            "Suppliers": SupplierView,
+            "Customers": CustomerView,
+            "Shipments": ShipmentView,
+            "Reports": ReportGeneratorWidget,
+            "User Management": UserManagementWidget,
+            "Tasks Management": TaskView,
+        }
+
+        for tab_name, permission_name in tab_permissions.items():
+            if self.permission_manager.has_read_permission(permission_name):
+                tab_widget = tab_classes[tab_name](self.api_client)
+                self.tab_widget.addTab(tab_widget, tab_name)
+
     def create_menu_bar(self):
         menu_bar = self.menuBar()
 
         file_menu = menu_bar.addMenu("File")
-        file_menu.addAction("Settings", self.open_settings)
+        if self.permission_manager.has_read_permission("settings"):
+            file_menu.addAction("Settings", self.open_settings)
         file_menu.addAction("Exit", self.close)
 
         view_menu = menu_bar.addMenu("View")
-        view_menu.addAction("Toggle Notification Center", self.toggle_notification_center)
+        if self.permission_manager.has_read_permission("notifications"):
+            view_menu.addAction("Toggle Notification Center", self.toggle_notification_center)
 
         help_menu = menu_bar.addMenu("Help")
         help_menu.addAction("User Manual", self.open_user_manual)

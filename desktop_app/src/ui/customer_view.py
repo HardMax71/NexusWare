@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, 
                                QMessageBox, QLabel, QStackedWidget)
 
 from desktop_app.src.ui.components import StyledButton
-from public_api.api import CustomersAPI, APIClient
+from public_api.api import CustomersAPI, APIClient, UsersAPI
 from public_api.shared_schemas import Customer, CustomerCreate, CustomerUpdate
 
 
@@ -18,6 +18,8 @@ class CustomerView(QWidget):
         super().__init__()
         self.api_client = api_client
         self.customers_api = CustomersAPI(api_client)
+        self.users_api = UsersAPI(api_client)
+        self.permission_manager = self.users_api.get_current_user_permissions()
         self.init_ui()
 
     def init_ui(self):
@@ -54,9 +56,10 @@ class CustomerView(QWidget):
         self.stacked_widget.addWidget(main_widget)
 
         # Floating Action Button for adding new customers
-        self.fab = StyledButton("+")
-        self.fab.clicked.connect(self.add_customer)
-        layout.addWidget(self.fab)
+        if self.permission_manager.has_write_permission("customers"):
+            self.fab = StyledButton("+")
+            self.fab.clicked.connect(self.add_customer)
+            layout.addWidget(self.fab)
 
         self.refresh_customers()
 
@@ -80,14 +83,17 @@ class CustomerView(QWidget):
 
             view_button = StyledButton("View")
             view_button.clicked.connect(lambda _, c=customer: self.view_customer(c))
-            edit_button = StyledButton("Edit")
-            edit_button.clicked.connect(lambda _, c=customer: self.edit_customer(c))
-            delete_button = StyledButton("Delete")
-            delete_button.clicked.connect(lambda _, c=customer: self.delete_customer(c))
-
             actions_layout.addWidget(view_button)
-            actions_layout.addWidget(edit_button)
-            actions_layout.addWidget(delete_button)
+
+            if self.permission_manager.has_write_permission("customers"):
+                edit_button = StyledButton("Edit")
+                edit_button.clicked.connect(lambda _, c=customer: self.edit_customer(c))
+                actions_layout.addWidget(edit_button)
+
+            if self.permission_manager.has_delete_permission("customers"):
+                delete_button = StyledButton("Delete")
+                delete_button.clicked.connect(lambda _, c=customer: self.delete_customer(c))
+                actions_layout.addWidget(delete_button)
 
             self.customers_table.setCellWidget(row, 4, actions_widget)
 

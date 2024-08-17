@@ -6,6 +6,7 @@ from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from public_api import shared_schemas
+from public_api.permission_manager import PermissionManager
 from server.app import crud, models
 from server.app.core.config import settings
 from server.app.db.database import get_db
@@ -50,18 +51,22 @@ def get_current_admin(
         )
     return current_user
 
+def get_permission_manager(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user)
+) -> PermissionManager:
+    permissions = crud.user.get_user_permissions(db, current_user.id)
+    return PermissionManager(permissions)
 
-# TODO: Implement RBAC in full and add in all endpoints
-def has_permission(name: str, action: str):  # dependency for RBAC
+def has_permission(name: str, action: str):
     def permission_checker(
-            db: Session = Depends(get_db),
-            current_user: models.User = Depends(get_current_active_user)
+        permission_manager: PermissionManager = Depends(get_permission_manager)
     ):
-        if not crud.user.check_permission(db, current_user.id, name, action):
+        if not permission_manager.has_permission(name, action):
             raise HTTPException(
                 status_code=403,
                 detail=f"Not enough permissions to {action} {name}"
             )
-        return current_user
+        return True
 
     return permission_checker

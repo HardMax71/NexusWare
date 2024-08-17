@@ -4,7 +4,7 @@ from typing import Optional
 from PySide6.QtWidgets import (QVBoxLayout, QTableWidget, QTableWidgetItem,
                                QDialog, QComboBox,
                                QFormLayout, QDateEdit, QDoubleSpinBox, QSpinBox, QDialogButtonBox, QLabel, QHeaderView,
-                               QGroupBox, QLineEdit, QMessageBox)
+                               QGroupBox, QLineEdit, QMessageBox, QSizePolicy)
 
 from desktop_app.src.ui.components import StyledButton
 from public_api.api import OrdersAPI, CustomersAPI, ProductsAPI, ShipmentsAPI, CarriersAPI
@@ -170,7 +170,7 @@ class OrderDetailsDialog(QDialog):
         self.init_ui()
 
     def init_ui(self):
-        self.setWindowTitle(f"Order Details - {self.order.id}")
+        self.setWindowTitle(f"Order Details - #{self.order.id}")
         layout = QVBoxLayout(self)
 
         info_layout = QFormLayout()
@@ -193,7 +193,9 @@ class OrderDetailsDialog(QDialog):
             items_table.setItem(row, 2, QTableWidgetItem(f"${item.unit_price:.2f}"))
             items_table.setItem(row, 3, QTableWidgetItem(f"${item.quantity * item.unit_price:.2f}"))
 
-        items_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        items_table.setHorizontalHeaderLabels(["Product", "Quantity", "Unit Price", "Total"])
+        items_table.setRowCount(len(self.order.order_items))
+
         layout.addWidget(items_table)
 
         if self.order.shipping_address_line1:
@@ -212,6 +214,8 @@ class OrderDetailsDialog(QDialog):
         button_box = QDialogButtonBox(QDialogButtonBox.Ok)
         button_box.accepted.connect(self.accept)
         layout.addWidget(button_box)
+
+        self.adjustSize()
 
 
 class ShippingDialog(QDialog):

@@ -3,7 +3,7 @@ from typing import Optional, List, Any, Dict, Union
 
 from sqlalchemy.orm import Session, joinedload
 
-from public_api.shared_schemas import UserCreate, UserUpdate, UserFilter, PermissionUpdate
+from public_api.shared_schemas import UserCreate, UserUpdate, UserFilter
 from server.app.core.security import get_password_hash, verify_password
 from server.app.models import User, Permission, Role
 from .base import CRUDBase

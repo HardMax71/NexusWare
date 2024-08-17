@@ -6,7 +6,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, 
                                QHeaderView, QDialog, QLineEdit, QStackedWidget, QMessageBox, QComboBox)
 
 from desktop_app.src.ui.components import StyledButton, ShippingDialog, OrderDialog, OrderDetailsDialog
-from public_api.api import OrdersAPI, APIClient, CustomersAPI, ProductsAPI, ShipmentsAPI, CarriersAPI
+from public_api.api import OrdersAPI, APIClient, CustomersAPI, ProductsAPI, ShipmentsAPI, CarriersAPI, UsersAPI
 from public_api.shared_schemas import (OrderWithDetails, OrderFilter)
 
 
@@ -21,6 +21,8 @@ class OrderView(QWidget):
         self.products_api = ProductsAPI(api_client)
         self.shipments_api = ShipmentsAPI(api_client)
         self.carriers_api = CarriersAPI(api_client)
+        self.users_api = UsersAPI(api_client)
+        self.permission_manager = self.users_api.get_current_user_permissions()
         self.init_ui()
 
     def init_ui(self):
@@ -63,9 +65,10 @@ class OrderView(QWidget):
         self.stacked_widget.addWidget(main_widget)
 
         # Floating Action Button for adding new orders
-        self.fab = StyledButton("+")
-        self.fab.clicked.connect(self.create_new_order)
-        layout.addWidget(self.fab)
+        if self.permission_manager.has_write_permission("orders"):
+            self.fab = StyledButton("+")
+            self.fab.clicked.connect(self.create_new_order)
+            layout.addWidget(self.fab)
 
         self.refresh_orders()
 
@@ -93,22 +96,26 @@ class OrderView(QWidget):
 
             view_button = StyledButton("View")
             view_button.clicked.connect(lambda _, i=item.id: self.view_order(i))
-            edit_button = StyledButton("Edit")
-            edit_button.clicked.connect(lambda _, i=item.id: self.edit_order(i))
-            ship_button = StyledButton("Ship")
-            ship_button.clicked.connect(lambda _, i=item.id: self.ship_order(i))
-            delete_button = StyledButton("Delete")
-            delete_button.clicked.connect(lambda _, i=item.id: self.delete_order(i))
-
             actions_layout.addWidget(view_button)
-            actions_layout.addWidget(edit_button)
-            actions_layout.addWidget(ship_button)
-            actions_layout.addWidget(delete_button)
 
-            # Disable Ship button for "Shipped" or "Delivered" orders
-            if item.status in ["Shipped", "Delivered"]:
-                ship_button.setEnabled(False)
-                ship_button.setStyleSheet("background-color: #A9A9A9;")  # Dark gray color
+            if self.permission_manager.has_write_permission("orders"):
+                edit_button = StyledButton("Edit")
+                edit_button.clicked.connect(lambda _, i=item.id: self.edit_order(i))
+                actions_layout.addWidget(edit_button)
+
+                ship_button = StyledButton("Ship")
+                ship_button.clicked.connect(lambda _, i=item.id: self.ship_order(i))
+                actions_layout.addWidget(ship_button)
+
+                # Disable Ship button for "Shipped" or "Delivered" orders
+                if item.status in ["Shipped", "Delivered"]:
+                    ship_button.setEnabled(False)
+                    ship_button.setStyleSheet("background-color: #A9A9A9;")  # Dark gray color
+
+            if self.permission_manager.has_delete_permission("orders"):
+                delete_button = StyledButton("Delete")
+                delete_button.clicked.connect(lambda _, i=item.id: self.delete_order(i))
+                actions_layout.addWidget(delete_button)
 
             self.table.setCellWidget(row, 4, actions_widget)
 

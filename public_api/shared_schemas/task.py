@@ -37,7 +37,7 @@ class Task(TaskBase):
 
 
 class TaskWithAssignee(Task):
-    assigned_user: User
+    assigned_user: Optional[User] = None
 
 
 class TaskFilter(BaseModel):

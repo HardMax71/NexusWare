@@ -7,7 +7,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from public_api import shared_schemas
-from public_api.shared_schemas import UserFilter, UserPermissions, PermissionUpdate, UserWithPermissions, \
+from public_api.shared_schemas import UserFilter, UserWithPermissions, \
     UserPermissionUpdate
 from .... import crud, models
 from ....api import deps
@@ -155,24 +155,26 @@ def create_user(
 
 @router.get("/{user_id}/permissions", response_model=UserWithPermissions)
 def get_user_permissions(
-    user_id: int,
-    db: Session = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_active_user),
+        user_id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user),
 ):
     if not crud.user.is_admin(current_user) and current_user.id != user_id:
         raise HTTPException(status_code=403, detail="Not enough permissions")
     user_with_permissions = crud.user.get_user_with_permissions(db, user_id)
     return UserWithPermissions.model_validate(user_with_permissions)
 
+
 @router.put("/{user_id}/permissions", response_model=UserWithPermissions)
 def update_user_permissions(
-    user_id: int,
-    permission_update: UserPermissionUpdate,
-    db: Session = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_admin),
+        user_id: int,
+        permission_update: UserPermissionUpdate,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_admin),
 ):
     updated_user = crud.user.update_user_permissions(db, user_id=user_id, permission_ids=permission_update.permissions)
     return UserWithPermissions.model_validate(updated_user)
+
 
 @router.get("/{user_id}", response_model=shared_schemas.UserSanitizedWithRole)
 def read_user(

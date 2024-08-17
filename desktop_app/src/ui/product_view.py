@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, 
                                QFormLayout, QDoubleSpinBox, QDialogButtonBox, QLabel)
 
 from desktop_app.src.ui.components import StyledButton
-from public_api.api import ProductsAPI, APIClient, ProductCategoriesAPI, LocationsAPI
+from public_api.api import ProductsAPI, APIClient, ProductCategoriesAPI, LocationsAPI, UsersAPI
 from public_api.shared_schemas.inventory import (ProductWithCategoryAndInventory, ProductFilter, ProductCreate,
                                                  ProductUpdate)
 
@@ -21,6 +21,8 @@ class ProductView(QWidget):
         self.products_api = ProductsAPI(api_client)
         self.categories_api = ProductCategoriesAPI(api_client)
         self.locations_api = LocationsAPI(api_client)
+        self.users_api = UsersAPI(api_client)
+        self.permission_manager = self.users_api.get_current_user_permissions()
         self.init_ui()
 
     def init_ui(self):
@@ -63,9 +65,10 @@ class ProductView(QWidget):
         self.stacked_widget.addWidget(main_widget)
 
         # Floating Action Button for adding new products
-        self.fab = StyledButton("+")
-        self.fab.clicked.connect(self.create_new_product)
-        layout.addWidget(self.fab)
+        if self.permission_manager.has_write_permission("products"):
+            self.fab = StyledButton("+")
+            self.fab.clicked.connect(self.create_new_product)
+            layout.addWidget(self.fab)
 
         self.refresh_products()
 
@@ -99,14 +102,17 @@ class ProductView(QWidget):
 
             view_button = StyledButton("View")
             view_button.clicked.connect(lambda _, i=item.id: self.view_product(i))
-            edit_button = StyledButton("Edit")
-            edit_button.clicked.connect(lambda _, i=item.id: self.edit_product(i))
-            delete_button = StyledButton("Delete")
-            delete_button.clicked.connect(lambda _, i=item.id: self.delete_product(i))
-
             actions_layout.addWidget(view_button)
-            actions_layout.addWidget(edit_button)
-            actions_layout.addWidget(delete_button)
+
+            if self.permission_manager.has_write_permission("products"):
+                edit_button = StyledButton("Edit")
+                edit_button.clicked.connect(lambda _, i=item.id: self.edit_product(i))
+                actions_layout.addWidget(edit_button)
+
+            if self.permission_manager.has_delete_permission("products"):
+                delete_button = StyledButton("Delete")
+                delete_button.clicked.connect(lambda _, i=item.id: self.delete_product(i))
+                actions_layout.addWidget(delete_button)
 
             self.table.setCellWidget(row, 5, actions_widget)
 
@@ -150,6 +156,7 @@ class ProductView(QWidget):
                 QMessageBox.information(self, "Success", "Product deleted successfully.")
             except Exception as e:
                 QMessageBox.critical(self, "Error", f"Failed to delete product: {str(e)}")
+
 
 
 class ProductDialog(QDialog):

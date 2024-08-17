@@ -60,7 +60,11 @@ from .reports import (
 # Task shared_schemas
 from .task import (TaskBase, TaskCreate, TaskUpdate, Task,
                    TaskWithAssignee, TaskFilter, TaskComment, TaskCommentCreate,
-                   TaskStatistics, UserTaskSummary)
+                   TaskStatistics, UserTaskSummary, TaskWithComments,
+                   TaskPriorityUpdate, TaskAssignmentUpdate, TaskStatusUpdate,
+                   TaskDueDateUpdate, TaskProgressUpdate, TaskDependency,
+                   TaskDependencyCreate, TaskTimeline, TaskAnalytics,
+                   BulkTaskCreate, BulkTaskCreateResult)
 # User shared_schemas
 from .user import (
     PermissionBase, PermissionCreate, PermissionUpdate, Permission,

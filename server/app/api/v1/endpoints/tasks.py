@@ -4,8 +4,8 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Path, Body
 from sqlalchemy.orm import Session
 
-from .... import crud, models
 from public_api import shared_schemas
+from .... import crud, models
 from ....api import deps
 
 router = APIRouter()

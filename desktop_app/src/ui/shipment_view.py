@@ -53,12 +53,13 @@ class ShipmentView(QWidget):
         main_layout.addLayout(controls_layout)
 
         # Shipments table
-        self.shipments_table = QTableWidget()
-        self.shipments_table.setColumnCount(6)
-        self.shipments_table.setHorizontalHeaderLabels(
+        self.table = QTableWidget()
+        self.table.setColumnCount(6)
+        self.table.setHorizontalHeaderLabels(
             ["Order ID", "Carrier", "Status", "Tracking", "Ship Date", "Actions"])
-        self.shipments_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        main_layout.addWidget(self.shipments_table)
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        main_layout.addWidget(self.table)
 
         self.stacked_widget.addWidget(main_widget)
 
@@ -79,11 +80,7 @@ class ShipmentView(QWidget):
         self.update_table(shipments)
 
     def update_table(self, shipments: List[Shipment]):
-        self.shipments_table.setColumnCount(6)
-        self.shipments_table.setHorizontalHeaderLabels(
-            ["Order", "Carrier", "Status", "Tracking", "Ship Date", "Actions"])
-        self.shipments_table.setRowCount(len(shipments))
-        self.shipments_table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.table.setRowCount(len(shipments))
         for row, shipment in enumerate(shipments):
             shipment_details = self.shipments_api.get_shipment_with_details(shipment.id)
 
@@ -94,12 +91,12 @@ class ShipmentView(QWidget):
                 else f"Order #{shipment.order_id}"
             carrier_text = shipment_details.carrier.name if shipment_details.carrier else str(shipment.carrier_id)
 
-            self.shipments_table.setItem(row, 0, QTableWidgetItem(order_text))
-            self.shipments_table.setItem(row, 1, QTableWidgetItem(carrier_text))
-            self.shipments_table.setItem(row, 2, QTableWidgetItem(shipment.status))
-            self.shipments_table.setItem(row, 3, QTableWidgetItem(shipment.tracking_number or ""))
+            self.table.setItem(row, 0, QTableWidgetItem(order_text))
+            self.table.setItem(row, 1, QTableWidgetItem(carrier_text))
+            self.table.setItem(row, 2, QTableWidgetItem(shipment.status))
+            self.table.setItem(row, 3, QTableWidgetItem(shipment.tracking_number or ""))
             ship_date = datetime.fromtimestamp(shipment.ship_date).strftime("%Y-%m-%d") if shipment.ship_date else ""
-            self.shipments_table.setItem(row, 4, QTableWidgetItem(ship_date))
+            self.table.setItem(row, 4, QTableWidgetItem(ship_date))
 
             actions_widget = QWidget()
             actions_layout = QHBoxLayout(actions_widget)
@@ -123,18 +120,18 @@ class ShipmentView(QWidget):
             actions_layout.addWidget(label_button)
             actions_layout.addWidget(delete_button)
 
-            self.shipments_table.setCellWidget(row, 5, actions_widget)
+            self.table.setCellWidget(row, 5, actions_widget)
 
     def filter_shipments(self):
         search_text = self.search_input.text().lower()
-        for row in range(self.shipments_table.rowCount()):
+        for row in range(self.table.rowCount()):
             row_match = False
-            for col in range(self.shipments_table.columnCount() - 1):  # Exclude the Actions column
-                item = self.shipments_table.item(row, col)
+            for col in range(self.table.columnCount() - 1):  # Exclude the Actions column
+                item = self.table.item(row, col)
                 if item and search_text in item.text().lower():
                     row_match = True
                     break
-            self.shipments_table.setRowHidden(row, not row_match)
+            self.table.setRowHidden(row, not row_match)
 
     def create_shipment(self):
         dialog = ShipmentDialog(self.shipments_api, self.orders_api, self.carriers_api, parent=self)

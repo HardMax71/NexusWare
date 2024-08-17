@@ -6,7 +6,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, 
                                QMessageBox, QLabel, QStackedWidget)
 
 from desktop_app.src.ui.components import StyledButton
-from public_api.api import SuppliersAPI, APIClient
+from public_api.api import SuppliersAPI, APIClient, UsersAPI
 from public_api.shared_schemas import Supplier, SupplierCreate, SupplierUpdate
 
 
@@ -17,6 +17,8 @@ class SupplierView(QWidget):
         super().__init__()
         self.api_client = api_client
         self.suppliers_api = SuppliersAPI(api_client)
+        self.users_api = UsersAPI(api_client)
+        self.permission_manager = self.users_api.get_current_user_permissions()
         self.init_ui()
 
     def init_ui(self):
@@ -53,9 +55,10 @@ class SupplierView(QWidget):
         self.stacked_widget.addWidget(main_widget)
 
         # Floating Action Button for adding new suppliers
-        self.fab = StyledButton("+")
-        self.fab.clicked.connect(self.add_supplier)
-        layout.addWidget(self.fab)
+        if self.permission_manager.has_write_permission("suppliers"):
+            self.fab = StyledButton("+")
+            self.fab.clicked.connect(self.add_supplier)
+            layout.addWidget(self.fab)
 
         self.refresh_suppliers()
 
@@ -80,14 +83,17 @@ class SupplierView(QWidget):
 
             view_button = StyledButton("View")
             view_button.clicked.connect(lambda _, s=supplier: self.view_supplier(s))
-            edit_button = StyledButton("Edit")
-            edit_button.clicked.connect(lambda _, s=supplier: self.edit_supplier(s))
-            delete_button = StyledButton("Delete")
-            delete_button.clicked.connect(lambda _, s=supplier: self.delete_supplier(s))
-
             actions_layout.addWidget(view_button)
-            actions_layout.addWidget(edit_button)
-            actions_layout.addWidget(delete_button)
+
+            if self.permission_manager.has_write_permission("suppliers"):
+                edit_button = StyledButton("Edit")
+                edit_button.clicked.connect(lambda _, s=supplier: self.edit_supplier(s))
+                actions_layout.addWidget(edit_button)
+
+            if self.permission_manager.has_delete_permission("suppliers"):
+                delete_button = StyledButton("Delete")
+                delete_button.clicked.connect(lambda _, s=supplier: self.delete_supplier(s))
+                actions_layout.addWidget(delete_button)
 
             self.suppliers_table.setCellWidget(row, 5, actions_widget)
 
@@ -130,6 +136,7 @@ class SupplierView(QWidget):
                 QMessageBox.information(self, "Success", f"Supplier {supplier.name} deleted successfully.")
             except Exception as e:
                 QMessageBox.critical(self, "Error", f"Failed to delete supplier: {str(e)}")
+
 
 
 class SupplierDialog(QDialog):
