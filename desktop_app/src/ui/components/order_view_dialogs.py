@@ -3,13 +3,14 @@ from typing import Optional
 
 from PySide6.QtWidgets import (QVBoxLayout, QTableWidget, QTableWidgetItem,
                                QDialog, QComboBox,
-                               QFormLayout, QDateEdit, QDoubleSpinBox, QSpinBox, QDialogButtonBox, QLabel, QHeaderView,
-                               QGroupBox, QLineEdit, QMessageBox)
+                               QFormLayout, QDateEdit, QDoubleSpinBox, QSpinBox, QDialogButtonBox, QLabel, QGroupBox,
+                               QLineEdit, QMessageBox)
 
 from desktop_app.src.ui.components import StyledButton
 from public_api.api import OrdersAPI, CustomersAPI, ProductsAPI, ShipmentsAPI, CarriersAPI
 from public_api.shared_schemas import (OrderWithDetails, OrderCreate, OrderUpdate, OrderItemCreate, ShippingInfo,
                                        OrderItemUpdate)
+from public_api.shared_schemas.order import OrderStatus
 
 
 class OrderDialog(QDialog):
@@ -33,7 +34,7 @@ class OrderDialog(QDialog):
         form_layout.addRow("Customer:", self.customer_combo)
 
         self.status_combo = QComboBox()
-        self.status_combo.addItems(["Pending", "Processing", "Shipped", "Delivered", "Cancelled"])
+        self.status_combo.addItems([status.value for status in OrderStatus])
         form_layout.addRow("Status:", self.status_combo)
 
         self.order_date = QDateEdit()
@@ -170,7 +171,7 @@ class OrderDetailsDialog(QDialog):
         self.init_ui()
 
     def init_ui(self):
-        self.setWindowTitle(f"Order Details - {self.order.id}")
+        self.setWindowTitle(f"Order Details - #{self.order.id}")
         layout = QVBoxLayout(self)
 
         info_layout = QFormLayout()
@@ -193,7 +194,9 @@ class OrderDetailsDialog(QDialog):
             items_table.setItem(row, 2, QTableWidgetItem(f"${item.unit_price:.2f}"))
             items_table.setItem(row, 3, QTableWidgetItem(f"${item.quantity * item.unit_price:.2f}"))
 
-        items_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        items_table.setHorizontalHeaderLabels(["Product", "Quantity", "Unit Price", "Total"])
+        items_table.setRowCount(len(self.order.order_items))
+
         layout.addWidget(items_table)
 
         if self.order.shipping_address_line1:
@@ -212,6 +215,8 @@ class OrderDetailsDialog(QDialog):
         button_box = QDialogButtonBox(QDialogButtonBox.Ok)
         button_box.accepted.connect(self.accept)
         layout.addWidget(button_box)
+
+        self.adjustSize()
 
 
 class ShippingDialog(QDialog):

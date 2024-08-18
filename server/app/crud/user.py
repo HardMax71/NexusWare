@@ -11,6 +11,9 @@ from .base import CRUDBase
 
 class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
 
+    def get_by_email(self, db: Session, email: str) -> Optional[User]:
+        return db.query(User).filter(User.email == email).first()
+
     def get_multi_with_filters(
             self,
             db: Session,
@@ -59,7 +62,6 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     def is_admin(self, user: User) -> bool:
         return user.role.role_name.lower() == "admin"
 
-
     def change_role(self, db: Session, *, user_id: int, new_role_id: int) -> Optional[User]:
         user = self.get(db, id=user_id)
         if user:
@@ -86,12 +88,33 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         if not user:
             raise ValueError("User not found")
 
+        # Fetch the permissions based on the provided IDs
         permissions = db.query(Permission).filter(Permission.id.in_(permission_ids)).all()
+
+        # Update the user's permissions
         user.permissions = permissions
         db.add(user)
         db.commit()
         db.refresh(user)
         return user
+
+    def get_user_permissions(self, db: Session, user_id: int) -> List[Permission]:
+        user = self.get_user_with_permissions(db, user_id)
+        if not user:
+            return []
+        return user.permissions
+
+    def check_permission(self, db: Session, user_id: int, name: str, action: str) -> bool:
+        user_permissions = self.get_user_permissions(db, user_id)
+        for perm in user_permissions:
+            if perm.permission_name == name:
+                if action == 'read' and perm.can_read:
+                    return True
+                if action == 'write' and perm.can_write:
+                    return True
+                if action == 'delete' and perm.can_delete:
+                    return True
+        return False
 
     def get_all_permissions(self, db: Session) -> List[Permission]:
         return db.query(Permission).all()

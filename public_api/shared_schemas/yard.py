@@ -1,13 +1,24 @@
-# /server/app/shared_schemas/yard.py
+from enum import Enum
 from typing import Optional, List
 
 from pydantic import BaseModel
 
 
+class YardLocationStatus(str, Enum):
+    AVAILABLE = "available"
+    OCCUPIED = "occupied"
+
+
+class YardLocationType(str, Enum):
+    LOADING = "loading"
+    UNLOADING = "unloading"
+    PARKING = "parking"
+
+
 class YardLocationBase(BaseModel):
     name: str
-    type: str
-    status: str
+    type: YardLocationType
+    status: YardLocationStatus
     capacity: int = 1
 
 
@@ -17,8 +28,8 @@ class YardLocationCreate(YardLocationBase):
 
 class YardLocationUpdate(BaseModel):
     name: Optional[str] = None
-    type: Optional[str] = None
-    status: Optional[str] = None
+    type: Optional[YardLocationType] = None
+    status: Optional[YardLocationStatus] = None
     capacity: Optional[int] = None
 
 
@@ -33,8 +44,8 @@ class DockAppointmentBase(BaseModel):
     yard_location_id: int
     appointment_time: int
     carrier_id: int
-    type: str
-    status: str
+    type: YardLocationType
+    status: YardLocationStatus
     actual_arrival_time: Optional[int] = None
     actual_departure_time: Optional[int] = None
 
@@ -47,8 +58,8 @@ class DockAppointmentUpdate(BaseModel):
     yard_location_id: Optional[int] = None
     appointment_time: Optional[int] = None
     carrier_id: Optional[int] = None
-    type: Optional[str] = None
-    status: Optional[str] = None
+    type: Optional[YardLocationType] = None
+    status: Optional[YardLocationStatus] = None
     actual_arrival_time: Optional[int] = None
     actual_departure_time: Optional[int] = None
 
@@ -66,15 +77,15 @@ class YardLocationWithAppointments(YardLocation):
 
 class YardLocationFilter(BaseModel):
     name: Optional[str] = None
-    type: Optional[str] = None
-    status: Optional[str] = None
+    type: Optional[YardLocationType] = None
+    status: Optional[YardLocationStatus] = None
 
 
 class DockAppointmentFilter(BaseModel):
     yard_location_id: Optional[int] = None
     carrier_id: Optional[int] = None
-    type: Optional[str] = None
-    status: Optional[str] = None
+    type: Optional[YardLocationType] = None
+    status: Optional[YardLocationStatus] = None
     date_from: Optional[int] = None
     date_to: Optional[int] = None
 
@@ -143,7 +154,7 @@ class CarrierSchedule(BaseModel):
 
 
 class YardLocationTypeDistribution(BaseModel):
-    type: str
+    type: YardLocationType
     count: int
     percentage: float
 

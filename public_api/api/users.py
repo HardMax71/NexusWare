@@ -7,11 +7,13 @@ from public_api.shared_schemas import (
     BulkUserCreateResult, AllPermissions, AllRoles, UserWithPermissions, UserPermissionUpdate
 )
 from .client import APIClient
+from ..permission_manager import PermissionManager
 
 
 class UsersAPI:
     def __init__(self, client: APIClient):
         self.client = client
+        self._permission_manager = None
 
     def login(self, username: str, password: str) -> Token:
         data = {
@@ -45,6 +47,19 @@ class UsersAPI:
     def get_current_user(self) -> UserSanitizedWithRole:
         response = self.client.get("/users/me")
         return UserSanitizedWithRole.model_validate(response)
+
+    def get_current_user_permissions(self) -> PermissionManager:
+        if not self._permission_manager:
+            response = self.client.get("/users/my_permissions")
+            permissions = response.get('permissions', [])
+            self._permission_manager = PermissionManager(permissions)
+        return self._permission_manager
+
+    def has_permission(self, permission_name: str, action: str) -> bool:
+        return self.get_current_user_permissions().has_permission(permission_name, action)
+
+    def clear_permissions_cache(self):
+        self._permission_manager = None
 
     def update_current_user(self, user_update: UserUpdate) -> User:
         response = self.client.put("/users/me", json=user_update.model_dump(mode="json", exclude_unset=True))
@@ -102,6 +117,10 @@ class UsersAPI:
     def get_all_roles(self) -> AllRoles:
         response = self.client.get("/users/roles")
         return AllRoles.model_validate(response)
+
+    def my_permissions(self) -> AllPermissions:
+        response = self.client.get("/users/my_permissions")
+        return AllPermissions.model_validate(response)
 
     def get_user_permissions(self, user_id: int) -> UserWithPermissions:
         response = self.client.get(f"/users/{user_id}/permissions")

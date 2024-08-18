@@ -16,5 +16,6 @@ from .quality import QualityAPI
 from .reports import ReportsAPI
 from .shipments import ShipmentsAPI
 from .suppliers import SuppliersAPI
+from .tasks import TasksAPI
 from .users import UsersAPI
 from .warehouse import WarehouseAPI

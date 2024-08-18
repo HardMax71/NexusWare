@@ -1,9 +1,17 @@
-# /server/app/shared_schemas/order.py
+from enum import Enum
 from typing import Optional, List
 
 from pydantic import BaseModel
 
 from public_api.shared_schemas import Product
+
+
+class OrderStatus(str, Enum):
+    PENDING = "Pending"
+    PROCESSING = "Processing"
+    SHIPPED = "Shipped"
+    DELIVERED = "Delivered"
+    CANCELLED = "Cancelled"
 
 
 class OrderItemBase(BaseModel):
@@ -33,7 +41,7 @@ class OrderItem(OrderItemBase):
 
 class OrderBase(BaseModel):
     customer_id: int
-    status: str
+    status: OrderStatus
     total_amount: float
     shipping_name: Optional[str] = None
     shipping_address_line1: Optional[str] = None
@@ -51,7 +59,7 @@ class OrderCreate(OrderBase):
 
 class OrderUpdate(BaseModel):
     customer_id: Optional[int] = None
-    status: Optional[str] = None
+    status: Optional[OrderStatus] = None
     total_amount: Optional[float] = None
     shipping_name: Optional[str] = None
     shipping_address_line1: Optional[str] = None
@@ -124,7 +132,7 @@ class POItem(POItemBase):
 
 class PurchaseOrderBase(BaseModel):
     supplier_id: int
-    status: str
+    status: OrderStatus
     expected_delivery_date: Optional[int] = None
 
 
@@ -134,7 +142,7 @@ class PurchaseOrderCreate(PurchaseOrderBase):
 
 class PurchaseOrderUpdate(BaseModel):
     supplier_id: Optional[int] = None
-    status: Optional[str] = None
+    status: Optional[OrderStatus] = None
     expected_delivery_date: Optional[int] = None
     items: Optional[List[POItemUpdate]] = None
 
@@ -177,7 +185,7 @@ class Supplier(SupplierBase):
 
 class OrderFilter(BaseModel):
     customer_id: Optional[int] = None
-    status: Optional[str] = None
+    status: Optional[OrderStatus] = None
     order_date_from: Optional[int] = None
     order_date_to: Optional[int] = None
     ship_date_from: Optional[int] = None
@@ -197,7 +205,7 @@ class CustomerFilter(BaseModel):
 
 class PurchaseOrderFilter(BaseModel):
     supplier_id: Optional[int] = None
-    status: Optional[str] = None
+    status: Optional[OrderStatus] = None
     date_from: Optional[int] = None
     date_to: Optional[int] = None
 

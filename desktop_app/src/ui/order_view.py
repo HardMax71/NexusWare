@@ -2,13 +2,13 @@ from datetime import datetime
 from typing import List
 
 from PySide6.QtCore import Signal
-from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
                                QHeaderView, QDialog, QLineEdit, QStackedWidget, QMessageBox, QComboBox)
 
 from desktop_app.src.ui.components import StyledButton, ShippingDialog, OrderDialog, OrderDetailsDialog
-from public_api.api import OrdersAPI, APIClient, CustomersAPI, ProductsAPI, ShipmentsAPI, CarriersAPI
+from public_api.api import OrdersAPI, APIClient, CustomersAPI, ProductsAPI, ShipmentsAPI, CarriersAPI, UsersAPI
 from public_api.shared_schemas import (OrderWithDetails, OrderFilter)
+from public_api.shared_schemas.order import OrderStatus
 
 
 class OrderView(QWidget):
@@ -22,6 +22,8 @@ class OrderView(QWidget):
         self.products_api = ProductsAPI(api_client)
         self.shipments_api = ShipmentsAPI(api_client)
         self.carriers_api = CarriersAPI(api_client)
+        self.users_api = UsersAPI(api_client)
+        self.permission_manager = self.users_api.get_current_user_permissions()
         self.init_ui()
 
     def init_ui(self):
@@ -43,7 +45,7 @@ class OrderView(QWidget):
         controls_layout.addWidget(self.search_input)
 
         self.status_combo = QComboBox()
-        self.status_combo.addItems(["All", "Pending", "Processing", "Shipped", "Delivered", "Cancelled"])
+        self.status_combo.addItems(["All"] + [status.value for status in OrderStatus])
         self.status_combo.currentTextChanged.connect(self.refresh_orders)
         controls_layout.addWidget(self.status_combo)
 
@@ -58,14 +60,16 @@ class OrderView(QWidget):
         self.table.setColumnCount(5)
         self.table.setHorizontalHeaderLabels(["Customer", "Date", "Total", "Status", "Actions"])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         main_layout.addWidget(self.table)
 
         self.stacked_widget.addWidget(main_widget)
 
         # Floating Action Button for adding new orders
-        self.fab = StyledButton("+")
-        self.fab.clicked.connect(self.create_new_order)
-        layout.addWidget(self.fab)
+        if self.permission_manager.has_write_permission("orders"):
+            self.fab = StyledButton("+")
+            self.fab.clicked.connect(self.create_new_order)
+            layout.addWidget(self.fab)
 
         self.refresh_orders()
 
@@ -73,57 +77,50 @@ class OrderView(QWidget):
         status_filter = self.status_combo.currentText()
         if status_filter == "All":
             status_filter = None
+        else:
+            status_filter = OrderStatus(status_filter)
 
         filter = OrderFilter(status=status_filter)
         orders = self.orders_api.get_orders(filter_params=filter)
         self.update_table(orders)
 
     def update_table(self, items: List[OrderWithDetails]):
-        self.table.setColumnCount(5)
-        self.table.setHorizontalHeaderLabels(["Customer", "Date", "Total", "Status", "Actions"])
         self.table.setRowCount(len(items))
-        self.table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         for row, item in enumerate(items):
             self.table.setItem(row, 0, QTableWidgetItem(item.customer.name))
             self.table.setItem(row, 1, QTableWidgetItem(datetime.fromtimestamp(item.order_date).strftime("%Y-%m-%d")))
             self.table.setItem(row, 2, QTableWidgetItem(f"${item.total_amount:.2f}"))
-            self.table.setItem(row, 3, QTableWidgetItem(item.status))
+            self.table.setItem(row, 3, QTableWidgetItem(item.status.value))
 
             actions_widget = QWidget()
             actions_layout = QHBoxLayout(actions_widget)
             actions_layout.setContentsMargins(0, 0, 0, 0)
-            actions_layout.setSpacing(2)  # Reduce spacing between buttons
+            actions_layout.setSpacing(2)
 
             view_button = StyledButton("View")
             view_button.clicked.connect(lambda _, i=item.id: self.view_order(i))
-            edit_button = StyledButton("Edit")
-            edit_button.clicked.connect(lambda _, i=item.id: self.edit_order(i))
-            ship_button = StyledButton("Ship")
-            ship_button.clicked.connect(lambda _, i=item.id: self.ship_order(i))
-            delete_button = StyledButton("Delete")
-            delete_button.clicked.connect(lambda _, i=item.id: self.delete_order(i))
-
             actions_layout.addWidget(view_button)
-            actions_layout.addWidget(edit_button)
-            actions_layout.addWidget(ship_button)
-            actions_layout.addWidget(delete_button)
 
-            # Disable Ship button for "Shipped" or "Delivered" orders
-            if item.status in ["Shipped", "Delivered"]:
-                ship_button.setEnabled(False)
-                ship_button.setStyleSheet("background-color: #A9A9A9;")  # Dark gray color
+            if self.permission_manager.has_write_permission("orders"):
+                edit_button = StyledButton("Edit")
+                edit_button.clicked.connect(lambda _, i=item.id: self.edit_order(i))
+                actions_layout.addWidget(edit_button)
+
+                ship_button = StyledButton("Ship")
+                ship_button.clicked.connect(lambda _, i=item.id: self.ship_order(i))
+                actions_layout.addWidget(ship_button)
+
+                # Disable Ship button for "Shipped" or "Delivered" orders
+                if item.status in [OrderStatus.SHIPPED, OrderStatus.DELIVERED]:
+                    ship_button.setEnabled(False)
+                    ship_button.setToolTip("Order already shipped")
+
+            if self.permission_manager.has_delete_permission("orders"):
+                delete_button = StyledButton("Delete")
+                delete_button.clicked.connect(lambda _, i=item.id: self.delete_order(i))
+                actions_layout.addWidget(delete_button)
 
             self.table.setCellWidget(row, 4, actions_widget)
-
-            # Color coding based on status
-            status_colors = {
-                "Pending": QColor(255, 255, 200),  # Light yellow
-                "Processing": QColor(200, 255, 200),  # Light green
-                "Shipped": QColor(200, 200, 255),  # Light blue
-                "Delivered": QColor(200, 255, 255),  # Light cyan
-                "Cancelled": QColor(255, 200, 200),  # Light red
-            }
-            self.table.item(row, 3).setBackground(status_colors.get(item.status, QColor(255, 255, 255)))
 
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 

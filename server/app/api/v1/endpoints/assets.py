@@ -17,7 +17,7 @@ router = APIRouter()
 def create_asset(
         asset: shared_schemas.AssetCreate,
         db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_user)
+        current_user: models.User = Depends(deps.has_permission("asset", "write"))
 ):
     return crud.asset.create(db=db, obj_in=asset)
 
@@ -28,7 +28,7 @@ def read_assets(
         skip: int = 0,
         limit: int = 100,
         asset_filter: shared_schemas.AssetFilter = Depends(),
-        current_user: models.User = Depends(deps.get_current_active_user)
+        current_user: models.User = Depends(deps.has_permission("asset", "read"))
 ):
     assets = crud.asset.get_multi_with_filter(db, skip=skip, limit=limit, filter_params=asset_filter)
     total = crud.asset.count_with_filter(db, filter_params=asset_filter)
@@ -38,7 +38,7 @@ def read_assets(
 @router.get("/types", response_model=list[str])
 def read_asset_types(
         db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_user)
+        current_user: models.User = Depends(deps.has_permission("asset", "read"))
 ):
     return crud.asset.get_all_types(db)
 
@@ -46,7 +46,7 @@ def read_asset_types(
 @router.get("/statuses", response_model=list[str])
 def read_asset_statuses(
         db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_user)
+        current_user: models.User = Depends(deps.has_permission("asset", "read"))
 ):
     return crud.asset.get_all_statuses(db)
 
@@ -56,7 +56,7 @@ def read_asset_statuses(
 def create_asset_maintenance(
         maintenance: shared_schemas.AssetMaintenanceCreate,
         db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_user)
+        current_user: models.User = Depends(deps.has_permission("asset_maintenance", "write"))
 ):
     return crud.asset_maintenance.create(db=db, obj_in=maintenance)
 
@@ -67,7 +67,7 @@ def read_asset_maintenances(
         skip: int = 0,
         limit: int = 100,
         maintenance_filter: shared_schemas.AssetMaintenanceFilter = Depends(),
-        current_user: models.User = Depends(deps.get_current_active_user)
+        current_user: models.User = Depends(deps.has_permission("asset_maintenance", "read"))
 ):
     return crud.asset_maintenance.get_multi_with_filter(db, skip=skip, limit=limit, filter_params=maintenance_filter)
 
@@ -76,7 +76,7 @@ def read_asset_maintenances(
 def read_asset_maintenance(
         maintenance_id: int,
         db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_user)
+        current_user: models.User = Depends(deps.has_permission("asset_maintenance", "read"))
 ):
     maintenance = crud.asset_maintenance.get(db, id=maintenance_id)
     if maintenance is None:
@@ -89,7 +89,7 @@ def update_asset_maintenance(
         maintenance_id: int,
         maintenance_in: shared_schemas.AssetMaintenanceUpdate,
         db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_user)
+        current_user: models.User = Depends(deps.has_permission("asset_maintenance", "write"))
 ):
     maintenance = crud.asset_maintenance.get(db, id=maintenance_id)
     if maintenance is None:
@@ -101,7 +101,7 @@ def update_asset_maintenance(
 def delete_asset_maintenance(
         maintenance_id: int,
         db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_admin)
+        current_user: models.User = Depends(deps.has_permission("asset_maintenance", "delete"))
 ):
     maintenance = crud.asset_maintenance.get(db, id=maintenance_id)
     if maintenance is None:
@@ -112,7 +112,7 @@ def delete_asset_maintenance(
 @router.get("/maintenance/types", response_model=list[str])
 def read_maintenance_types(
         db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_user)
+        current_user: models.User = Depends(deps.has_permission("asset_maintenance", "read"))
 ):
     return crud.asset_maintenance.get_all_types(db)
 
@@ -123,7 +123,7 @@ def read_asset_maintenance_history(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
         limit: int = 100,
-        current_user: models.User = Depends(deps.get_current_active_user)
+        current_user: models.User = Depends(deps.has_permission("asset_maintenance", "read"))
 ):
     filter_params = AssetMaintenanceFilter(asset_id=asset_id)
     return crud.asset_maintenance.get_multi_with_filter(db, skip=skip, limit=limit, filter_params=filter_params)
@@ -134,7 +134,7 @@ def schedule_asset_maintenance(
         asset_id: int,
         maintenance: shared_schemas.AssetMaintenanceCreate,
         db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_user)
+        current_user: models.User = Depends(deps.has_permission("asset_maintenance", "create"))
 ):
     asset = crud.asset.get(db, id=asset_id)
     if asset is None:
@@ -148,7 +148,7 @@ def complete_asset_maintenance(
         maintenance_id: int,
         completion_data: shared_schemas.AssetMaintenanceUpdate,
         db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_user)
+        current_user: models.User = Depends(deps.has_permission("asset_maintenance", "update"))
 ):
     maintenance = crud.asset_maintenance.get(db, id=maintenance_id)
     if maintenance is None:
@@ -161,7 +161,7 @@ def complete_asset_maintenance(
 @router.get("/due_for_maintenance", response_model=list[shared_schemas.AssetWithMaintenance])
 def get_assets_due_for_maintenance(
         db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_user)
+        current_user: models.User = Depends(deps.has_permission("asset_maintenance", "read"))
 ):
     return crud.asset.get_due_for_maintenance(db)
 
@@ -170,7 +170,7 @@ def get_assets_due_for_maintenance(
 def read_asset(
         asset_id: int,
         db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_user)
+        current_user: models.User = Depends(deps.has_permission("asset", "read"))
 ):
     asset = crud.asset.get_with_maintenance(db, id=asset_id)
     if asset is None:
@@ -183,7 +183,7 @@ def update_asset(
         asset_id: int,
         asset_in: shared_schemas.AssetUpdate,
         db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_user)
+        current_user: models.User = Depends(deps.has_permission("asset", "update"))
 ):
     asset = crud.asset.get(db, id=asset_id)
     if asset is None:
@@ -195,7 +195,7 @@ def update_asset(
 def delete_asset(
         asset_id: int,
         db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_admin)
+        current_user: models.User = Depends(deps.has_permission("asset", "delete"))
 ):
     asset = crud.asset.get(db, id=asset_id)
     if asset is None:
@@ -207,7 +207,7 @@ def delete_asset(
 def get_asset_current_location(
         asset_id: int,
         db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_user)
+        current_user: models.User = Depends(deps.has_permission("asset", "read"))
 ):
     location = crud.asset.get_asset_location(db, asset_id=asset_id)
     if location is None:
@@ -220,7 +220,7 @@ def transfer_asset(
         asset_id: int,
         transfer: shared_schemas.AssetTransfer,
         db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_user)
+        current_user: models.User = Depends(deps.has_permission("asset", "update"))
 ):
     asset = crud.asset.transfer(db, asset_id=asset_id, new_location_id=transfer.new_location_id)
     if asset is None:

@@ -1,12 +1,11 @@
 from datetime import datetime
 
 from PySide6.QtCore import Signal
-from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
                                QHeaderView, QDialog, QLineEdit, QStackedWidget, QMessageBox)
 
 from desktop_app.src.ui.components import StyledButton, AdjustmentDialog, InventoryDialog
-from public_api.api import InventoryAPI, APIClient, LocationsAPI, ProductsAPI
+from public_api.api import InventoryAPI, APIClient, LocationsAPI, ProductsAPI, UsersAPI
 from public_api.shared_schemas import InventoryWithDetails, Inventory
 from .inventory_planning import InventoryPlanningWidget
 
@@ -20,6 +19,8 @@ class InventoryView(QWidget):
         self.inventory_api = InventoryAPI(api_client)
         self.locations_api = LocationsAPI(api_client)
         self.products_api = ProductsAPI(api_client)
+        self.users_api = UsersAPI(api_client)
+        self.permission_manager = self.users_api.get_current_user_permissions()
         self.init_ui()
 
     def init_ui(self):
@@ -51,6 +52,7 @@ class InventoryView(QWidget):
         self.table.setColumnCount(6)
         self.table.setHorizontalHeaderLabels(["SKU", "Name", "Quantity", "Location", "Last Updated", "Actions"])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         main_layout.addWidget(self.table)
 
         self.stacked_widget.addWidget(main_widget)
@@ -60,9 +62,10 @@ class InventoryView(QWidget):
         self.stacked_widget.addWidget(self.planning_widget)
 
         # Floating Action Button for adding new items
-        self.fab = StyledButton("+")
-        self.fab.clicked.connect(self.add_item)
-        layout.addWidget(self.fab)
+        if self.permission_manager.has_write_permission("inventory"):
+            self.fab = StyledButton("+")
+            self.fab.clicked.connect(self.add_item)
+            layout.addWidget(self.fab)
 
         # Planning toggle button
         self.planning_button = StyledButton("Inventory Planning")
@@ -89,23 +92,24 @@ class InventoryView(QWidget):
 
             actions_widget = QWidget()
             actions_layout = QHBoxLayout(actions_widget)
-            edit_button = StyledButton("Edit")
-            edit_button.clicked.connect(lambda _, i=item.id: self.edit_item(i))
-            adjust_button = StyledButton("Adjust")
-            adjust_button.clicked.connect(lambda _, i=item.id: self.adjust_item(i))
-            delete_button = StyledButton("Delete")
-            delete_button.clicked.connect(lambda _, i=item.id: self.delete_item(i))
-            actions_layout.addWidget(edit_button)
-            actions_layout.addWidget(adjust_button)
-            actions_layout.addWidget(delete_button)
             actions_layout.setContentsMargins(0, 0, 0, 0)
-            self.table.setCellWidget(row, 5, actions_widget)
+            actions_layout.setSpacing(2)
 
-            # Color coding based on quantity
-            if item.quantity == 0:
-                self.table.item(row, 2).setBackground(QColor(255, 200, 200))  # Light red for out of stock
-            elif item.quantity < 10:
-                self.table.item(row, 2).setBackground(QColor(255, 255, 200))  # Light yellow for low stock
+            if self.permission_manager.has_write_permission("inventory"):
+                edit_button = StyledButton("Edit")
+                edit_button.clicked.connect(lambda _, i=item.id: self.edit_item(i))
+                actions_layout.addWidget(edit_button)
+
+                adjust_button = StyledButton("Adjust")
+                adjust_button.clicked.connect(lambda _, i=item.id: self.adjust_item(i))
+                actions_layout.addWidget(adjust_button)
+
+            if self.permission_manager.has_delete_permission("inventory"):
+                delete_button = StyledButton("Delete")
+                delete_button.clicked.connect(lambda _, i=item.id: self.delete_item(i))
+                actions_layout.addWidget(delete_button)
+
+            self.table.setCellWidget(row, 5, actions_widget)
 
     def filter_inventory(self):
         search_text = self.search_input.text().lower()

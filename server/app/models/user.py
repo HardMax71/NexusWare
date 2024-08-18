@@ -55,6 +55,9 @@ class Permission(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     permission_name = Column(String(50), unique=True, nullable=False)
+    can_read = Column(Boolean, default=False)
+    can_write = Column(Boolean, default=False)
+    can_delete = Column(Boolean, default=False)
 
     roles = relationship("Role", secondary="role_permissions", back_populates="permissions")
 

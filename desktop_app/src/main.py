@@ -95,8 +95,8 @@ def main():
         sys.exit(0)
 
     # Set up main window
-    main_window = MainWindow(api_client=api_client,
-                             config_manager=config_manager)
+    user_permissions = users_api.get_current_user_permissions()
+    main_window = MainWindow(api_client=api_client, config_manager=config_manager, permission_manager=user_permissions)
 
     def handle_auth_error():
         QMessageBox.warning(None, "Authentication Error", "Your session has expired. Please log in again.")
