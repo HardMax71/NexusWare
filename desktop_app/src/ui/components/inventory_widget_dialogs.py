@@ -2,7 +2,7 @@ from datetime import datetime
 
 from PySide6.QtCore import QDateTime
 from PySide6.QtWidgets import (QDialog, QFormLayout, QLineEdit, QSpinBox, QComboBox,
-                               QPushButton, QHBoxLayout, QMessageBox, QDateEdit)
+                               QPushButton, QHBoxLayout, QMessageBox, QDateEdit, QTextEdit)
 
 from public_api.api import InventoryAPI, LocationsAPI, ProductsAPI
 from public_api.shared_schemas import Inventory, InventoryUpdate, InventoryCreate, InventoryAdjustment
@@ -143,7 +143,9 @@ class AdjustmentDialog(QDialog):
 
         self.adjustment_input = QSpinBox()
         self.adjustment_input.setRange(-1000000, 1000000)
-        self.reason_input = QLineEdit()
+        self.reason_input = QTextEdit()
+        self.reason_input.setPlaceholderText("Enter reason for adjustment...")
+
 
         layout.addRow("Adjustment:", self.adjustment_input)
         layout.addRow("Reason:", self.reason_input)
@@ -163,7 +165,7 @@ class AdjustmentDialog(QDialog):
                 product_id=self.id,
                 location_id=self.id,
                 quantity_change=self.adjustment_input.value(),
-                reason=self.reason_input.text(),
+                reason=self.reason_input.toPlainText(),
                 timestamp=int(datetime.now().timestamp())  # Pass timestamp
             )
             self.inventory_api.adjust_inventory(self.id, adjustment_data)

@@ -16,7 +16,7 @@ from .barcode_designer import BarcodeDesignerWidget
 from .system_diagnostics import SystemDiagnosticsWidget
 from .simulation_view import SimulationView
 from .search_filter import SearchFilterWidget
-from .training_mode import TrainingModeWidget
+from .training_mode import TrainingModeManager
 from .offline_mode import OfflineModeWidget
 from .user_management import UserManagementWidget
 from .audit_log_view import AuditLogView
@@ -41,7 +41,7 @@ __all__ = [
     "SystemDiagnosticsWidget",
     "SimulationView",
     "SearchFilterWidget",
-    "TrainingModeWidget",
+    "TrainingModeManager",
     "OfflineModeWidget",
     "UserManagementWidget",
     "AuditLogView",

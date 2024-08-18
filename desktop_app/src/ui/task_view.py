@@ -66,12 +66,18 @@ class TaskView(QWidget):
         self.status_combo = QComboBox()
         self.status_combo.addItems(["All"] + [status.value for status in TaskStatus])
         self.status_combo.currentTextChanged.connect(self.refresh_tasks)
+        self.status_combo.setToolTip("Filter by task status")
         filter_layout.addWidget(self.status_combo)
 
         self.priority_combo = QComboBox()
         self.priority_combo.addItems(["All"] + [priority.value for priority in TaskPriority])
         self.priority_combo.currentTextChanged.connect(self.refresh_tasks)
+        self.priority_combo.setToolTip("Filter by task priority")
         filter_layout.addWidget(self.priority_combo)
+
+        self.refresh_button = StyledButton("Refresh")
+        self.refresh_button.clicked.connect(self.refresh_tasks)
+        filter_layout.addWidget(self.refresh_button)
 
         layout.addLayout(filter_layout)
 
@@ -216,7 +222,8 @@ class TaskView(QWidget):
 
 
 class TaskDialog(QDialog):
-    def __init__(self, tasks_api: TasksAPI, users: List[UserSanitizedWithRole], task_data: Optional[TaskWithAssignee] = None, parent=None):
+    def __init__(self, tasks_api: TasksAPI, users: List[UserSanitizedWithRole],
+                 task_data: Optional[TaskWithAssignee] = None, parent=None):
         super().__init__(parent)
         self.tasks_api = tasks_api
         self.users = users
@@ -347,17 +354,9 @@ class TaskDetailsDialog(QDialog):
         # Assigned To
         assigned_user = next((user for user in self.users if user.id == self.task.assigned_to), None)
         form_layout.addRow("Assigned To:", QLabel(assigned_user.username if assigned_user else "No user assigned"))
-
-        # Due Date
         form_layout.addRow("Due Date:", QLabel(QDate.fromJulianDay(self.task.due_date).toString(Qt.ISODate)))
-
-        # Priority
         form_layout.addRow("Priority:", QLabel(self.task.priority))
-
-        # Status
         form_layout.addRow("Status:", QLabel(self.task.status))
-
-        # Created At
         form_layout.addRow("Created At:",
                            QLabel(datetime.fromtimestamp(self.task.created_at).strftime("%Y-%m-%d %H:%M:%S")))
 

@@ -3,13 +3,14 @@ from typing import Optional
 
 from PySide6.QtWidgets import (QVBoxLayout, QTableWidget, QTableWidgetItem,
                                QDialog, QComboBox,
-                               QFormLayout, QDateEdit, QDoubleSpinBox, QSpinBox, QDialogButtonBox, QLabel, QHeaderView,
-                               QGroupBox, QLineEdit, QMessageBox, QSizePolicy)
+                               QFormLayout, QDateEdit, QDoubleSpinBox, QSpinBox, QDialogButtonBox, QLabel, QGroupBox,
+                               QLineEdit, QMessageBox)
 
 from desktop_app.src.ui.components import StyledButton
 from public_api.api import OrdersAPI, CustomersAPI, ProductsAPI, ShipmentsAPI, CarriersAPI
 from public_api.shared_schemas import (OrderWithDetails, OrderCreate, OrderUpdate, OrderItemCreate, ShippingInfo,
                                        OrderItemUpdate)
+from public_api.shared_schemas.order import OrderStatus
 
 
 class OrderDialog(QDialog):
@@ -33,7 +34,7 @@ class OrderDialog(QDialog):
         form_layout.addRow("Customer:", self.customer_combo)
 
         self.status_combo = QComboBox()
-        self.status_combo.addItems(["Pending", "Processing", "Shipped", "Delivered", "Cancelled"])
+        self.status_combo.addItems([status.value for status in OrderStatus])
         form_layout.addRow("Status:", self.status_combo)
 
         self.order_date = QDateEdit()

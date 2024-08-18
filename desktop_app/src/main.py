@@ -45,7 +45,6 @@ def apply_appearance_settings(app, config_manager):
     app.setFont(font)
 
 
-# TODO: Implement RBAC in form of showing and hiding UI elements based on user role
 def main():
     # Set up logging
     logger = setup_logger("nexusware")

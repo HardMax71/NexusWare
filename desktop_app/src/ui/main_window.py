@@ -29,6 +29,11 @@ class MainWindow(QMainWindow):
         self.permission_manager = permission_manager
         self.init_ui()
 
+        # TODO : Implement training mode, now it overlaps with the main window
+        # self.training_manager = TrainingModeManager(self, self.config_manager)
+        # QApplication.instance().processEvents()  # Ensure UI is fully loaded
+        # self.training_manager.start_training()
+
     def init_ui(self):
         self.setWindowTitle("NexusWare WMS")
         self.setWindowIcon(QIcon("resources/icons/app_icon.png"))
