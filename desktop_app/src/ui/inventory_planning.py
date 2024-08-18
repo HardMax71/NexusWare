@@ -1,9 +1,10 @@
 from PySide6.QtCharts import QChart, QChartView, QLineSeries, QValueAxis, QDateTimeAxis
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPainter
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem, QComboBox
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem, QComboBox, QPushButton
 
 from desktop_app.src.ui.components import StyledButton
+from desktop_app.src.ui.warehouse_visualization_window import WarehouseVisualizationWindow
 from public_api.api import ProductsAPI, InventoryAPI, APIClient
 
 
@@ -39,6 +40,10 @@ class InventoryPlanningWidget(QWidget):
         self.reorder_table.setHorizontalHeaderLabels(["SKU", "Name", "Current Stock", "Suggested Reorder"])
         layout.addWidget(self.reorder_table)
 
+        self.visualization_button = QPushButton("3D Warehouse Visualization")
+        self.visualization_button.clicked.connect(self.open_3d_visualization)
+        layout.addWidget(self.visualization_button)
+
         self.load_products()
 
     def load_products(self):
@@ -46,6 +51,10 @@ class InventoryPlanningWidget(QWidget):
         self.product_combo.clear()
         for product in products:
             self.product_combo.addItem(product.name, product.id)
+
+    def open_3d_visualization(self):
+        self.visualization_window = WarehouseVisualizationWindow(self.api_client)
+        self.visualization_window.show()
 
     def update_forecast(self):
         product_id = self.product_combo.currentData()
