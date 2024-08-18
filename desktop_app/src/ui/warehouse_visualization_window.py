@@ -1,13 +1,13 @@
 from collections import defaultdict
-
 import matplotlib
 
 matplotlib.use('Qt5Agg')
-
 from PySide6.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton, QHBoxLayout
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-import matplotlib.patches as patches
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+import numpy as np
 
 from public_api.api import WarehouseAPI, APIClient
 from public_api.shared_schemas import WarehouseLayout
@@ -22,13 +22,14 @@ class WarehouseVisualizationWidget(QWidget):
         self.unique_aisles = []
         self.unique_racks = []
         self.location_grid = defaultdict(list)
+        self.max_inventory_level = 100  # Default value, will be updated dynamically
 
         layout = QVBoxLayout(self)
         self.figure = Figure(figsize=(12, 8))
         self.canvas = FigureCanvas(self.figure)
         layout.addWidget(self.canvas)
 
-        self.ax = self.figure.add_subplot(111)
+        self.ax = self.figure.add_subplot(111, projection='3d')
         self.load_warehouse_data()
 
     def load_warehouse_data(self):
@@ -41,15 +42,20 @@ class WarehouseVisualizationWidget(QWidget):
         self.unique_aisles.clear()
         self.unique_racks.clear()
         self.location_grid.clear()
+        max_level = 0
         for zone in self.warehouse_layout.zones:
             for location in zone.locations:
-                self.inventory_data[location.id] = self.warehouse_api.get_location_inventory(location.id)
+                inventory = self.warehouse_api.get_location_inventory(location.id)
+                self.inventory_data[location.id] = inventory
+                inventory_level = sum(item.quantity for item in inventory)
+                max_level = max(max_level, inventory_level)
                 if location.aisle and location.aisle not in self.unique_aisles:
                     self.unique_aisles.append(location.aisle)
                 if location.rack and location.rack not in self.unique_racks:
                     self.unique_racks.append(location.rack)
                 self.location_grid[(location.aisle, location.rack)].append(location)
 
+        self.max_inventory_level = max(100, max_level)  # Ensure it's at least 100
         self.unique_aisles.sort()
         self.unique_racks.sort(key=lambda x: int(x) if x.isdigit() else x)
 
@@ -58,20 +64,26 @@ class WarehouseVisualizationWidget(QWidget):
             return
 
         self.ax.clear()
-        self.ax.set_xlim(0, len(self.unique_aisles))
-        self.ax.set_ylim(0, len(self.unique_racks))
 
         for (aisle, rack), locations in self.location_grid.items():
             self.draw_cell(aisle, rack, locations)
 
         self.ax.set_xlabel('Aisles')
         self.ax.set_ylabel('Racks')
-        self.ax.set_title('Warehouse Layout')
-        self.ax.set_xticks([i + 0.5 for i in range(len(self.unique_aisles))])
+        self.ax.set_zlabel('Inventory Level')
+        self.ax.set_title('3D Warehouse Layout')
+
+        max_aisle = len(self.unique_aisles)
+        max_rack = len(self.unique_racks)
+        self.ax.set_xlim(0, max_aisle)
+        self.ax.set_ylim(0, max_rack)
+        self.ax.set_zlim(0, self.max_inventory_level)
+
+        self.ax.set_xticks(range(max_aisle))
         self.ax.set_xticklabels(self.unique_aisles)
-        self.ax.set_yticks([i + 0.5 for i in range(len(self.unique_racks))])
+        self.ax.set_yticks(range(max_rack))
         self.ax.set_yticklabels(self.unique_racks)
-        self.ax.invert_yaxis()
+
         self.figure.tight_layout()
         self.canvas.draw()
 
@@ -79,50 +91,26 @@ class WarehouseVisualizationWidget(QWidget):
         x = self.unique_aisles.index(aisle)
         y = self.unique_racks.index(rack)
 
-        num_locations = len(locations)
-        if num_locations == 1:
-            self.draw_single_location(x, y, locations[0])
-        else:
-            self.draw_multiple_locations(x, y, locations)
+        for i, location in enumerate(locations):
+            offset_x = i % 2 * 0.4
+            offset_y = i // 2 * 0.4
+            self.draw_location(x + offset_x, y + offset_y, location)
 
-    def draw_single_location(self, x, y, location):
+    def draw_location(self, x, y, location):
         inventory_items = self.inventory_data.get(location.id, [])
         inventory_level = sum(item.quantity for item in inventory_items)
-        max_capacity = 100
-        fill_level = min(inventory_level / max_capacity, 1.0)
+        fill_level = inventory_level / self.max_inventory_level
 
         color = self.get_color_by_fill_level(fill_level)
-        rect = patches.Rectangle((x, y), 1, 1, fill=True, facecolor=color, edgecolor='black', linewidth=0.5)
-        self.ax.add_patch(rect)
 
+        # Draw a 3D bar for each location
+        self.ax.bar3d(x, y, 0, 0.3, 0.3, inventory_level, shade=True, color=color, alpha=0.8)
+
+        # Add text labels
         location_text = f"{location.shelf}-{location.bin or 'bin'}"
-        inventory_text = f"{inventory_level}/{max_capacity}"
-        self.ax.text(x + 0.5, y + 0.6, location_text, fontsize=8, ha='center', va='center')
-        self.ax.text(x + 0.5, y + 0.4, inventory_text, fontsize=8, ha='center', va='center')
-
-    def draw_multiple_locations(self, x, y, locations):
-        num_locations = len(locations)
-        cols = min(2, num_locations)
-        rows = (num_locations + 1) // 2
-
-        for i, location in enumerate(locations):
-            sub_x = x + (i % cols) * 0.5
-            sub_y = y + (i // cols) * (1 / rows)
-
-            inventory_items = self.inventory_data.get(location.id, [])
-            inventory_level = sum(item.quantity for item in inventory_items)
-            max_capacity = 100
-            fill_level = min(inventory_level / max_capacity, 1.0)
-
-            color = self.get_color_by_fill_level(fill_level)
-            rect = patches.Rectangle((sub_x, sub_y), 0.5, 1 / rows, fill=True, facecolor=color, edgecolor='black',
-                                     linewidth=0.5)
-            self.ax.add_patch(rect)
-
-            location_text = f"{location.shelf}-{location.bin or 'bin'}"
-            inventory_text = f"{inventory_level}/{max_capacity}"
-            self.ax.text(sub_x + 0.25, sub_y + 0.6 / rows, location_text, fontsize=6, ha='center', va='center')
-            self.ax.text(sub_x + 0.25, sub_y + 0.3 / rows, inventory_text, fontsize=6, ha='center', va='center')
+        self.ax.text(x + 0.15, y + 0.15, inventory_level + self.max_inventory_level * 0.05,
+                     f"{location_text}\n{inventory_level}",
+                     ha='center', va='center', fontsize=8)
 
     def get_color_by_fill_level(self, fill_level):
         if fill_level < 0.3:
@@ -141,7 +129,7 @@ class WarehouseVisualizationWindow(QMainWindow):
         self.init_ui()
 
     def init_ui(self):
-        self.setWindowTitle("Warehouse Visualization")
+        self.setWindowTitle("3D Warehouse Visualization")
         self.setGeometry(100, 100, 1200, 800)
 
         central_widget = QWidget()
