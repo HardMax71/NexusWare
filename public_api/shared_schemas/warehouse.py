@@ -1,9 +1,12 @@
-# /server/app/shared_schemas/warehouse.py
 from typing import Optional, List
-
+from enum import Enum
 from pydantic import BaseModel
-
 from public_api.shared_schemas import Order
+
+class ShipmentStatus(str, Enum):
+    PENDING = "Pending"
+    IN_TRANSIT = "In Transit"
+    DELIVERED = "Delivered"
 
 
 class PickListItemBase(BaseModel):
@@ -109,21 +112,20 @@ class ShipmentBase(BaseModel):
     order_id: int
     carrier_id: int
     tracking_number: Optional[str] = None
-    status: str
+    status: ShipmentStatus
     label_id: Optional[str] = None
     label_download_url: Optional[str] = None
 
 
 class ShipmentCreate(ShipmentBase):
     ship_date: Optional[int] = None
-    pass
 
 
 class ShipmentUpdate(BaseModel):
     order_id: Optional[int] = None
     carrier_id: Optional[int] = None
     tracking_number: Optional[str] = None
-    status: Optional[str] = None
+    status: Optional[ShipmentStatus] = None
     ship_date: Optional[int] = None
     label_id: Optional[str] = None
     label_download_url: Optional[str] = None
@@ -173,7 +175,7 @@ class ReceiptFilter(BaseModel):
 
 
 class ShipmentFilter(BaseModel):
-    status: Optional[str] = None
+    status: Optional[ShipmentStatus] = None
     order_id: Optional[int] = None
     carrier_id: Optional[int] = None
     date_from: Optional[int] = None

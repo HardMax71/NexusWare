@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, 
 from desktop_app.src.ui.components import StyledButton
 from public_api.api import APIClient, TasksAPI, UsersAPI
 from public_api.shared_schemas import TaskCreate, TaskUpdate, TaskWithAssignee, TaskFilter, UserSanitizedWithRole
+from public_api.shared_schemas.task import TaskStatus, TaskPriority
 
 
 class TaskView(QWidget):
@@ -63,12 +64,12 @@ class TaskView(QWidget):
         filter_layout.addWidget(self.search_input)
 
         self.status_combo = QComboBox()
-        self.status_combo.addItems(["All", "Pending", "In Progress", "Completed"])
+        self.status_combo.addItems(["All"] + [status.value for status in TaskStatus])
         self.status_combo.currentTextChanged.connect(self.refresh_tasks)
         filter_layout.addWidget(self.status_combo)
 
         self.priority_combo = QComboBox()
-        self.priority_combo.addItems(["All", "Low", "Medium", "High"])
+        self.priority_combo.addItems(["All"] + [priority.value for priority in TaskPriority])
         self.priority_combo.currentTextChanged.connect(self.refresh_tasks)
         filter_layout.addWidget(self.priority_combo)
 
@@ -117,8 +118,8 @@ class TaskView(QWidget):
         status = self.status_combo.currentText()
         priority = self.priority_combo.currentText()
         filter_params = TaskFilter(
-            status=status if status != "All" else None,
-            priority=priority if priority != "All" else None
+            status=TaskStatus(status) if status != "All" else None,
+            priority=TaskPriority(priority) if priority != "All" else None
         )
         tasks = self.tasks_api.get_tasks(filter_params=filter_params)
         self.update_task_table(tasks)
@@ -126,12 +127,13 @@ class TaskView(QWidget):
     def update_task_table(self, tasks: List[TaskWithAssignee]):
         self.task_table.setRowCount(len(tasks))
         for row, task in enumerate(tasks):
-            self.task_table.setItem(row, 0, QTableWidgetItem(task.task_type))
+            self.task_table.setItem(row, 0, QTableWidgetItem(task.task_type.value))
             self.task_table.setItem(row, 1, QTableWidgetItem(task.description))
             assigned_user = next((user for user in self.users if user.id == task.assigned_to), None)
-            self.task_table.setItem(row, 2, QTableWidgetItem(assigned_user.username if assigned_user else "No user assigned"))
+            self.task_table.setItem(row, 2,
+                                    QTableWidgetItem(assigned_user.username if assigned_user else "No user assigned"))
             self.task_table.setItem(row, 3, QTableWidgetItem(QDate.fromJulianDay(task.due_date).toString(Qt.ISODate)))
-            self.task_table.setItem(row, 4, QTableWidgetItem(task.priority))
+            self.task_table.setItem(row, 4, QTableWidgetItem(task.priority.value))
 
             actions_widget = QWidget()
             actions_layout = QHBoxLayout(actions_widget)
@@ -244,11 +246,11 @@ class TaskDialog(QDialog):
         form_layout.addRow("Due Date:", self.due_date_input)
 
         self.priority_input = QComboBox()
-        self.priority_input.addItems(["Low", "Medium", "High"])
+        self.priority_input.addItems([priority.value for priority in TaskPriority])
         form_layout.addRow("Priority:", self.priority_input)
 
         self.status_input = QComboBox()
-        self.status_input.addItems(["Pending", "In Progress", "Completed"])
+        self.status_input.addItems([status.value for status in TaskStatus])
         form_layout.addRow("Status:", self.status_input)
 
         layout.addLayout(form_layout)
@@ -269,8 +271,8 @@ class TaskDialog(QDialog):
         if index >= 0:
             self.assigned_to_input.setCurrentIndex(index)
         self.due_date_input.setDate(QDate.fromJulianDay(self.task_data.due_date))
-        self.priority_input.setCurrentText(self.task_data.priority)
-        self.status_input.setCurrentText(self.task_data.status)
+        self.priority_input.setCurrentText(self.task_data.priority.value)
+        self.status_input.setCurrentText(self.task_data.status.value)
 
     def accept(self):
         task_type = self.task_type_input.text()

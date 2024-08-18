@@ -10,6 +10,7 @@ from desktop_app.src.ui.components import StyledButton
 from public_api.api import ShipmentsAPI, APIClient, OrdersAPI, CarriersAPI
 from public_api.shared_schemas import (Shipment, ShipmentCreate, ShipmentUpdate, ShipmentFilter,
                                        ShipmentTracking, ShipmentWithDetails)
+from public_api.shared_schemas.warehouse import ShipmentStatus
 
 
 class ShipmentView(QWidget):
@@ -37,7 +38,7 @@ class ShipmentView(QWidget):
         # Controls
         controls_layout = QHBoxLayout()
         self.status_combo = QComboBox()
-        self.status_combo.addItems(["All", "Pending", "In Transit", "Delivered"])
+        self.status_combo.addItems(["All"] + [status.value for status in ShipmentStatus])
         self.status_combo.currentIndexChanged.connect(self.refresh_shipments)
         controls_layout.addWidget(self.status_combo)
 
@@ -209,7 +210,7 @@ class ShipmentDialog(QDialog):
         form_layout.addRow("Tracking Number:", self.tracking_number_input)
 
         self.status_combo = QComboBox()
-        self.status_combo.addItems(["Pending", "In Transit", "Delivered"])
+        self.status_combo.addItems([item.value for item in ShipmentStatus])
         form_layout.addRow("Status:", self.status_combo)
 
         self.ship_date_edit = QDateEdit()

@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, 
 from desktop_app.src.ui.components import StyledButton, ShippingDialog, OrderDialog, OrderDetailsDialog
 from public_api.api import OrdersAPI, APIClient, CustomersAPI, ProductsAPI, ShipmentsAPI, CarriersAPI, UsersAPI
 from public_api.shared_schemas import (OrderWithDetails, OrderFilter)
+from public_api.shared_schemas.order import OrderStatus
 
 
 class OrderView(QWidget):
@@ -44,7 +45,7 @@ class OrderView(QWidget):
         controls_layout.addWidget(self.search_input)
 
         self.status_combo = QComboBox()
-        self.status_combo.addItems(["All", "Pending", "Processing", "Shipped", "Delivered", "Cancelled"])
+        self.status_combo.addItems(["All"] + [status.value for status in OrderStatus])
         self.status_combo.currentTextChanged.connect(self.refresh_orders)
         controls_layout.addWidget(self.status_combo)
 
@@ -76,6 +77,8 @@ class OrderView(QWidget):
         status_filter = self.status_combo.currentText()
         if status_filter == "All":
             status_filter = None
+        else:
+            status_filter = OrderStatus(status_filter)
 
         filter = OrderFilter(status=status_filter)
         orders = self.orders_api.get_orders(filter_params=filter)
@@ -87,7 +90,7 @@ class OrderView(QWidget):
             self.table.setItem(row, 0, QTableWidgetItem(item.customer.name))
             self.table.setItem(row, 1, QTableWidgetItem(datetime.fromtimestamp(item.order_date).strftime("%Y-%m-%d")))
             self.table.setItem(row, 2, QTableWidgetItem(f"${item.total_amount:.2f}"))
-            self.table.setItem(row, 3, QTableWidgetItem(item.status))
+            self.table.setItem(row, 3, QTableWidgetItem(item.status.value))
 
             actions_widget = QWidget()
             actions_layout = QHBoxLayout(actions_widget)
@@ -108,9 +111,9 @@ class OrderView(QWidget):
                 actions_layout.addWidget(ship_button)
 
                 # Disable Ship button for "Shipped" or "Delivered" orders
-                if item.status in ["Shipped", "Delivered"]:
+                if item.status in [OrderStatus.SHIPPED, OrderStatus.DELIVERED]:
                     ship_button.setEnabled(False)
-                    ship_button.setStyleSheet("background-color: #A9A9A9;")  # Dark gray color
+                    ship_button.setToolTip("Order already shipped")
 
             if self.permission_manager.has_delete_permission("orders"):
                 delete_button = StyledButton("Delete")

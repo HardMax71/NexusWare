@@ -1,4 +1,5 @@
 # /server/app/shared_schemas/task.py
+from enum import Enum
 from typing import Optional, List
 
 from pydantic import BaseModel
@@ -6,13 +7,33 @@ from pydantic import BaseModel
 from .user import User
 
 
+class TaskStatus(str, Enum):
+    PENDING = "Pending"
+    IN_PROGRESS = "In Progress"
+    COMPLETED = "Completed"
+
+
+class TaskPriority(str, Enum):
+    LOW = "Low"
+    MEDIUM = "Medium"
+    HIGH = "High"
+
+
+class TaskType(str, Enum):
+    FEATURE = "Feature"
+    BUGFIX = "Bugfix"
+    IMPROVEMENT = "Improvement"
+    RESEARCH = "Research"
+    OTHER = "Other"
+
+
 class TaskBase(BaseModel):
-    task_type: str
+    task_type: TaskType
     description: str
     assigned_to: int
     due_date: int
-    priority: str
-    status: str
+    priority: TaskPriority
+    status: TaskStatus
 
 
 class TaskCreate(TaskBase):
@@ -20,12 +41,12 @@ class TaskCreate(TaskBase):
 
 
 class TaskUpdate(BaseModel):
-    task_type: Optional[str] = None
+    task_type: Optional[TaskType] = None
     description: Optional[str] = None
     assigned_to: Optional[int] = None
     due_date: Optional[int] = None
-    priority: Optional[str] = None
-    status: Optional[str] = None
+    priority: Optional[TaskPriority] = None
+    status: Optional[TaskStatus] = None
 
 
 class Task(TaskBase):
@@ -41,10 +62,10 @@ class TaskWithAssignee(Task):
 
 
 class TaskFilter(BaseModel):
-    task_type: Optional[str] = None
+    task_type: Optional[TaskType] = None
     assigned_to: Optional[int] = None
-    priority: Optional[str] = None
-    status: Optional[str] = None
+    priority: Optional[TaskPriority] = None
+    status: Optional[TaskStatus] = None
     due_date_from: Optional[int] = None
     due_date_to: Optional[int] = None
 
