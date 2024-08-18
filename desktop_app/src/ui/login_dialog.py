@@ -1,8 +1,9 @@
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel,
-                               QLineEdit, QPushButton, QFormLayout, QMessageBox)
+from PySide6.QtWidgets import (QDialog, QVBoxLayout, QLineEdit, QPushButton, QFormLayout, QMessageBox)
 from requests import HTTPError
+
 from desktop_app.src.services.authentication import AuthenticationService
+
 
 class LoginDialog(QDialog):
     def __init__(self, auth_service: AuthenticationService, parent=None):
