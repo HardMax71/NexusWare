@@ -1,10 +1,8 @@
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit
+from PySide6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel,
+                               QLineEdit, QPushButton, QFormLayout, QMessageBox)
 from requests import HTTPError
-
 from desktop_app.src.services.authentication import AuthenticationService
-from .components import StyledLineEdit, StyledButton, ErrorDialog
-
 
 class LoginDialog(QDialog):
     def __init__(self, auth_service: AuthenticationService, parent=None):
@@ -14,37 +12,35 @@ class LoginDialog(QDialog):
 
     def init_ui(self):
         self.setWindowTitle("Login to NexusWare WMS")
-        self.setFixedSize(350, 200)
+        self.setMinimumWidth(300)
 
-        layout = QVBoxLayout(self)
+        main_layout = QVBoxLayout(self)
+        main_layout.setSpacing(20)
+        main_layout.setContentsMargins(30, 30, 30, 30)
 
-        username_layout = QHBoxLayout()
-        username_label = QLabel("Username:")
-        self.username_input = StyledLineEdit()
-        username_layout.addWidget(username_label)
-        username_layout.addWidget(self.username_input)
-        layout.addLayout(username_layout)
+        form_layout = QFormLayout()
+        form_layout.setSpacing(10)
+        form_layout.setFieldGrowthPolicy(QFormLayout.AllNonFixedFieldsGrow)
 
-        password_layout = QHBoxLayout()
-        password_label = QLabel("Password:")
-        self.password_input = StyledLineEdit()
+        self.username_input = QLineEdit()
+        self.username_input.setPlaceholderText("Enter username")
+        form_layout.addRow("Username:", self.username_input)
+
+        self.password_input = QLineEdit()
         self.password_input.setEchoMode(QLineEdit.Password)
-        password_layout.addWidget(password_label)
-        password_layout.addWidget(self.password_input)
-        layout.addLayout(password_layout)
+        self.password_input.setPlaceholderText("Enter password")
+        form_layout.addRow("Password:", self.password_input)
 
-        self.login_button = StyledButton("Login")
+        main_layout.addLayout(form_layout)
+
+        self.login_button = QPushButton("Login")
         self.login_button.clicked.connect(self.attempt_login)
-        layout.addWidget(self.login_button, alignment=Qt.AlignCenter)
-
-        self.error_label = QLabel()
-        self.error_label.setStyleSheet("color: red;")
-        layout.addWidget(self.error_label, alignment=Qt.AlignCenter)
+        self.login_button.setDefault(True)
+        main_layout.addWidget(self.login_button)
 
     def attempt_login(self):
         username = self.username_input.text()
         password = self.password_input.text()
-
         try:
             token = self.auth_service.login(username, password)
             if token:
@@ -57,15 +53,13 @@ class LoginDialog(QDialog):
                 error_message = error_data.get('detail', 'Unknown error occurred.')
             except ValueError:
                 error_message = e.response.text
-
             self.show_error_dialog(f"Login failed: {error_message}")
 
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
+        if event.key() in (Qt.Key_Return, Qt.Key_Enter):
             self.attempt_login()
         else:
             super().keyPressEvent(event)
 
     def show_error_dialog(self, message: str):
-        error_dialog = ErrorDialog(message, self)
-        error_dialog.exec_()
+        QMessageBox.critical(self, "Login Error", message)
