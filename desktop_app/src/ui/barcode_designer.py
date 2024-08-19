@@ -1,33 +1,49 @@
+import json
 from io import BytesIO
 
 import qrcode
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QPixmap, QImage
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QComboBox, QLabel, QFileDialog
-from barcode.codex import Code128
+from PySide6.QtGui import QPixmap, QImage, QCursor
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTextEdit, QComboBox, QLabel, QFileDialog, QMessageBox, \
+    QToolTip, QSizePolicy
+from barcode import get_barcode_class
 from barcode.writer import ImageWriter
 
-from desktop_app.src.ui.components import StyledButton
+from desktop_app.src.ui.components import StyledButton, StyledLabel
 
 
 class BarcodeDesignerWidget(QWidget):
-    def __init__(self, api_client):
+    def __init__(self, api_client, product_data=None):
         super().__init__()
         self.api_client = api_client
+        self.product_data = product_data
+        self.barcode_image = None
         self.init_ui()
 
     def init_ui(self):
         layout = QVBoxLayout(self)
+        layout.setSpacing(10)
 
-        # Input controls
-        input_layout = QHBoxLayout()
-        self.data_input = QLineEdit()
-        self.data_input.setPlaceholderText("Enter barcode data")
+        # Barcode type selection
+        type_layout = QHBoxLayout()
+        type_layout.addWidget(StyledLabel("Type:"))
         self.barcode_type = QComboBox()
-        self.barcode_type.addItems(["Code 128", "QR Code"])
-        input_layout.addWidget(self.data_input)
-        input_layout.addWidget(self.barcode_type)
-        layout.addLayout(input_layout)
+        self.setup_barcode_types()
+        self.barcode_type.setToolTip("Hover for input examples")
+        self.barcode_type.view().setMouseTracking(True)
+        self.barcode_type.view().entered.connect(self.show_hint)
+        type_layout.addWidget(self.barcode_type)
+        type_layout.addStretch()
+        layout.addLayout(type_layout)
+
+        # Data input
+        data_layout = QVBoxLayout()
+        data_layout.addWidget(StyledLabel("Data:"))
+        self.data_input = QTextEdit()
+        self.data_input.setPlaceholderText("Enter barcode data (JSON format)")
+        self.data_input.setMinimumHeight(100)
+        data_layout.addWidget(self.data_input)
+        layout.addLayout(data_layout)
 
         # Generate button
         self.generate_button = StyledButton("Generate Barcode")
@@ -37,39 +53,125 @@ class BarcodeDesignerWidget(QWidget):
         # Barcode display
         self.barcode_label = QLabel()
         self.barcode_label.setAlignment(Qt.AlignCenter)
-        layout.addWidget(self.barcode_label)
+        self.barcode_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.barcode_label.setStyleSheet("border: 1px solid #ccc;")
+        layout.addWidget(self.barcode_label, 1)
 
         # Save button
         self.save_button = StyledButton("Save Barcode")
         self.save_button.clicked.connect(self.save_barcode)
+        self.save_button.setEnabled(False)
         layout.addWidget(self.save_button)
 
+        if self.product_data:
+            self.pre_fill_product_data()
+
+        self.setMinimumSize(400, 600)
+
+    def setup_barcode_types(self):
+        barcode_types = [
+            ("Code 128", "Example: ABC-123"),
+            ("QR Code", "Example: https://example.com"),
+            ("EAN-13", "Example: 5901234123457"),
+            ("UPC-A", "Example: 042100005264"),
+            ("ISBN-13", "Example: 978-3-16-148410-0"),
+            ("Code 39", "Example: HELLO123")
+        ]
+        for barcode_type, hint in barcode_types:
+            self.barcode_type.addItem(barcode_type, hint)
+
+    def show_hint(self, index):
+        hint = self.barcode_type.itemData(index.row())
+        QToolTip.showText(QCursor.pos(), hint)
+
+    # if removed - smh aspect ratio of default barcode image will be lost,
+    # and the barcode image will be stretched, after "generate" button is clicked -
+    # works as expected
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if self.barcode_image:
+            self.update_barcode_label()
+
+    def update_barcode_label(self):
+        qimage = QImage.fromData(self.barcode_image)
+        pixmap = QPixmap.fromImage(qimage)
+
+        label_size = self.barcode_label.size()
+        scaled_pixmap = pixmap.scaled(label_size.width(), label_size.height(),
+                                      Qt.KeepAspectRatio)
+
+        self.barcode_label.setPixmap(scaled_pixmap)
+
+    def pre_fill_product_data(self):
+        if self.product_data:
+            formatted_json = json.dumps(self.product_data, indent=2)
+            self.data_input.setPlainText(formatted_json)
+
     def generate_barcode(self):
-        data = self.data_input.text()
+        data = self.data_input.toPlainText()
         barcode_type = self.barcode_type.currentText()
 
-        # TODO: Add support for more barcode types
-        # TODO: Add error handling
-        # TODO: check correctness
-        if barcode_type == "Code 128":
-            barcode = Code128(data, writer=ImageWriter())
-            buffer = BytesIO()
-            barcode.write(buffer)
-            image = QImage.fromData(buffer.getvalue())
-        elif barcode_type == "QR Code":
-            qr = qrcode.QRCode(version=1, box_size=10, border=5)
-            qr.add_data(data)
-            qr.make(fit=True)
-            image = qr.make_image(fill_color="black", back_color="white")
-            buffer = BytesIO()
-            image.save(buffer, format="PNG")
-            image = QImage.fromData(buffer.getvalue())
+        if not data:
+            QMessageBox.warning(self, "Input Error", "Please enter barcode data.")
+            return
 
-        pixmap = QPixmap.fromImage(image)
-        self.barcode_label.setPixmap(pixmap)
+        try:
+            # For linear barcodes, use only the SKU
+            json_data = json.loads(data)
+            sku = json_data.get('sku', '')
+
+            if barcode_type == "QR Code":
+                self.generate_qr_code(data)
+            else:
+                self.generate_linear_barcode(sku, barcode_type)
+
+            self.save_button.setEnabled(True)
+        except json.JSONDecodeError:
+            QMessageBox.critical(self, "Error", "Invalid JSON format in the data field.")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to generate barcode: {str(e)}")
+
+    def generate_qr_code(self, data):
+        qr = qrcode.QRCode(version=1, box_size=10, border=4)
+        qr.add_data(data)
+        qr.make(fit=True)
+        image = qr.make_image(fill_color="black", back_color="white")
+        buffer = BytesIO()
+        image.save(buffer, format="PNG")
+        self.barcode_image = buffer.getvalue()
+        qimage = QImage.fromData(self.barcode_image)
+        pixmap = QPixmap.fromImage(qimage)
+
+        label_size = self.barcode_label.size()
+        scaled_pixmap = pixmap.scaled(label_size.width(), label_size.height(),
+                                      Qt.KeepAspectRatio)
+
+        self.barcode_label.setPixmap(scaled_pixmap)
+
+    def generate_linear_barcode(self, data, barcode_type):
+        barcode_class = get_barcode_class(barcode_type.lower().replace('-', '').replace(' ', ''))
+        barcode = barcode_class(data, writer=ImageWriter())
+        buffer = BytesIO()
+        barcode.write(buffer)
+        self.barcode_image = buffer.getvalue()
+        qimage = QImage.fromData(self.barcode_image)
+        pixmap = QPixmap.fromImage(qimage)
+
+        label_size = self.barcode_label.size()
+        scaled_pixmap = pixmap.scaled(label_size.width(), label_size.height(),
+                                      Qt.KeepAspectRatio)
+        self.barcode_label.setPixmap(scaled_pixmap)
 
     def save_barcode(self):
-        if self.barcode_label.pixmap():
-            file_name, _ = QFileDialog.getSaveFileName(self, "Save Barcode", "", "PNG Files (*.png)")
+        if self.barcode_image:
+            file_name, _ = QFileDialog.getSaveFileName(self, "Save Barcode", "",
+                                                       "PNG Files (*.png);;JPEG Files (*.jpg *.jpeg);;All Files (*)")
             if file_name:
-                self.barcode_label.pixmap().save(file_name, "PNG")
+                try:
+                    with open(file_name, 'wb') as f:
+                        f.write(self.barcode_image)
+                    QMessageBox.information(self, "Success", f"Barcode saved as {file_name}")
+                except Exception as e:
+                    QMessageBox.critical(self, "Error", f"Failed to save barcode: {str(e)}")
+        else:
+            QMessageBox.warning(self, "No Barcode", "Please generate a barcode first.")
