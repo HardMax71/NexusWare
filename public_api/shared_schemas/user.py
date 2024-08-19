@@ -92,7 +92,7 @@ class User(UserBase):
     id: int
     created_at: int
     last_login: Optional[int] = None
-    password_hash: str
+    password: str
     password_reset_token: Optional[str] = None
     password_reset_expiration: Optional[int] = None
     two_factor_auth_enabled: bool
@@ -109,7 +109,7 @@ class TwoFactorLogin(BaseModel):
 
 
 class UserInDB(User):
-    password_hash: str
+    password: str
 
 
 class Token(BaseModel):

@@ -4,8 +4,8 @@ from io import BytesIO
 import qrcode
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap, QImage, QCursor
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTextEdit, QComboBox, QLabel, QFileDialog, QMessageBox, \
-    QToolTip, QSizePolicy
+from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTextEdit, QComboBox,
+                               QLabel, QFileDialog, QMessageBox, QToolTip, QSizePolicy)
 from barcode import get_barcode_class
 from barcode.writer import ImageWriter
 

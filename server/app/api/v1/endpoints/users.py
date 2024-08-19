@@ -7,13 +7,13 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from public_api import shared_schemas
+from ....core import security
 from public_api.shared_schemas import UserFilter, UserWithPermissions, \
     UserPermissionUpdate
 from .... import crud, models
 from ....api import deps
-from ....core import security
 from ....core.email import send_reset_password_email
-from ....core.security import get_password_hash
+from server.app.core.security import get_password_hash
 
 router = APIRouter()
 
@@ -173,11 +173,10 @@ def create_user(
     db_user = crud.user.get_by_email(db, email=user.email)
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
-    user_data = user.model_dump()
-    password = user_data.pop('password')
-    user_data['password_hash'] = get_password_hash(password)
 
-    new_user = crud.user.create(db=db, obj_in=shared_schemas.UserCreate(**user_data))
+    user.password = get_password_hash(user.password)
+
+    new_user = crud.user.create(db=db, obj_in=user)
     return shared_schemas.UserSanitizedWithRole.model_validate(new_user)
 
 
@@ -233,8 +232,7 @@ def update_user(
 
     update_data = user_in.model_dump(exclude_unset=True)
     if 'password' in update_data:
-        password = update_data.pop('password')
-        update_data['password_hash'] = get_password_hash(password)
+        update_data['password'] = get_password_hash(update_data['password'])
 
     updated_user = crud.user.update(db, db_obj=user, obj_in=update_data)
     return shared_schemas.User.model_validate(updated_user)

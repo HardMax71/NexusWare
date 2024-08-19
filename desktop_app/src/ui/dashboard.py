@@ -1,8 +1,9 @@
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
-from PySide6.QtCharts import QChart, QChartView, QPieSeries, QBarSeries, QBarSet, QValueAxis, QBarCategoryAxis
-from PySide6.QtCore import Qt
+from PySide6.QtCharts import QChart, QChartView, QPieSeries, QBarSeries, QBarSet, QValueAxis, QBarCategoryAxis, \
+    QLineSeries, QDateTimeAxis
+from PySide6.QtCore import Qt, QDateTime
 from PySide6.QtGui import QPainter
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel
 
@@ -35,6 +36,12 @@ class DashboardWidget(QWidget):
         charts_layout.addWidget(self.create_performance_chart())
         layout.addLayout(charts_layout)
 
+        # Add new charts
+        new_charts_layout = QHBoxLayout()
+        new_charts_layout.addWidget(self.create_inventory_trend_chart())
+        new_charts_layout.addWidget(self.create_order_statistics_chart())
+        layout.addLayout(new_charts_layout)
+
     def create_summary_card(self, title, value):
         content = QLabel(f"{value:.2f}" if isinstance(value, float) else str(value))
         content.setAlignment(Qt.AlignCenter)
@@ -52,7 +59,7 @@ class DashboardWidget(QWidget):
         chart.setTitle("Inventory by Category")
         chart.setAnimationOptions(QChart.SeriesAnimations)
         chart.legend().setVisible(True)
-        chart.legend().setAlignment(Qt.AlignBottom)
+        chart.legend().setAlignment(Qt.AlignRight)
 
         chart_view = QChartView(chart)
         chart_view.setRenderHint(QPainter.Antialiasing)
@@ -93,7 +100,78 @@ class DashboardWidget(QWidget):
         series.attachAxis(axisX)
 
         chart.legend().setVisible(True)
-        chart.legend().setAlignment(Qt.AlignBottom)
+        chart.legend().setAlignment(Qt.AlignRight)
+
+        chart_view = QChartView(chart)
+        chart_view.setRenderHint(QPainter.Antialiasing)
+        return chart_view
+
+    def create_inventory_trend_chart(self):
+        # Use inventory summary data to create a trend
+        inventory_summary = self.reports_api.get_inventory_summary()
+
+        series = QLineSeries()
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=len(inventory_summary.items))
+
+        for i, item in enumerate(inventory_summary.items):
+            date = start_date + timedelta(days=i)
+            series.append(QDateTime(date).toMSecsSinceEpoch(), item.quantity)
+
+        chart = QChart()
+        chart.addSeries(series)
+        chart.setTitle("Inventory Trend by Product")
+        chart.setAnimationOptions(QChart.SeriesAnimations)
+
+        axisX = QDateTimeAxis()
+        axisX.setFormat("dd MMM")
+        axisX.setTitleText("Date")
+        chart.addAxis(axisX, Qt.AlignBottom)
+        series.attachAxis(axisX)
+
+        axisY = QValueAxis()
+        axisY.setTitleText("Quantity")
+        chart.addAxis(axisY, Qt.AlignLeft)
+        series.attachAxis(axisY)
+
+        chart.legend().setVisible(False)
+
+        chart_view = QChartView(chart)
+        chart_view.setRenderHint(QPainter.Antialiasing)
+        return chart_view
+
+    def create_order_statistics_chart(self):
+        # Use order summary data to create statistics
+        end_date = int(datetime.now().timestamp())
+        start_date = int((datetime.now() - timedelta(days=7)).timestamp())
+        order_summary = self.reports_api.get_order_summary(start_date, end_date)
+
+        set_total_orders = QBarSet("Total Orders")
+        set_total_revenue = QBarSet("Total Revenue")
+
+        set_total_orders.append([order_summary.summary.total_orders])
+        set_total_revenue.append([order_summary.summary.total_revenue])
+
+        series = QBarSeries()
+        series.append(set_total_orders)
+        series.append(set_total_revenue)
+
+        chart = QChart()
+        chart.addSeries(series)
+        chart.setTitle("Weekly Order Statistics")
+        chart.setAnimationOptions(QChart.SeriesAnimations)
+
+        axisX = QBarCategoryAxis()
+        axisX.append(["Last 7 Days"])
+        chart.addAxis(axisX, Qt.AlignBottom)
+        series.attachAxis(axisX)
+
+        axisY = QValueAxis()
+        chart.addAxis(axisY, Qt.AlignLeft)
+        series.attachAxis(axisY)
+
+        chart.legend().setVisible(True)
+        chart.legend().setAlignment(Qt.AlignRight)
 
         chart_view = QChartView(chart)
         chart_view.setRenderHint(QPainter.Antialiasing)
