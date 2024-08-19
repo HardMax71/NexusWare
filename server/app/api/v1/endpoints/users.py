@@ -1,7 +1,7 @@
 # /server/app/api/v1/endpoints/users.py
-from datetime import datetime
 from typing import List
 
+import pyotp
 from fastapi import APIRouter, Depends, HTTPException, Body, Query
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -29,12 +29,33 @@ def login(
     elif not crud.user.is_active(user):
         raise HTTPException(status_code=400, detail="Inactive user")
 
-    # Update the last_login field
-    user.last_login = int(datetime.utcnow().timestamp())
-    db.commit()
+    if user.two_factor_auth_enabled:
+        # Return a special token to indicate 2FA is required
+        return {"access_token": "2FA_REQUIRED", "token_type": "bearer"}
 
+    # If 2FA is not enabled, proceed with normal login
+    return create_token_for_user(user)
+
+
+@router.post("/login/2fa", response_model=shared_schemas.Token)
+def login_2fa(
+        db: Session = Depends(deps.get_db),
+        login_data: shared_schemas.TwoFactorLogin = Body(...)
+):
+    user = crud.user.authenticate(db, email=login_data.username, password=login_data.password)
+    if not user or not user.two_factor_auth_enabled:
+        raise HTTPException(status_code=400, detail="Invalid credentials or 2FA not enabled")
+
+    totp = pyotp.TOTP(user.two_factor_auth_secret)
+    if not totp.verify(login_data.two_factor_code):
+        raise HTTPException(status_code=400, detail="Invalid 2FA code")
+
+    return create_token_for_user(user)
+
+
+def create_token_for_user(user: models.User) -> shared_schemas.Token:
     access_token = security.create_access_token(user.username)
-    return {"access_token": access_token, "token_type": "bearer"}
+    return shared_schemas.Token(access_token=access_token, token_type="bearer")
 
 
 @router.post("/register", response_model=shared_schemas.User)
@@ -90,6 +111,13 @@ def update_user_me(
 ):
     user = crud.user.update(db, db_obj=current_user, obj_in=user_in)
     return shared_schemas.User.model_validate(user)
+
+
+@router.get("/me", response_model=shared_schemas.UserSanitizedWithRole)
+def read_user_me(
+        current_user: models.User = Depends(deps.get_current_active_user),
+):
+    return current_user
 
 
 @router.get("/permissions", response_model=shared_schemas.AllPermissions)

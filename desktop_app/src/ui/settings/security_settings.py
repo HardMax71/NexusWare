@@ -11,6 +11,7 @@ from requests import HTTPError
 
 from desktop_app.src.ui.components import StyledLabel, StyledButton, ToggleSwitch
 from public_api.api import UsersAPI
+from public_api.shared_schemas import UserUpdate
 
 
 class SecuritySettingsWidget(QWidget):
@@ -28,7 +29,6 @@ class SecuritySettingsWidget(QWidget):
         tfa_layout = QHBoxLayout()
         tfa_label = StyledLabel("Two-factor authentication:")
         self.tfa_toggle = ToggleSwitch()
-        self.tfa_toggle.setChecked(self.config_manager.get("two_factor_auth", False))
         self.tfa_toggle.toggled.connect(self.on_tfa_toggled)
         tfa_layout.addWidget(tfa_label)
         tfa_layout.addWidget(self.tfa_toggle)
@@ -73,9 +73,20 @@ class SecuritySettingsWidget(QWidget):
 
         layout.addStretch()
 
+        self.load_current_user()
+
+    def load_current_user(self):
+        try:
+            self.current_user = self.users_api.get_current_user()
+            self.tfa_toggle.setChecked(self.current_user.two_factor_auth_enabled)
+        except HTTPError as e:
+            QMessageBox.critical(self, "Error", f"Failed to load user data: {str(e)}")
+
     def on_tfa_toggled(self, state):
         if state:
             try:
+                current_user = self.users_api.get_current_user()
+
                 # Generate a secret key for Google Authenticator
                 secret_key = pyotp.random_base32()
 
@@ -83,7 +94,7 @@ class SecuritySettingsWidget(QWidget):
                 totp = pyotp.TOTP(secret_key)
 
                 # Generate the provisioning URI for Google Authenticator
-                uri = totp.provisioning_uri(name=self.api_client.username, issuer_name="NexusWareWMS")
+                uri = totp.provisioning_uri(name=current_user.email, issuer_name="NexusWareWMS")
 
                 # Create QR code
                 qr = qrcode.QRCode(version=1, box_size=10, border=5)
@@ -103,9 +114,13 @@ class SecuritySettingsWidget(QWidget):
                     # Verify the entered code
                     entered_code = dialog.code_input.text()
                     if totp.verify(entered_code):
-                        # Save the secret key securely
-                        self.config_manager.set("two_factor_auth_secret", secret_key)
-                        self.config_manager.set("two_factor_auth", True)
+                        # Update user in the database
+                        user_update = UserUpdate(
+                            two_factor_auth_enabled=True,
+                            two_factor_auth_secret=secret_key
+                        )
+                        updated_user = self.users_api.update_current_user(user_update)
+                        self.current_user = updated_user
                         QMessageBox.information(self, "Two-Factor Authentication",
                                                 "Two-factor authentication has been successfully enabled.")
                     else:
@@ -125,10 +140,19 @@ class SecuritySettingsWidget(QWidget):
                                            "This will reduce the security of your account.",
                                            QMessageBox.Yes | QMessageBox.No)
             if confirm == QMessageBox.Yes:
-                self.config_manager.set("two_factor_auth", False)
-                self.config_manager.set("two_factor_auth_secret", None)
-                QMessageBox.information(self, "Two-Factor Authentication",
-                                        "Two-factor authentication has been disabled.")
+                try:
+                    user_update = UserUpdate(
+                        two_factor_auth_enabled=False,
+                        two_factor_auth_secret=None
+                    )
+                    updated_user = self.users_api.update_current_user(user_update)
+                    self.current_user = updated_user
+                    QMessageBox.information(self, "Two-Factor Authentication",
+                                            "Two-factor authentication has been disabled.")
+                except HTTPError as e:
+                    QMessageBox.critical(self, "Error",
+                                         f"Failed to disable two-factor authentication: {str(e)}")
+                    self.tfa_toggle.setChecked(True)
             else:
                 self.tfa_toggle.setChecked(True)
 

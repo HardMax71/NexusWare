@@ -3,13 +3,15 @@ from public_api.shared_schemas import (
     UserCreate, UserUpdate, UserSanitizedWithRole, Token, Message, User
 )
 
-
 class AuthenticationService:
     def __init__(self, users_api: UsersAPI):
         self.users_api = users_api
 
     def login(self, email: str, password: str) -> Token:
         return self.users_api.login(email, password)
+
+    def login_2fa(self, email: str, password: str, two_factor_code: str) -> Token:
+        return self.users_api.login_2fa(email, password, two_factor_code)
 
     def register(self, user_data: UserCreate) -> User:
         return self.users_api.register(user_data)

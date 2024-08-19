@@ -59,10 +59,12 @@ class UserBase(BaseModel):
     email: EmailStr
     is_active: bool = True
     role_id: int
+    two_factor_auth_enabled: bool = False
 
 
 class UserCreate(UserBase):
     password: str
+    two_factor_auth_secret: Optional[str] = None
 
 
 class UserUpdate(BaseModel):
@@ -71,12 +73,15 @@ class UserUpdate(BaseModel):
     is_active: Optional[bool] = None
     role_id: Optional[int] = None
     password: Optional[str] = None
+    two_factor_auth_enabled: Optional[bool] = None
+    two_factor_auth_secret: Optional[str] = None
 
 
 class UserSanitizedWithRole(UserBase):
     id: int
     created_at: int
     last_login: Optional[int] = None
+    two_factor_auth_enabled: bool
     role: Role
 
     class Config:
@@ -90,9 +95,17 @@ class User(UserBase):
     password_hash: str
     password_reset_token: Optional[str] = None
     password_reset_expiration: Optional[int] = None
+    two_factor_auth_enabled: bool
+    two_factor_auth_secret: Optional[str] = None
 
     class Config:
         from_attributes = True
+
+
+class TwoFactorLogin(BaseModel):
+    username: str
+    password: str
+    two_factor_code: str
 
 
 class UserInDB(User):

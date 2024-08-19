@@ -31,6 +31,20 @@ class UsersAPI:
 
         return Token.model_validate(response)
 
+    def login_2fa(self, username: str, password: str, two_factor_code: str) -> Token:
+        data = {
+            "username": username,
+            "password": password,
+            "two_factor_code": two_factor_code
+        }
+        response = self.client.post("/users/login/2fa", json=data)
+        access_token = response.get("access_token")
+
+        if access_token:
+            self.client.set_token(access_token)
+
+        return Token.model_validate(response)
+
     def register(self, user: UserCreate) -> User:
         response = self.client.post("/users/register", json=user.model_dump(mode="json"))
         return User.model_validate(response)

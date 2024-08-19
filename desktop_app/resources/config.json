@@ -11,6 +11,5 @@
   "shipengine_api_key": "TEST_API",
   "request_timeout": 10,
   "font": "Candara",
-  "font_size": "Large",
-  "two_factor_auth": true
+  "font_size": "Large"
 }

@@ -20,6 +20,8 @@ class User(Base):
     last_login = Column(Integer)
     password_reset_token = Column(String(255))
     password_reset_expiration = Column(Integer)
+    two_factor_auth_enabled = Column(Boolean, default=False)
+    two_factor_auth_secret = Column(String(32))  # For storing the TOTP secret
 
     role = relationship("Role", back_populates="users")
     assigned_tasks = relationship("Task", back_populates="assigned_user")

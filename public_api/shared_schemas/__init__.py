@@ -73,7 +73,7 @@ from .user import (
     Message, UserSanitizedWithRole, PasswordResetConfirm, UserFilter,
     UserActivity, RoleWithUsers, UserPermissions, BulkUserCreate,
     BulkUserCreateResult, UserWithPermissions, UserPermissionUpdate,
-    AllRoles, AllPermissions, UserWithRole
+    AllRoles, AllPermissions, UserWithRole, TwoFactorLogin
 )
 # Warehouse shared_schemas
 from .warehouse import (
