@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 import matplotlib
+import numpy as np
 
 matplotlib.use('Qt5Agg')
 from PySide6.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton, QHBoxLayout
@@ -63,8 +64,13 @@ class WarehouseVisualizationWidget(QWidget):
 
         self.ax.clear()
 
+        # First pass: draw all 3D bars
         for (aisle, rack), locations in self.location_grid.items():
-            self.draw_cell(aisle, rack, locations)
+            self.draw_cell(aisle, rack, locations, draw_text=False)
+
+        # Second pass: add all text labels
+        for (aisle, rack), locations in self.location_grid.items():
+            self.draw_cell(aisle, rack, locations, draw_text=True)
 
         self.ax.set_xlabel('Aisles')
         self.ax.set_ylabel('Racks')
@@ -77,38 +83,47 @@ class WarehouseVisualizationWidget(QWidget):
         self.ax.set_ylim(0, max_rack)
         self.ax.set_zlim(0, self.max_inventory_level)
 
-        self.ax.set_xticks(range(max_aisle))
+        self.ax.set_xticks(np.arange(max_aisle) + 0.4)
         self.ax.set_xticklabels(self.unique_aisles)
-        self.ax.set_yticks(range(max_rack))
+        self.ax.set_yticks(np.arange(max_rack) + 0.4)
         self.ax.set_yticklabels(self.unique_racks)
 
         self.figure.tight_layout()
         self.canvas.draw()
 
-    def draw_cell(self, aisle, rack, locations):
+    def draw_cell(self, aisle, rack, locations, draw_text=False):
         x = self.unique_aisles.index(aisle)
         y = self.unique_racks.index(rack)
 
-        for i, location in enumerate(locations):
-            offset_x = i % 2 * 0.4
-            offset_y = i // 2 * 0.4
-            self.draw_location(x + offset_x, y + offset_y, location)
+        num_locations = len(locations)
+        grid_size = int(np.ceil(np.sqrt(num_locations)))
 
-    def draw_location(self, x, y, location):
+        for i, location in enumerate(locations):
+            row = i // grid_size
+            col = i % grid_size
+            offset_x = col * (0.8 / grid_size)
+            offset_y = row * (0.8 / grid_size)
+            self.draw_location(x + offset_x, y + offset_y, location, 0.8 / grid_size, draw_text)
+
+    def draw_location(self, x, y, location, size, draw_text):
         inventory_items = self.inventory_data.get(location.id, [])
         inventory_level = sum(item.quantity for item in inventory_items)
         fill_level = inventory_level / self.max_inventory_level
 
         color = self.get_color_by_fill_level(fill_level)
 
-        # Draw a 3D bar for each location
-        self.ax.bar3d(x, y, 0, 0.3, 0.3, inventory_level, shade=True, color=color, alpha=0.8)
+        if not draw_text:
+            # Draw a 3D bar for each location
+            self.ax.bar3d(x, y, 0, size * 0.9, size * 0.9, inventory_level, shade=True, color=color, alpha=0.8)
+        else:
+            # Add text labels
+            location_text = f"{location.shelf}-{location.bin or 'bin'}"
+            text = self.ax.text(x + size * 0.45, y + size * 0.45, inventory_level + self.max_inventory_level * 0.05,
+                                f"{location_text}\n{inventory_level}",
+                                ha='center', va='center', fontsize=6)
 
-        # Add text labels
-        location_text = f"{location.shelf}-{location.bin or 'bin'}"
-        self.ax.text(x + 0.15, y + 0.15, inventory_level + self.max_inventory_level * 0.05,
-                     f"{location_text}\n{inventory_level}",
-                     ha='center', va='center', fontsize=8)
+            # Ensure text is always on top
+            text.set_zorder(1000)
 
     def get_color_by_fill_level(self, fill_level):
         if fill_level < 0.3:

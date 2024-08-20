@@ -15,6 +15,7 @@ class Location(Base):
     rack = Column(String(50), nullable=True)
     shelf = Column(String(50), nullable=True)
     bin = Column(String(50), nullable=True)
+    capacity = Column(Integer, nullable=False, default=0)
 
     assets = relationship("Asset", back_populates="location")
     inventory_items = relationship("Inventory", back_populates="location")

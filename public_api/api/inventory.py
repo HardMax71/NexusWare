@@ -117,10 +117,6 @@ class InventoryAPI:
         response = self.client.get(f"/inventory/forecast/{product_id}")
         return response
 
-    def generate_inventory_forecast(self, product_id: int) -> Dict:
-        response = self.client.post(f"/inventory/forecast/{product_id}")
-        return response
-
     def get_reorder_suggestions(self) -> List[Dict]:
         response = self.client.get("/inventory/reorder_suggestions")
         return response

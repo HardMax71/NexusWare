@@ -1,10 +1,11 @@
+import random
 import time
 from datetime import datetime, timedelta
 
 from PySide6.QtCharts import QChart, QChartView, QPieSeries, QBarSeries, QBarSet, QValueAxis, QBarCategoryAxis, \
-    QLineSeries, QDateTimeAxis
+    QLineSeries, QDateTimeAxis, QHorizontalBarSeries
 from PySide6.QtCore import Qt, QDateTime
-from PySide6.QtGui import QPainter
+from PySide6.QtGui import QPainter, QColor
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel
 
 from desktop_app.src.ui.components import CardWidget
@@ -51,24 +52,31 @@ class DashboardWidget(QWidget):
     def create_inventory_chart(self):
         inventory_data = self.inventory_api.get_inventory_summary()
         series = QPieSeries()
+        total_quantity = sum(inventory_data.category_quantities.values())
+
         for category, quantity in inventory_data.category_quantities.items():
-            series.append(category, quantity)
+            slice = series.append(category, quantity)
+            slice.setLabelVisible(True)
+
+            percentage = (quantity / total_quantity) * 100
+            slice.setLabel(f"{category}: {quantity} ({percentage:.1f}%)")
 
         chart = QChart()
         chart.addSeries(series)
         chart.setTitle("Inventory by Category")
         chart.setAnimationOptions(QChart.SeriesAnimations)
-        chart.legend().setVisible(True)
-        chart.legend().setAlignment(Qt.AlignRight)
+        chart.legend().hide()
 
         chart_view = QChartView(chart)
         chart_view.setRenderHint(QPainter.Antialiasing)
         return chart_view
 
     def create_performance_chart(self):
-        # Convert datetime objects to Unix timestamps
-        start_date_timestamp = int(time.mktime(datetime(2023, 1, 1).timetuple()))
-        end_date_timestamp = int(time.mktime(datetime(2024, 12, 31).timetuple()))
+        # Calculate timestamps for the last 30 days
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=30)
+        start_date_timestamp = int(time.mktime(start_date.timetuple()))
+        end_date_timestamp = int(time.mktime(end_date.timetuple()))
 
         picking_performance = self.pick_lists_api.get_picking_performance(
             start_date=start_date_timestamp, end_date=end_date_timestamp
@@ -79,65 +87,110 @@ class DashboardWidget(QWidget):
         set0.append(picking_performance.average_picking_time)
         set1.append(picking_performance.items_picked_per_hour)
 
-        series = QBarSeries()
-        series.append(set0)
-        series.append(set1)
+        avg_time_series = QBarSeries()
+        avg_time_series.append(set0)
+        avg_time_series.setLabelsVisible(True)
+
+        items_picked_series = QBarSeries()
+        items_picked_series.append(set1)
+        items_picked_series.setLabelsVisible(True)
 
         chart = QChart()
-        chart.addSeries(series)
-        chart.setTitle("Picking Performance")
+        chart.addSeries(avg_time_series)
+        chart.addSeries(items_picked_series)
+        chart.setTitle("Picking Performance (Last 30 Days)")
         chart.setAnimationOptions(QChart.SeriesAnimations)
 
-        axisY = QValueAxis()
-        axisY.setRange(0, max(set0.at(0), set1.at(0)) * 1.1)  # Set range with 10% headroom
-        chart.addAxis(axisY, Qt.AlignLeft)
-        series.attachAxis(axisY)
-
-        categories = ["Avg. Time", "Items/Hour"]
+        # Set up X-axis
+        categories = ["Avg. Picking Time", "Items Picked/Hour"]
         axisX = QBarCategoryAxis()
         axisX.append(categories)
         chart.addAxis(axisX, Qt.AlignBottom)
-        series.attachAxis(axisX)
 
-        chart.legend().setVisible(True)
-        chart.legend().setAlignment(Qt.AlignRight)
+        # Create and set up left Y-axis (for time)
+        axisYLeft = QValueAxis()
+        axisYLeft.setRange(0, picking_performance.average_picking_time * 1.1)  # 10% headroom
+        axisYLeft.setTitleText("Time (minutes)")
+        chart.addAxis(axisYLeft, Qt.AlignLeft)
+        avg_time_series.attachAxis(axisYLeft)
+
+        # Create and set up right Y-axis (for items)
+        axisYRight = QValueAxis()
+        axisYRight.setRange(0, picking_performance.items_picked_per_hour * 1.1)  # 10% headroom
+        axisYRight.setTitleText("Items")
+        chart.addAxis(axisYRight, Qt.AlignRight)
+        items_picked_series.attachAxis(axisYRight)
+
+        # Hide legend
+        chart.legend().hide()
 
         chart_view = QChartView(chart)
         chart_view.setRenderHint(QPainter.Antialiasing)
         return chart_view
 
     def create_inventory_trend_chart(self):
-        # Use inventory summary data to create a trend
-        inventory_summary = self.reports_api.get_inventory_summary()
+        days_past = 3
+        days_future = 3
 
-        series = QLineSeries()
-        end_date = datetime.now()
-        start_date = end_date - timedelta(days=len(inventory_summary.items))
+        inventory_trend = self.reports_api.get_inventory_trend(
+            days_past=days_past,
+            days_future=days_future
+        )
 
-        for i, item in enumerate(inventory_summary.items):
-            date = start_date + timedelta(days=i)
-            series.append(QDateTime(date).toMSecsSinceEpoch(), item.quantity)
+        real_data_series = QLineSeries()
+        prediction_series = QLineSeries()
+
+        real_data_series.setName("Previous days")
+        prediction_series.setName("Next days")
+
+        prediction_series.setColor(QColor(255, 0, 0))  # Red color for predictions
+
+        # Process past data
+        # More info: https://doc.qt.io/qtforpython-6/overviews/qtcharts-datetimeaxis-example.html
+        for item in inventory_trend["past"]:
+            moment_in_time = QDateTime.fromSecsSinceEpoch(item.timestamp)
+            real_data_series.append(moment_in_time.toMSecsSinceEpoch(), item.quantity)
+
+        # Process predictions
+        for item in inventory_trend["predictions"]:
+            moment_in_time = QDateTime.fromSecsSinceEpoch(item.timestamp)
+            prediction_series.append(moment_in_time.toMSecsSinceEpoch(), item.quantity)
+
+        prediction_series.insert(0, real_data_series.at(
+            real_data_series.count() - 1))  # Add last real data point to predictions
 
         chart = QChart()
-        chart.addSeries(series)
-        chart.setTitle("Inventory Trend by Product")
-        chart.setAnimationOptions(QChart.SeriesAnimations)
+        chart.addSeries(real_data_series)
+        chart.addSeries(prediction_series)
 
+        chart.setTitle("Inventory Trend")
+        chart.setAnimationOptions(QChart.SeriesAnimations)
         axisX = QDateTimeAxis()
-        axisX.setFormat("dd MMM")
+        axisX.setFormat("dd.MM")
         axisX.setTitleText("Date")
+        axisX.setRange(QDateTime.currentDateTime().addDays(-days_past),
+                       QDateTime.currentDateTime().addDays(days_future))
+
+        axisX.setTickCount(days_past + days_future + 1)  # past + future + today
         chart.addAxis(axisX, Qt.AlignBottom)
-        series.attachAxis(axisX)
+        real_data_series.attachAxis(axisX)
+        prediction_series.attachAxis(axisX)
 
         axisY = QValueAxis()
         axisY.setTitleText("Quantity")
         chart.addAxis(axisY, Qt.AlignLeft)
-        series.attachAxis(axisY)
+        real_data_series.attachAxis(axisY)
+        prediction_series.attachAxis(axisY)
 
-        chart.legend().setVisible(False)
+        y_min = axisY.min()
+        y_max = axisY.max()
+        y_range = y_max - y_min
+        axisY.setRange(max(0, y_min - 0.1 * y_range), y_max + 0.1 * y_range)
+
+        chart.legend().setVisible(True)
+        chart.legend().setAlignment(Qt.AlignBottom)
 
         chart_view = QChartView(chart)
-        chart_view.setRenderHint(QPainter.Antialiasing)
         return chart_view
 
     def create_order_statistics_chart(self):
@@ -146,32 +199,40 @@ class DashboardWidget(QWidget):
         start_date = int((datetime.now() - timedelta(days=7)).timestamp())
         order_summary = self.reports_api.get_order_summary(start_date, end_date)
 
-        set_total_orders = QBarSet("Total Orders")
         set_total_revenue = QBarSet("Total Revenue")
+        set_avg_order_value = QBarSet("Avg Order Value")
 
-        set_total_orders.append([order_summary.summary.total_orders])
-        set_total_revenue.append([order_summary.summary.total_revenue])
+        total_revenue = order_summary.summary.total_revenue
+        avg_order_value = order_summary.summary.average_order_value
 
-        series = QBarSeries()
-        series.append(set_total_orders)
-        series.append(set_total_revenue)
+        set_total_revenue.append(total_revenue)
+        set_avg_order_value.append(avg_order_value)
+
+        revenue_series = QHorizontalBarSeries()
+        revenue_series.append(set_total_revenue)
+        avg_order_series = QHorizontalBarSeries()
+        avg_order_series.append(set_avg_order_value)
 
         chart = QChart()
-        chart.addSeries(series)
+        chart.addSeries(revenue_series)
+        chart.addSeries(avg_order_series)
         chart.setTitle("Weekly Order Statistics")
         chart.setAnimationOptions(QChart.SeriesAnimations)
 
-        axisX = QBarCategoryAxis()
-        axisX.append(["Last 7 Days"])
-        chart.addAxis(axisX, Qt.AlignBottom)
-        series.attachAxis(axisX)
-
-        axisY = QValueAxis()
+        categories = ["Total Revenue", "Avg Order Value"]
+        axisY = QBarCategoryAxis()
+        axisY.append(categories)
         chart.addAxis(axisY, Qt.AlignLeft)
-        series.attachAxis(axisY)
 
-        chart.legend().setVisible(True)
-        chart.legend().setAlignment(Qt.AlignRight)
+        axisXTop = QValueAxis()
+        max_money_value = max(total_revenue, avg_order_value)
+        axisXTop.setRange(0, max_money_value * 1.1)  # 10% headroom
+        axisXTop.setTitleText("Amount ($)")
+        chart.addAxis(axisXTop, Qt.AlignTop)
+        revenue_series.attachAxis(axisXTop)
+        avg_order_series.attachAxis(axisXTop)
+
+        chart.legend().setVisible(False)
 
         chart_view = QChartView(chart)
         chart_view.setRenderHint(QPainter.Antialiasing)

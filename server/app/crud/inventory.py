@@ -1,10 +1,14 @@
+import time
 from collections import defaultdict
-from typing import Optional, List, Dict
 from datetime import timedelta, datetime
+from typing import Optional, List, Dict, Tuple
 
 import numpy as np
 from fastapi import HTTPException
-from scipy import stats
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session, joinedload
 
@@ -18,7 +22,7 @@ from public_api.shared_schemas import (
     InventoryReport, LocationWithInventory as LocationWithInventorySchema, InventoryMovement as InventoryMovementSchema,
     StocktakeCreate, StocktakeResult, ABCAnalysisResult, InventoryLocationSuggestion,
     StocktakeDiscrepancy, ABCCategory, StorageUtilization,
-    BulkImportData, BulkImportResult, InventoryFilter, InventoryWithDetails, InventorySummary
+    BulkImportData, BulkImportResult, InventoryFilter, InventoryWithDetails, InventorySummary, InventoryTrendItem
 )
 from server.app.models import (
     Product, Inventory, Location, Zone, ProductCategory, InventoryMovement, InventoryAdjustment
@@ -378,15 +382,14 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
         )
 
     def get_storage_utilization(self, db: Session) -> StorageUtilization:
-        # TODO: func.sum(Location.location_id) - calculate total capacity better, now placeholder
-        total_capacity = db.query(func.sum(Location.id)).scalar() or 0
+        total_capacity = db.query(func.sum(Location.capacity)).scalar() or 0
         total_used = db.query(func.sum(Inventory.quantity)).scalar() or 0
         utilization_percentage = (total_used / total_capacity * 100) if total_capacity > 0 else 0
 
         zone_utilization = db.query(
             Zone.name,
-            func.sum(Location.id).label('capacity'),
-            func.sum(Inventory.quantity).label('used')
+            func.sum(Location.capacity).label('capacity'),
+            func.coalesce(func.sum(Inventory.quantity), 0).label('used')
         ).join(Location, Zone.id == Location.zone_id) \
             .outerjoin(Inventory, Location.id == Inventory.location_id) \
             .group_by(Zone.id).all()
@@ -457,54 +460,125 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
         products = query.all()
         return [ProductSchema.model_validate(product) for product in products]
 
-    def get_inventory_forecast(self, db: Session, product_id: int) -> Dict:
-        # Get historical inventory data
+    def get_forecast_for_product_id(self, db: Session, product_id: int) -> Dict:
         history = db.query(InventoryMovement).filter(InventoryMovement.product_id == product_id).order_by(
             InventoryMovement.timestamp).all()
 
         if not history:
             return {"forecast": []}
 
-        # Prepare data for forecasting
-        dates = [h.timestamp for h in history]
-        quantities = [h.quantity for h in history]
+        timestamps = np.array([h.timestamp for h in history]).reshape(-1, 1)
+        quantities = np.array([h.quantity for h in history])
 
-        # Simple linear regression for forecasting
-        # TODO: Implement more advanced methods
-        x = np.array([(d - dates[0]) // 86400 for d in dates])  # Convert timestamps to days
-        y = np.array(quantities)
-        slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
+        X_train, X_test, y_train, y_test = train_test_split(timestamps, quantities, test_size=0.2, random_state=42)
 
-        # Generate forecast for next 30 days
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+
+        model = RandomForestRegressor(n_estimators=100, max_depth=10, random_state=42)
+        model.fit(X_train_scaled, y_train)
+
         forecast = []
+        last_timestamp = timestamps[-1][0]
         for i in range(30):
-            forecast_date = dates[-1] + (i + 1) * 86400
-            forecast_quantity = slope * (len(x) + i) + intercept
-            forecast.append({"date": forecast_date, "quantity": max(0, round(forecast_quantity))})
+            forecast_timestamp = last_timestamp + (i + 1) * 86400  # Add one day in seconds
+            forecast_input = scaler.transform([[forecast_timestamp]])
+            forecast_quantity = model.predict(forecast_input)[0]
+            forecast.append({
+                "date": int(forecast_timestamp),
+                "quantity": max(0, round(forecast_quantity, 2))
+            })
 
         return {"forecast": forecast}
 
-    def generate_inventory_forecast(self, db: Session, product_id: int) -> Dict:
-        # This could involve more complex forecasting methods
-        # For now, we'll use the same method as get_inventory_forecast
-        return self.get_inventory_forecast(db, product_id)
-
     def get_reorder_suggestions(self, db: Session) -> List[Dict]:
-        products = db.query(Product).all()
+        products = db.query(Product).options(joinedload(Product.inventory_items)).all()
         suggestions = []
         for product in products:
             current_stock = sum(inv.quantity for inv in product.inventory_items)
-            # Simple reorder point calculation based on price
-            # TODO: Implement more advanced methods
-            reorder_point = product.price
+
+            # Calculate average daily demand
+            movements = db.query(InventoryMovement).filter(InventoryMovement.product_id == product.id).order_by(
+                InventoryMovement.timestamp).all()
+            if len(movements) < 2:
+                continue  # Not enough data for this product
+
+            total_demand = sum(m.quantity for m in movements if m.quantity < 0)  # Only outgoing movements
+            days = (movements[-1].timestamp - movements[0].timestamp) / 86400
+            avg_daily_demand = abs(total_demand) / days if days > 0 else 0
+
+            # Calculate lead time (assume 7 days if no data)
+            lead_time = 7
+            if product.po_items:
+                lead_times = [(po.purchase_order.expected_delivery_date - po.purchase_order.order_date).days
+                              for po in product.po_items if po.purchase_order.expected_delivery_date]
+                if lead_times:
+                    lead_time = sum(lead_times) / len(lead_times)
+
+            # Calculate reorder point
+            safety_stock = avg_daily_demand * 3  # 3 days of safety stock
+            reorder_point = (avg_daily_demand * lead_time) + safety_stock
+
             if current_stock <= reorder_point:
                 suggestions.append({
                     "sku": product.sku,
                     "name": product.name,
                     "current_stock": current_stock,
-                    "suggested_reorder": reorder_point - current_stock
+                    "reorder_point": round(reorder_point),
+                    "suggested_reorder": round(reorder_point - current_stock)
                 })
+
         return suggestions
+
+    def get_inventory_trend_with_prediction(self, db: Session, days_past: int = 5, days_future: int = 5) \
+            -> Tuple[List[InventoryTrendItem], List[InventoryTrendItem]]:
+        end_timestamp = int(time.time())
+        start_timestamp = end_timestamp - (days_past * 86400)
+
+        # Get historical data
+        historical_data = db.query(
+            func.date(func.datetime(Inventory.last_updated, 'unixepoch')).label('date'),
+            func.sum(Inventory.quantity).label('total_quantity')
+        ).filter(
+            Inventory.last_updated >= start_timestamp,
+            Inventory.last_updated <= end_timestamp
+        ).group_by(
+            func.date(func.datetime(Inventory.last_updated, 'unixepoch'))
+        ).order_by(
+            func.date(func.datetime(Inventory.last_updated, 'unixepoch'))
+        ).all()
+
+        # Prepare data for historical records
+        timestamps = list(range(start_timestamp, end_timestamp + 86400, 86400))
+        quantities = [0] * (days_past + 1)
+
+        for record in historical_data:
+            record_date = datetime.strptime(record.date, "%Y-%m-%d").date()
+            index = (record_date - datetime.fromtimestamp(start_timestamp).date()).days
+            quantities[index] = record.total_quantity
+
+        historical_items = [
+            InventoryTrendItem(timestamp=timestamp, quantity=quantities[i])
+            for i, timestamp in enumerate(timestamps)
+        ]
+
+        # Perform linear regression
+        X = np.array(timestamps).reshape(-1, 1)
+        y = np.array(quantities)
+        model = LinearRegression()
+        model.fit(X, y)
+
+        # Generate predictions
+        future_timestamps = [end_timestamp + (i * 86400) for i in range(1, days_future + 1)]
+        future_X = np.array(future_timestamps).reshape(-1, 1)
+        predictions = model.predict(future_X)
+
+        prediction_items = [
+            InventoryTrendItem(timestamp=timestamp, quantity=max(0, int(quantity)))
+            for timestamp, quantity in zip(future_timestamps, predictions)
+        ]
+
+        return historical_items, prediction_items
 
 
 inventory = CRUDInventory(Inventory)

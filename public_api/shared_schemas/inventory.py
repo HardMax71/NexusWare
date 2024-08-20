@@ -1,5 +1,5 @@
 # /server/app/shared_schemas/inventory.py
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Union
 
 from pydantic import BaseModel, constr, Field
 
@@ -93,6 +93,7 @@ class LocationBase(BaseModel):
     rack: Optional[str] = Field(None, max_length=50)
     shelf: Optional[str] = Field(None, max_length=50)
     bin: Optional[str] = Field(None, max_length=50)
+    capacity: int = 0
 
 
 class LocationCreate(LocationBase):
@@ -106,6 +107,7 @@ class LocationUpdate(BaseModel):
     rack: Optional[str] = Field(None, max_length=50)
     shelf: Optional[str] = Field(None, max_length=50)
     bin: Optional[str] = Field(None, max_length=50)
+    capacity: Optional[int] = 0
 
 
 class Location(LocationBase):
@@ -270,6 +272,7 @@ class StorageUtilization(BaseModel):
     total_capacity: float
     used_capacity: float
     utilization_percentage: float
+    zone_utilization: List[Dict[str, Union[str, int, float]]]
 
 
 class InventorySummary(BaseModel):
@@ -298,3 +301,8 @@ class InventoryFilter(BaseModel):
     name: Optional[str] = None
     quantity_min: Optional[int] = None
     quantity_max: Optional[int] = None
+
+
+class InventoryTrendItem(BaseModel):
+    timestamp: int
+    quantity: int

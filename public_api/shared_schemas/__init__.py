@@ -27,6 +27,7 @@ from .inventory import (
     InventoryLocationSuggestion, BulkImportData, BulkImportResult,
     StorageUtilization, LocationBase, LocationCreate, LocationUpdate, Location,
     LocationFilter, InventorySummary, InventoryList, InventoryWithDetails,
+    InventoryTrendItem,
 )
 # Order shared_schemas
 from .order import (

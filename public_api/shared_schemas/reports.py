@@ -1,4 +1,5 @@
 # /server/app/shared_schemas/reports.py
+from enum import Enum
 from typing import List, Optional
 
 from pydantic import BaseModel
@@ -41,10 +42,16 @@ class WarehousePerformanceReport(BaseModel):
     metrics: List[WarehousePerformanceMetric]
 
 
+class TrendDirection(str, Enum):
+    UP = 'up'
+    DOWN = 'down'
+    STABLE = 'stable'
+
+
 class KPIMetric(BaseModel):
     name: str
     value: float
-    trend: str  # 'up', 'down', or 'stable'
+    trend: TrendDirection
 
 
 class KPIDashboard(BaseModel):
@@ -143,8 +150,14 @@ class CustomReport(BaseModel):
     last_run: Optional[int]
 
 
+class ReportFrequency(str, Enum):
+    DAILY = 'daily'
+    WEEKLY = 'weekly'
+    MONTHLY = 'monthly'
+
+
 class ReportSchedule(BaseModel):
     report_id: int
-    frequency: str  # 'daily', 'weekly', 'monthly'
+    frequency: ReportFrequency
     next_run: int
     recipients: List[str]
