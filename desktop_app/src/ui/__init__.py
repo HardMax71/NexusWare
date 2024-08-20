@@ -17,7 +17,7 @@ from .search_filter import SearchFilterWidget
 from .shipment_view import ShipmentView
 from .simulation_view import SimulationView
 from .supplier_view import SupplierView
-from .system_diagnostics import SystemDiagnosticsWidget
+from desktop_app.src.ui.settings.system_diagnostics import SystemDiagnosticsWidget
 from .training_mode import TrainingModeManager
 from .user_management import UserManagementWidget
 from .warehouse_visualization_window import WarehouseVisualizationWindow

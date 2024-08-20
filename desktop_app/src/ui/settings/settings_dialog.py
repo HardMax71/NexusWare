@@ -5,6 +5,7 @@ from .appearance_settings import AppearanceSettingsWidget
 from .general_settings import GeneralSettingsWidget
 from .network_settings import NetworkSettingsWidget
 from .security_settings import SecuritySettingsWidget
+from .system_diagnostics import SystemDiagnosticsWidget
 
 
 class SettingsDialog(QDialog):
@@ -19,36 +20,30 @@ class SettingsDialog(QDialog):
     def init_ui(self):
         layout = QVBoxLayout(self)
 
-        # Create tab widget
         self.tab_widget = QTabWidget()
 
-        # Create settings widgets
         self.general_settings = GeneralSettingsWidget(self.config_manager)
         self.appearance_settings = AppearanceSettingsWidget(self.config_manager)
         self.network_settings = NetworkSettingsWidget(self.config_manager)
         self.security_settings = SecuritySettingsWidget(self.config_manager, self.api_client)
         self.advanced_settings = AdvancedSettingsWidget(self.config_manager)
+        self.system_diagnostics = SystemDiagnosticsWidget(self.config_manager, self.api_client)
 
-        # Add tabs
         self.tab_widget.addTab(self.general_settings, "General")
         self.tab_widget.addTab(self.appearance_settings, "Appearance")
         self.tab_widget.addTab(self.network_settings, "Network")
         self.tab_widget.addTab(self.security_settings, "Security")
         self.tab_widget.addTab(self.advanced_settings, "Advanced")
+        self.tab_widget.addTab(self.system_diagnostics, "System Diagnostics")
 
         layout.addWidget(self.tab_widget)
 
-        # Add OK and Cancel buttons
         button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         ok_button = button_box.button(QDialogButtonBox.Ok)
         cancel_button = button_box.button(QDialogButtonBox.Cancel)
 
         ok_button.clicked.connect(self.accept)
         cancel_button.clicked.connect(self.reject)
-
-        # Style the buttons
-        ok_button.setProperty("class", "primary")
-        cancel_button.setProperty("class", "secondary")
 
         layout.addWidget(button_box)
 

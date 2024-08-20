@@ -2,8 +2,8 @@ from PySide6 import QtGui, QtCore
 from PySide6.QtCharts import QChart, QChartView, QLineSeries, QValueAxis, QDateTimeAxis
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPainter
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem, QComboBox, QPushButton, \
-    QHeaderView
+from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem, QComboBox,
+                               QPushButton, QHeaderView)
 
 from desktop_app.src.ui.components import StyledButton
 from desktop_app.src.ui.warehouse_visualization_window import WarehouseVisualizationWindow
