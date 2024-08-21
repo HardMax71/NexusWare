@@ -5,6 +5,7 @@ from .client import APIClient
 from .customers import CustomersAPI
 from .inventory import InventoryAPI
 from .locations import LocationsAPI
+from .notifications import NotificationsAPI
 from .orders import OrdersAPI
 from .permissions import PermissionsAPI
 from .pick_lists import PickListsAPI

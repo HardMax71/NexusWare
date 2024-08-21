@@ -4,7 +4,6 @@ from .barcode_designer import BarcodeDesignerWidget
 from .batch_processor import BatchProcessorWidget
 from .customer_view import CustomerView
 from .dashboard import DashboardWidget
-from .data_analysis import DataAnalysisWidget
 from .inventory_planning import InventoryPlanningWidget
 from .inventory_view import InventoryView
 from .login_dialog import LoginDialog
@@ -34,7 +33,6 @@ __all__ = [
     "CustomerView",
     "ShipmentView",
     "ReportGeneratorWidget",
-    "DataAnalysisWidget",
     "BatchProcessorWidget",
     "BarcodeDesignerWidget",
     "SystemDiagnosticsWidget",

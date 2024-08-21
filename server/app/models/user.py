@@ -27,8 +27,7 @@ class User(Base):
     assigned_tasks = relationship("Task", back_populates="assigned_user")
     task_comments = relationship("TaskComment", back_populates="user")
     audit_logs = relationship("AuditLog", back_populates="user")
-
-
+    notifications = relationship("Notification", back_populates="user")
 
     @property
     def permissions(self):

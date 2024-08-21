@@ -6,6 +6,7 @@ from .customer import customer
 from .dock_appointment import dock_appointment
 from .inventory import inventory
 from .location import location
+from .notification import notification
 from .order import order, order_item
 from .permission import permission
 from .pick_list import pick_list, pick_list_item

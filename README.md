@@ -55,7 +55,6 @@ across mobile, web, and desktop environments.
 | Batch Processing            | -      | -   | ✅       |
 | Barcode and Label Design    | -      | -   | ✅       |
 | Advanced Search and Filter  | -      | ✅   | ✅       |
-| Data Analysis Tools         | -      | -   | ✅       |
 | System Diagnostics          | -      | -   | ✅       |
 | Simulation and Modeling     | -      | -   | ✅       |
 | Training Mode               | -      | -   | ✅       |

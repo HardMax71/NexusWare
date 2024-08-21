@@ -29,6 +29,10 @@ from .inventory import (
     LocationFilter, InventorySummary, InventoryList, InventoryWithDetails,
     InventoryTrendItem,
 )
+# Notification shared_schemas
+from .notification import (
+    NotificationBase, NotificationCreate, NotificationUpdate, Notification
+)
 # Order shared_schemas
 from .order import (
     OrderItemBase, OrderItemCreate, OrderItemUpdate, OrderItem,

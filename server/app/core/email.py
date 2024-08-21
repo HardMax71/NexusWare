@@ -20,7 +20,8 @@ def send_reset_password_email(email: str, token: str) -> str:
             <p>Hi,</p>
             <p>You have requested to reset your password. Please click the button below to reset your password:</p>
             <p>
-                <a href="{reset_link}" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: #ffffff; text-decoration: none; border-radius: 5px;">
+                <a href="{reset_link}" style="display: inline-block; padding: 10px 20px; 
+                background-color: #007bff; color: #ffffff; text-decoration: none; border-radius: 5px;">
                     Reset Password
                 </a>
             </p>
