@@ -1,6 +1,6 @@
 import sys
 
-from PySide6.QtCore import QFile, QTextStream, QTranslator
+from PySide6.QtCore import QFile, QTextStream, QTranslator, QDir
 from PySide6.QtGui import QIcon, QFont
 from PySide6.QtWidgets import QApplication, QMessageBox
 from requests import HTTPError
@@ -27,7 +27,7 @@ def load_stylesheet(filename):
 def apply_appearance_settings(app, config_manager):
     # Apply theme
     theme = config_manager.get("theme", "light")
-    stylesheet = load_stylesheet(f"resources/styles/{theme}_theme.qss")
+    stylesheet = load_stylesheet(f"styles:{theme}_theme.qss")
     app.setStyleSheet(stylesheet)
 
     # Apply font
@@ -46,6 +46,9 @@ def apply_appearance_settings(app, config_manager):
 
 
 def main():
+    # Load configuration
+    config_manager = ConfigManager()
+
     # Set up logging
     logger = setup_logger("nexusware")
     logger.info("Starting NexusWare WMS")
@@ -54,14 +57,20 @@ def main():
     app = QApplication(sys.argv)
     app.setApplicationName("NexusWare WMS")
     app.setOrganizationName("NexusWare")
-    app.setOrganizationDomain("nexusware.com")
+    app.setOrganizationDomain(config_manager.get("organization_domain",
+                                                 "nexusware.com"))
+
+    # Adding resource path
+    QDir.addSearchPath("icons", config_manager.get("icons_path",
+                                                   "resources/icons"))
+    QDir.addSearchPath("styles", config_manager.get("styles_path",
+                                                    "resources/styles"))
+    QDir.addSearchPath("templates", config_manager.get("templates_path",
+                                                       "resources/templates"))
 
     # Set application icon
-    app_icon = QIcon("resources/icons/app_icon.png")
+    app_icon = QIcon("icons:app_icon.png")
     app.setWindowIcon(app_icon)
-
-    # Load configuration
-    config_manager = ConfigManager()
 
     # Apply appearance settings
     apply_appearance_settings(app, config_manager)
@@ -74,7 +83,8 @@ def main():
             app.installTranslator(translator)
 
     # Initialize API client
-    api_client = APIClient(base_url=config_manager.get("api_base_url", "http://127.0.0.1:8000/api/v1"))
+    api_client = APIClient(base_url=config_manager.get("api_base_url",
+                                                       "http://127.0.0.1:8000/api/v1"))
 
     # Initialize services
     users_api = UsersAPI(api_client)
@@ -99,7 +109,8 @@ def main():
     main_window = MainWindow(api_client=api_client, config_manager=config_manager, permission_manager=user_permissions)
 
     def handle_auth_error():
-        QMessageBox.warning(None, "Authentication Error", "Your session has expired. Please log in again.")
+        QMessageBox.warning(None, "Authentication Error",
+                            "Your session has expired. Please log in again.")
         main_window.close()
         if login_dialog.exec() == LoginDialog.Accepted:
             main_window.show()

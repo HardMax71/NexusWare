@@ -13,6 +13,7 @@ from .notification_center import NotificationCenter
 from .order_view import OrderView
 from .product_view import ProductView
 from .report_generator import ReportGeneratorWidget
+from .search_filter import AdvancedSearchDialog
 from .settings.settings_dialog import SettingsDialog
 from .shipment_view import ShipmentView
 from .supplier_view import SupplierView
@@ -101,9 +102,16 @@ class MainWindow(QMainWindow):
         if self.permission_manager.has_read_permission("notifications"):
             view_menu.addAction("Toggle Notification Center", self.toggle_notification_center)
 
+        if self.permission_manager.has_read_permission("adv_search"):
+            view_menu.addAction("Advanced Search", self.open_advanced_search)
+
         help_menu = menu_bar.addMenu("Help")
         help_menu.addAction("User Manual", self.open_user_manual)
         help_menu.addAction("About", self.show_about_dialog)
+
+    def open_advanced_search(self):
+        search_dialog = AdvancedSearchDialog(self.api_client, self)
+        search_dialog.exec()
 
     def open_settings(self):
         settings_dialog = SettingsDialog(self.config_manager, self, api_client=self.api_client)

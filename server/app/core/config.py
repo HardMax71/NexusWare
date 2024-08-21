@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     EMAIL_FROM: str = "your-email@example.com"
     EMAIL_FROM_NAME: str = "NexusWare WMS"
 
+    PASSWORD_RESET_LINK: str = "https://nexusware-wms.com/reset-password"  # Not working for now
+
     # ShipEngine API configuration
     SHIPENGINE_API_KEY: str = "SHIPENGINE_API_KEY"
     SHIPENGINE_API_URL: str = "https://api.shipengine.com/v1"

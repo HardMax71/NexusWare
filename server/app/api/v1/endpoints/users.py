@@ -75,7 +75,7 @@ def reset_password(
         email: str = Body(..., embed=True),
         db: Session = Depends(deps.get_db)
 ):
-    user = crud.user.get(db, email=email)
+    user = crud.user.get_by_email(db, email=email)
     if not user:
         raise HTTPException(
             status_code=404,

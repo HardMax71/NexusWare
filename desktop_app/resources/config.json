@@ -11,5 +11,10 @@
   "shipengine_api_key": "TEST_API",
   "request_timeout": 10,
   "font": "Candara",
-  "font_size": "Large"
+  "font_size": "Large",
+
+  "icons_path": "resources/icons",
+  "styles_path": "resources/styles",
+  "templates_path": "resources/templates",
+  "organization_domain": "nexusware.com"
 }
