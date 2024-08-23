@@ -1,5 +1,3 @@
-from typing import Optional
-
 from sqlalchemy import func, desc
 from sqlalchemy.orm import Session
 
@@ -30,7 +28,7 @@ class CRUDAuditLog(CRUDBase[AuditLog, AuditLogCreate, AuditLogCreate]):
         audit_logs = query.order_by(desc(AuditLog.timestamp)).offset(skip).limit(limit).all()
         return [AuditLogSchema.model_validate(audit_log) for audit_log in audit_logs]
 
-    def get_summary(self, db: Session, date_from: Optional[int], date_to: Optional[int]) -> AuditSummary:
+    def get_summary(self, db: Session, date_from: int | None, date_to: int | None) -> AuditSummary:
         query = db.query(self.model)
         if date_from:
             query = query.filter(AuditLog.timestamp >= date_from)

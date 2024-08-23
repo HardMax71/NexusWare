@@ -5,7 +5,6 @@ from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session, joinedload
 
 from public_api import shared_schemas
-from public_api.shared_schemas import ProductWithCategoryAndInventory
 from .... import crud, models
 from ....api import deps
 from ....models import Product
@@ -55,7 +54,7 @@ def get_product_by_barcode(
     product = crud.product.get(db, barcode=barcode_data.barcode, options=options)
 
     if product:
-        return ProductWithCategoryAndInventory.model_validate(product)
+        return product
     raise HTTPException(status_code=404, detail="Product not found")
 
 
@@ -73,7 +72,7 @@ def read_product(
     product = crud.product.get(db, id=product_id, options=options)
 
     if product:
-        return ProductWithCategoryAndInventory.model_validate(product)
+        return product
     raise HTTPException(status_code=404, detail="Product not found")
 
 

@@ -1,5 +1,3 @@
-from typing import List, Optional
-
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
                                QHeaderView, QDialog, QLineEdit, QFormLayout, QDialogButtonBox,
@@ -66,7 +64,7 @@ class SupplierView(QWidget):
         suppliers = self.suppliers_api.get_suppliers()
         self.update_table(suppliers)
 
-    def update_table(self, suppliers: List[Supplier]):
+    def update_table(self, suppliers: list[Supplier]):
         self.suppliers_table.setRowCount(len(suppliers))
         self.suppliers_table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         for row, supplier in enumerate(suppliers):
@@ -138,9 +136,8 @@ class SupplierView(QWidget):
                 QMessageBox.critical(self, "Error", f"Failed to delete supplier: {str(e)}")
 
 
-
 class SupplierDialog(QDialog):
-    def __init__(self, suppliers_api: SuppliersAPI, supplier_data: Optional[Supplier] = None, parent=None):
+    def __init__(self, suppliers_api: SuppliersAPI, supplier_data: Supplier | None = None, parent=None):
         super().__init__(parent)
         self.suppliers_api = suppliers_api
         self.supplier_data = supplier_data

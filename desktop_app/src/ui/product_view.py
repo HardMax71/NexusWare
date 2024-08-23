@@ -1,11 +1,11 @@
 from datetime import datetime
-from typing import List, Optional
 
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
                                QHeaderView, QDialog, QLineEdit, QStackedWidget, QMessageBox, QComboBox,
-                               QFormLayout, QDoubleSpinBox, QDialogButtonBox, QLabel)
+                               QFormLayout, QDoubleSpinBox, QDialogButtonBox, QLabel, QMainWindow)
 
+from desktop_app.src.ui import BarcodeDesignerWidget
 from desktop_app.src.ui.components import StyledButton
 from public_api.api import ProductsAPI, APIClient, ProductCategoriesAPI, LocationsAPI, UsersAPI
 from public_api.shared_schemas.inventory import (ProductWithCategoryAndInventory, ProductFilter, ProductCreate,
@@ -83,7 +83,7 @@ class ProductView(QWidget):
         products = self.products_api.get_products(product_filter=filter_params)
         self.update_table(products)
 
-    def update_table(self, items: List[ProductWithCategoryAndInventory]):
+    def update_table(self, items: list[ProductWithCategoryAndInventory]):
         self.table.setRowCount(len(items))
         self.table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         for row, item in enumerate(items):
@@ -104,6 +104,10 @@ class ProductView(QWidget):
             view_button.clicked.connect(lambda _, i=item.id: self.view_product(i))
             actions_layout.addWidget(view_button)
 
+            barcode_button = StyledButton("Barcode")
+            barcode_button.clicked.connect(lambda _, i=item: self.generate_barcode(i))
+            actions_layout.addWidget(barcode_button)
+
             if self.permission_manager.has_write_permission("products"):
                 edit_button = StyledButton("Edit")
                 edit_button.clicked.connect(lambda _, i=item.id: self.edit_product(i))
@@ -115,6 +119,28 @@ class ProductView(QWidget):
                 actions_layout.addWidget(delete_button)
 
             self.table.setCellWidget(row, 5, actions_widget)
+
+    def generate_barcode(self, product: ProductWithCategoryAndInventory):
+        barcode_window = QMainWindow(self)
+        barcode_window.setWindowTitle(f"Barcode Designer - {product.name}")
+
+        product_data = {
+            "sku": product.sku,
+            "name": product.name,
+            "price": product.price
+        }
+
+        barcode_widget = BarcodeDesignerWidget(self.api_client, product_data)
+        barcode_window.setCentralWidget(barcode_widget)
+
+        default_type_index = barcode_widget.barcode_type.findText("Code 128")
+        if default_type_index >= 0:
+            barcode_widget.barcode_type.setCurrentIndex(default_type_index)
+
+        barcode_widget.generate_barcode()
+
+        barcode_window.resize(400, 350)
+        barcode_window.show()
 
     def filter_products(self):
         search_text = self.search_input.text().lower()
@@ -158,10 +184,9 @@ class ProductView(QWidget):
                 QMessageBox.critical(self, "Error", f"Failed to delete product: {str(e)}")
 
 
-
 class ProductDialog(QDialog):
     def __init__(self, products_api: ProductsAPI, categories_api: ProductCategoriesAPI,
-                 product_data: Optional[ProductWithCategoryAndInventory] = None, parent=None):
+                 product_data: ProductWithCategoryAndInventory | None = None, parent=None):
         super().__init__(parent)
         self.products_api = products_api
         self.categories_api = categories_api

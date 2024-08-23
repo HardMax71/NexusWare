@@ -13,20 +13,21 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(50), unique=True, nullable=False)
     email = Column(String(100), unique=True, nullable=False)
-    password_hash = Column(String(255), nullable=False)
+    password = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=True)
     role_id = Column(Integer, ForeignKey("roles.id"))
     created_at = Column(Integer, default=lambda: int(time.time()))
     last_login = Column(Integer)
     password_reset_token = Column(String(255))
     password_reset_expiration = Column(Integer)
+    two_factor_auth_enabled = Column(Boolean, default=False)
+    two_factor_auth_secret = Column(String(32))  # For storing the TOTP secret
 
     role = relationship("Role", back_populates="users")
     assigned_tasks = relationship("Task", back_populates="assigned_user")
     task_comments = relationship("TaskComment", back_populates="user")
     audit_logs = relationship("AuditLog", back_populates="user")
-
-
+    notifications = relationship("Notification", back_populates="user")
 
     @property
     def permissions(self):

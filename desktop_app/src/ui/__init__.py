@@ -1,26 +1,25 @@
-from .main_window import MainWindow
-from .login_dialog import LoginDialog
+from desktop_app.src.ui.settings.system_diagnostics import SystemDiagnosticsWidget
+from .audit_log_view import AuditLogView
+from .barcode_designer import BarcodeDesignerWidget
+from .batch_processor import BatchProcessorWidget
+from .customer_view import CustomerView
 from .dashboard import DashboardWidget
-from .inventory_view import InventoryView
 from .inventory_planning import InventoryPlanningWidget
+from .inventory_view import InventoryView
+from .login_dialog import LoginDialog
+from .main_window import MainWindow
+from .notification_center import NotificationCenter
+from .offline_mode import OfflineModeWidget
 from .order_view import OrderView
 from .product_view import ProductView
-from .supplier_view import SupplierView
-from .customer_view import CustomerView
-from .shipment_view import ShipmentView
 from .report_generator import ReportGeneratorWidget
-from .data_analysis import DataAnalysisWidget
-from .warehouse_visualizer import WarehouseVisualizerWidget
-from .batch_processor import BatchProcessorWidget
-from .barcode_designer import BarcodeDesignerWidget
-from .system_diagnostics import SystemDiagnosticsWidget
+from .search_filter import AdvancedSearchDialog
+from .shipment_view import ShipmentView
 from .simulation_view import SimulationView
-from .search_filter import SearchFilterWidget
+from .supplier_view import SupplierView
 from .training_mode import TrainingModeManager
-from .offline_mode import OfflineModeWidget
 from .user_management import UserManagementWidget
-from .audit_log_view import AuditLogView
-from .notification_center import NotificationCenter
+from .warehouse_visualization_window import WarehouseVisualizationWindow
 
 __all__ = [
     "MainWindow",
@@ -34,17 +33,15 @@ __all__ = [
     "CustomerView",
     "ShipmentView",
     "ReportGeneratorWidget",
-    "DataAnalysisWidget",
-    "WarehouseVisualizerWidget",
     "BatchProcessorWidget",
     "BarcodeDesignerWidget",
     "SystemDiagnosticsWidget",
     "SimulationView",
-    "SearchFilterWidget",
+    "AdvancedSearchDialog",
     "TrainingModeManager",
     "OfflineModeWidget",
     "UserManagementWidget",
     "AuditLogView",
-    "NotificationCenter"
+    "NotificationCenter",
+    "WarehouseVisualizationWindow",
 ]
-

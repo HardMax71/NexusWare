@@ -1,5 +1,3 @@
-from typing import List, Optional
-
 from public_api.shared_schemas import (
     PickListCreate, PickListUpdate, PickList, PickListFilter,
     OptimizedPickingRoute, PickingPerformance
@@ -16,7 +14,7 @@ class PickListsAPI:
         return PickList.model_validate(response)
 
     def get_pick_lists(self, skip: int = 0, limit: int = 100,
-                       filter_params: Optional[PickListFilter] = None) -> List[PickList]:
+                       filter_params: PickListFilter | None = None) -> list[PickList]:
         params = {"skip": skip, "limit": limit}
         if filter_params:
             params.update(filter_params.model_dump(mode="json", exclude_unset=True))

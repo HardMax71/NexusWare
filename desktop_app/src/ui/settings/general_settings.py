@@ -1,3 +1,6 @@
+import os
+import sys
+
 from PySide6.QtCore import QCoreApplication, QSettings
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QMessageBox
 
@@ -59,10 +62,71 @@ class GeneralSettingsWidget(QWidget):
         self.set_startup_behavior(state)
 
     def set_startup_behavior(self, enable):
-        # TODO: Add same behavior for Linux and macOS
+        if sys.platform == "win32":
+            self.set_windows_startup(enable)
+        elif sys.platform == "darwin":
+            self.set_macos_startup(enable)
+        elif sys.platform.startswith("linux"):
+            self.set_linux_startup(enable)
+        else:
+            QMessageBox.warning(self, "Unsupported Platform",
+                                "Setting startup behavior is not supported on this platform.")
+
+    def set_windows_startup(self, enable):
         settings = QSettings("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
                              QSettings.NativeFormat)
+        app_path = QCoreApplication.applicationFilePath().replace('/', '\\')
         if enable:
-            settings.setValue("NexusWareWMS", QCoreApplication.applicationFilePath().replace('/', '\\'))
+            settings.setValue("NexusWareWMS", app_path)
         else:
             settings.remove("NexusWareWMS")
+
+    def set_macos_startup(self, enable):
+        app_name = QCoreApplication.applicationName()
+        plist_path = os.path.expanduser(f"~/Library/LaunchAgents/com.{app_name}.plist")
+        app_path = QCoreApplication.applicationFilePath()
+
+        if enable:
+            plist_content = f"""<?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+            <plist version="1.0">
+            <dict>
+                <key>Label</key>
+                <string>com.{app_name}</string>
+                <key>ProgramArguments</key>
+                <array>
+                    <string>{app_path}</string>
+                </array>
+                <key>RunAtLoad</key>
+                <true/>
+            </dict>
+            </plist>"""
+            with open(plist_path, "w") as f:
+                f.write(plist_content)
+        else:
+            if os.path.exists(plist_path):
+                os.remove(plist_path)
+
+    def set_linux_startup(self, enable):
+        app_name = QCoreApplication.applicationName()
+        desktop_file_path = os.path.expanduser(f"~/.config/autostart/{app_name}.desktop")
+        app_path = QCoreApplication.applicationFilePath()
+
+        if enable:
+            desktop_file_content = f"""[Desktop Entry]
+            Type=Application
+            Exec={app_path}
+            Hidden=false
+            NoDisplay=false
+            X-GNOME-Autostart-enabled=true
+            Name[en_US]={app_name}
+            Name={app_name}
+            Comment[en_US]=Start {app_name} on system startup
+            Comment=Start {app_name} on system startup
+            """
+            os.makedirs(os.path.dirname(desktop_file_path), exist_ok=True)
+            with open(desktop_file_path, "w") as f:
+                f.write(desktop_file_content)
+        else:
+            if os.path.exists(desktop_file_path):
+                os.remove(desktop_file_path)

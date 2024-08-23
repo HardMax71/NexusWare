@@ -28,8 +28,7 @@ def read_permissions(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    permissions = crud.permission.get_multi(db, skip=skip, limit=limit)
-    return [shared_schemas.Permission.model_validate(perm) for perm in permissions]
+    return crud.permission.get_multi(db, skip=skip, limit=limit)
 
 
 @router.get("/{permission_id}", response_model=shared_schemas.Permission)

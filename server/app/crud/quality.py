@@ -1,5 +1,3 @@
-from typing import Optional
-
 from sqlalchemy import func, case
 from sqlalchemy.orm import Session
 
@@ -35,7 +33,7 @@ class CRUDQualityCheck(CRUDBase[QualityCheck, QualityCheckCreate, QualityCheckUp
         quality_checks = query.offset(skip).limit(limit).all()
         return [QualityCheckSchema.model_validate(check) for check in quality_checks]
 
-    def get_metrics(self, db: Session, date_from: Optional[int], date_to: Optional[int]) -> QualityMetrics:
+    def get_metrics(self, db: Session, date_from: int | None, date_to: int | None) -> QualityMetrics:
         query = db.query(
             func.count(QualityCheck.id).label("total_checks"),
             func.sum(case((QualityCheck.result == "pass", 1), else_=0)).label("passes"),
@@ -57,7 +55,7 @@ class CRUDQualityCheck(CRUDBase[QualityCheck, QualityCheckCreate, QualityCheckUp
             fail_rate=fails / total if total > 0 else 0
         )
 
-    def get_summary(self, db: Session, date_from: Optional[int], date_to: Optional[int]) -> dict[str, int]:
+    def get_summary(self, db: Session, date_from: int | None, date_to: int | None) -> dict[str, int]:
         query = db.query(QualityCheck.result, func.count(QualityCheck.id))
         if date_from:
             query = query.filter(QualityCheck.check_date >= date_from)
@@ -92,7 +90,7 @@ class CRUDQualityCheck(CRUDBase[QualityCheck, QualityCheckCreate, QualityCheckUp
         return QualityCheckCommentSchema.model_validate(db_comment)
 
     def get_product_defect_rates(self, db: Session,
-                                 date_from: Optional[int], date_to: Optional[int]) -> list[ProductDefectRate]:
+                                 date_from: int | None, date_to: int | None) -> list[ProductDefectRate]:
         query = db.query(
             Product.id,
             Product.name.label("product_name"),

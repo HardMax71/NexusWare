@@ -1,5 +1,3 @@
-from typing import Optional
-
 from public_api.shared_schemas import (
     AssetCreate, AssetUpdate, Asset, AssetWithMaintenance, AssetFilter,
     AssetMaintenanceCreate, AssetMaintenanceUpdate, AssetMaintenance,
@@ -18,7 +16,7 @@ class AssetsAPI:
         return Asset.model_validate(response)
 
     def get_assets(self, skip: int = 0, limit: int = 100,
-                   asset_filter: Optional[AssetFilter] = None) -> AssetWithMaintenanceList:
+                   asset_filter: AssetFilter | None = None) -> AssetWithMaintenanceList:
         params = {"skip": skip, "limit": limit}
         if asset_filter:
             params.update(asset_filter.model_dump(mode="json", exclude_unset=True))
@@ -50,7 +48,7 @@ class AssetsAPI:
         return AssetMaintenance.model_validate(response)
 
     def get_asset_maintenances(self, skip: int = 0, limit: int = 100,
-                               maintenance_filter: Optional[AssetMaintenanceFilter] = None) -> list[AssetMaintenance]:
+                               maintenance_filter: AssetMaintenanceFilter | None = None) -> list[AssetMaintenance]:
         params = {"skip": skip, "limit": limit}
         if maintenance_filter:
             params.update(maintenance_filter.model_dump(mode="json", exclude_unset=True))

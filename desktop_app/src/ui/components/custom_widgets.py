@@ -27,7 +27,8 @@ class StyledButton(QPushButton):
             "Search": "SP_FileDialogContentsView",
             "Track": "SP_FileDialogInfoView",
             "Label": "SP_FileIcon",
-            "Permissions": "SP_DialogHelpButton"
+            "Permissions": "SP_DialogHelpButton",
+            "Barcode": "SP_DriveDVDIcon",
         }
 
         if text in icon_map:

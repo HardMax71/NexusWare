@@ -1,5 +1,3 @@
-from typing import List, Optional
-
 from public_api.shared_schemas import (
     PurchaseOrderCreate, PurchaseOrderUpdate, PurchaseOrder,
     PurchaseOrderWithDetails, PurchaseOrderFilter, POItemReceive
@@ -16,7 +14,7 @@ class PurchaseOrdersAPI:
         return PurchaseOrder.model_validate(response)
 
     def get_purchase_orders(self, skip: int = 0, limit: int = 100,
-                            po_filter: Optional[PurchaseOrderFilter] = None) -> List[PurchaseOrderWithDetails]:
+                            po_filter: PurchaseOrderFilter | None = None) -> list[PurchaseOrderWithDetails]:
         params = {"skip": skip, "limit": limit}
         if po_filter:
             params.update(po_filter.model_dump(mode="json", exclude_unset=True))
@@ -36,7 +34,7 @@ class PurchaseOrdersAPI:
         response = self.client.delete(f"/purchase_orders/{po_id}")
         return PurchaseOrder.model_validate(response)
 
-    def receive_purchase_order(self, po_id: int, received_items: List[POItemReceive]) -> PurchaseOrder:
+    def receive_purchase_order(self, po_id: int, received_items: list[POItemReceive]) -> PurchaseOrder:
         response = self.client.post(f"/purchase_orders/{po_id}/receive",
                                     json={"received_items": [item.model_dump(mode="json") for item in received_items]})
         return PurchaseOrder.model_validate(response)

@@ -1,11 +1,17 @@
 import json
+from io import BytesIO
 
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QSpinBox, QMessageBox, QLineEdit, \
-    QDialog, QFormLayout, QPushButton
+import pyotp
+import qrcode
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QPixmap
+from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QSpinBox, QMessageBox, QLineEdit,
+                               QDialog, QFormLayout, QPushButton, QLabel)
 from requests import HTTPError
 
 from desktop_app.src.ui.components import StyledLabel, StyledButton, ToggleSwitch
 from public_api.api import UsersAPI
+from public_api.shared_schemas import UserUpdate
 
 
 class SecuritySettingsWidget(QWidget):
@@ -23,7 +29,6 @@ class SecuritySettingsWidget(QWidget):
         tfa_layout = QHBoxLayout()
         tfa_label = StyledLabel("Two-factor authentication:")
         self.tfa_toggle = ToggleSwitch()
-        self.tfa_toggle.setChecked(self.config_manager.get("two_factor_auth", False))
         self.tfa_toggle.toggled.connect(self.on_tfa_toggled)
         tfa_layout.addWidget(tfa_label)
         tfa_layout.addWidget(self.tfa_toggle)
@@ -68,12 +73,88 @@ class SecuritySettingsWidget(QWidget):
 
         layout.addStretch()
 
+        self.load_current_user()
+
+    def load_current_user(self):
+        try:
+            self.current_user = self.users_api.get_current_user()
+            self.tfa_toggle.setChecked(self.current_user.two_factor_auth_enabled)
+        except HTTPError as e:
+            QMessageBox.critical(self, "Error", f"Failed to load user data: {str(e)}")
+
     def on_tfa_toggled(self, state):
-        self.config_manager.set("two_factor_auth", state)
         if state:
-            QMessageBox.information(self, "Two-Factor Authentication",
-                                    "Two-factor authentication has been enabled. Please set up your authenticator app.")
-            # TODO: Implement two-factor authentication setup
+            try:
+                current_user = self.users_api.get_current_user()
+
+                # Generate a secret key for Google Authenticator
+                secret_key = pyotp.random_base32()
+
+                # Create a TOTP instance
+                totp = pyotp.TOTP(secret_key)
+
+                # Generate the provisioning URI for Google Authenticator
+                uri = totp.provisioning_uri(name=current_user.email, issuer_name="NexusWareWMS")
+
+                # Create QR code
+                qr = qrcode.QRCode(version=1, box_size=10, border=5)
+                qr.add_data(uri)
+                qr.make(fit=True)
+                img = qr.make_image(fill_color="black", back_color="white")
+
+                # Convert PIL Image to QPixmap
+                buffer = BytesIO()
+                img.save(buffer, format="PNG")
+                qr_pixmap = QPixmap()
+                qr_pixmap.loadFromData(buffer.getvalue())
+
+                # Show QR code dialog
+                dialog = QRCodeDialog(qr_pixmap, secret_key, self)
+                if dialog.exec() == QDialog.Accepted:
+                    # Verify the entered code
+                    entered_code = dialog.code_input.text()
+                    if totp.verify(entered_code):
+                        # Update user in the database
+                        user_update = UserUpdate(
+                            two_factor_auth_enabled=True,
+                            two_factor_auth_secret=secret_key
+                        )
+                        updated_user = self.users_api.update_current_user(user_update)
+                        self.current_user = updated_user
+                        QMessageBox.information(self, "Two-Factor Authentication",
+                                                "Two-factor authentication has been successfully enabled.")
+                    else:
+                        QMessageBox.warning(self, "Verification Failed",
+                                            "The entered code is incorrect. "
+                                            "Two-factor authentication has not been enabled.")
+                        self.tfa_toggle.setChecked(False)
+                else:
+                    self.tfa_toggle.setChecked(False)
+            except Exception as e:
+                QMessageBox.critical(self, "Error",
+                                     f"An error occurred while setting up two-factor authentication: {str(e)}")
+                self.tfa_toggle.setChecked(False)
+        else:
+            confirm = QMessageBox.question(self, "Disable Two-Factor Authentication",
+                                           "Are you sure you want to disable two-factor authentication? "
+                                           "This will reduce the security of your account.",
+                                           QMessageBox.Yes | QMessageBox.No)
+            if confirm == QMessageBox.Yes:
+                try:
+                    user_update = UserUpdate(
+                        two_factor_auth_enabled=False,
+                        two_factor_auth_secret=None
+                    )
+                    updated_user = self.users_api.update_current_user(user_update)
+                    self.current_user = updated_user
+                    QMessageBox.information(self, "Two-Factor Authentication",
+                                            "Two-factor authentication has been disabled.")
+                except HTTPError as e:
+                    QMessageBox.critical(self, "Error",
+                                         f"Failed to disable two-factor authentication: {str(e)}")
+                    self.tfa_toggle.setChecked(True)
+            else:
+                self.tfa_toggle.setChecked(True)
 
     def change_password(self):
         dialog = PasswordChangeDialog(self)
@@ -150,4 +231,48 @@ class PasswordChangeDialog(QDialog):
         button_box.addWidget(ok_button)
         button_box.addWidget(cancel_button)
 
+        layout.addLayout(button_box)
+
+
+class QRCodeDialog(QDialog):
+    def __init__(self, qr_pixmap, secret_key, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Set Up Google Authenticator")
+        self.setup_ui(qr_pixmap, secret_key)
+
+    def setup_ui(self, qr_pixmap, secret_key):
+        layout = QVBoxLayout(self)
+
+        # QR Code
+        qr_label = QLabel(self)
+        qr_label.setPixmap(qr_pixmap.scaled(200, 200, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        qr_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(qr_label)
+
+        # Instructions
+        instructions = QLabel("1. Open Google Authenticator on your phone\n"
+                              "2. Tap '+' and select 'Scan QR code'\n"
+                              "3. Scan the QR code above\n"
+                              "4. Enter the 6-digit code from Google Authenticator below")
+        instructions.setAlignment(Qt.AlignCenter)
+        layout.addWidget(instructions)
+
+        # Secret key (in case QR code doesn't work)
+        secret_label = QLabel(f"Secret key: {secret_key}")
+        secret_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(secret_label)
+
+        # Code input
+        self.code_input = QLineEdit(self)
+        self.code_input.setPlaceholderText("Enter 6-digit code")
+        layout.addWidget(self.code_input)
+
+        # Buttons
+        button_box = QHBoxLayout()
+        verify_button = QPushButton("Verify", self)
+        verify_button.clicked.connect(self.accept)
+        cancel_button = QPushButton("Cancel", self)
+        cancel_button.clicked.connect(self.reject)
+        button_box.addWidget(verify_button)
+        button_box.addWidget(cancel_button)
         layout.addLayout(button_box)

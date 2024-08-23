@@ -1,7 +1,9 @@
-from typing import Optional, List
 from enum import Enum
+
 from pydantic import BaseModel
+
 from public_api.shared_schemas import Order
+
 
 class ShipmentStatus(str, Enum):
     PENDING = "Pending"
@@ -21,10 +23,10 @@ class PickListItemCreate(PickListItemBase):
 
 
 class PickListItemUpdate(BaseModel):
-    product_id: Optional[int] = None
-    location_id: Optional[int] = None
-    quantity: Optional[int] = None
-    picked_quantity: Optional[int] = None
+    product_id: int | None = None
+    location_id: int | None = None
+    quantity: int | None = None
+    picked_quantity: int | None = None
 
 
 class PickListItem(PickListItemBase):
@@ -41,20 +43,20 @@ class PickListBase(BaseModel):
 
 
 class PickListCreate(PickListBase):
-    items: List[PickListItemCreate]
+    items: list[PickListItemCreate]
 
 
 class PickListUpdate(BaseModel):
-    order_id: Optional[int] = None
-    status: Optional[str] = None
-    items: Optional[List[PickListItemUpdate]] = None
+    order_id: int | None = None
+    status: str | None = None
+    items: list[PickListItemUpdate] | None = None
 
 
 class PickList(PickListBase):
     pick_list_id: int
     created_at: int
-    completed_at: Optional[int] = None
-    items: List[PickListItem] = []
+    completed_at: int | None = None
+    items: list[PickListItem] = []
 
     class Config:
         from_attributes = True
@@ -71,9 +73,9 @@ class ReceiptItemCreate(ReceiptItemBase):
 
 
 class ReceiptItemUpdate(BaseModel):
-    product_id: Optional[int] = None
-    quantity_received: Optional[int] = None
-    location_id: Optional[int] = None
+    product_id: int | None = None
+    quantity_received: int | None = None
+    location_id: int | None = None
 
 
 class ReceiptItem(ReceiptItemBase):
@@ -90,19 +92,19 @@ class ReceiptBase(BaseModel):
 
 
 class ReceiptCreate(ReceiptBase):
-    items: List[ReceiptItemCreate]
+    items: list[ReceiptItemCreate]
 
 
 class ReceiptUpdate(BaseModel):
-    po_id: Optional[int] = None
-    status: Optional[str] = None
-    items: Optional[List[ReceiptItemUpdate]] = None
+    po_id: int | None = None
+    status: str | None = None
+    items: list[ReceiptItemUpdate] | None = None
 
 
 class Receipt(ReceiptBase):
     receipt_id: int
     received_date: int
-    items: List[ReceiptItem] = []
+    items: list[ReceiptItem] = []
 
     class Config:
         from_attributes = True
@@ -111,29 +113,29 @@ class Receipt(ReceiptBase):
 class ShipmentBase(BaseModel):
     order_id: int
     carrier_id: int
-    tracking_number: Optional[str] = None
+    tracking_number: str | None = None
     status: ShipmentStatus
-    label_id: Optional[str] = None
-    label_download_url: Optional[str] = None
+    label_id: str | None = None
+    label_download_url: str | None = None
 
 
 class ShipmentCreate(ShipmentBase):
-    ship_date: Optional[int] = None
+    ship_date: int | None = None
 
 
 class ShipmentUpdate(BaseModel):
-    order_id: Optional[int] = None
-    carrier_id: Optional[int] = None
-    tracking_number: Optional[str] = None
-    status: Optional[ShipmentStatus] = None
-    ship_date: Optional[int] = None
-    label_id: Optional[str] = None
-    label_download_url: Optional[str] = None
+    order_id: int | None = None
+    carrier_id: int | None = None
+    tracking_number: str | None = None
+    status: ShipmentStatus | None = None
+    ship_date: int | None = None
+    label_id: str | None = None
+    label_download_url: str | None = None
 
 
 class Shipment(ShipmentBase):
     id: int
-    ship_date: Optional[int] = None
+    ship_date: int | None = None
 
     class Config:
         from_attributes = True
@@ -141,7 +143,7 @@ class Shipment(ShipmentBase):
 
 class CarrierBase(BaseModel):
     name: str
-    contact_info: Optional[str] = None
+    contact_info: str | None = None
 
 
 class CarrierCreate(CarrierBase):
@@ -149,8 +151,8 @@ class CarrierCreate(CarrierBase):
 
 
 class CarrierUpdate(BaseModel):
-    name: Optional[str] = None
-    contact_info: Optional[str] = None
+    name: str | None = None
+    contact_info: str | None = None
 
 
 class Carrier(CarrierBase):
@@ -161,25 +163,25 @@ class Carrier(CarrierBase):
 
 
 class PickListFilter(BaseModel):
-    status: Optional[str] = None
-    order_id: Optional[int] = None
-    date_from: Optional[int] = None
-    date_to: Optional[int] = None
+    status: str | None = None
+    order_id: int | None = None
+    date_from: int | None = None
+    date_to: int | None = None
 
 
 class ReceiptFilter(BaseModel):
-    status: Optional[str] = None
-    po_id: Optional[int] = None
-    date_from: Optional[int] = None
-    date_to: Optional[int] = None
+    status: str | None = None
+    po_id: int | None = None
+    date_from: int | None = None
+    date_to: int | None = None
 
 
 class ShipmentFilter(BaseModel):
-    status: Optional[ShipmentStatus] = None
-    order_id: Optional[int] = None
-    carrier_id: Optional[int] = None
-    date_from: Optional[int] = None
-    date_to: Optional[int] = None
+    status: ShipmentStatus | None = None
+    order_id: int | None = None
+    carrier_id: int | None = None
+    date_from: int | None = None
+    date_to: int | None = None
 
 
 class WarehouseStats(BaseModel):
@@ -196,6 +198,9 @@ class LocationInventory(BaseModel):
     product_id: int
     quantity: int
 
+    class Config:
+        from_attributes = True
+
 
 class LocationInventoryUpdate(BaseModel):
     quantity: int
@@ -203,7 +208,7 @@ class LocationInventoryUpdate(BaseModel):
 
 class OptimizedPickingRoute(BaseModel):
     pick_list_id: int
-    optimized_route: List[PickListItem]
+    optimized_route: list[PickListItem]
 
 
 class PickingPerformance(BaseModel):
@@ -215,7 +220,7 @@ class PickingPerformance(BaseModel):
 class QualityCheckCreate(BaseModel):
     product_id: int
     result: str
-    notes: Optional[str] = None
+    notes: str | None = None
 
 
 class ReceiptDiscrepancy(BaseModel):
@@ -243,8 +248,8 @@ class ShipmentTracking(BaseModel):
     shipment_id: int
     tracking_number: str
     current_status: str
-    estimated_delivery_date: Optional[int]
-    tracking_history: List[dict]
+    estimated_delivery_date: int | None
+    tracking_history: list[dict]
 
 
 class InventoryMovementBase(BaseModel):
@@ -298,10 +303,10 @@ class YardLocationCreate(YardLocationBase):
 
 
 class YardLocationUpdate(BaseModel):
-    name: Optional[str] = None
-    type: Optional[str] = None
-    status: Optional[str] = None
-    capacity: Optional[int] = None
+    name: str | None = None
+    type: str | None = None
+    status: str | None = None
+    capacity: int | None = None
 
 
 class YardLocation(YardLocationBase):
@@ -324,36 +329,36 @@ class DockAppointmentCreate(DockAppointmentBase):
 
 
 class DockAppointmentUpdate(BaseModel):
-    yard_location_id: Optional[int] = None
-    appointment_time: Optional[int] = None
-    carrier_id: Optional[int] = None
-    type: Optional[str] = None
-    status: Optional[str] = None
-    actual_arrival_time: Optional[int] = None
-    actual_departure_time: Optional[int] = None
+    yard_location_id: int | None = None
+    appointment_time: int | None = None
+    carrier_id: int | None = None
+    type: str | None = None
+    status: str | None = None
+    actual_arrival_time: int | None = None
+    actual_departure_time: int | None = None
 
 
 class DockAppointment(DockAppointmentBase):
     appointment_id: int
-    actual_arrival_time: Optional[int] = None
-    actual_departure_time: Optional[int] = None
+    actual_arrival_time: int | None = None
+    actual_departure_time: int | None = None
 
     class Config:
         from_attributes = True
 
 
 class YardLocationFilter(BaseModel):
-    type: Optional[str] = None
-    status: Optional[str] = None
+    type: str | None = None
+    status: str | None = None
 
 
 class DockAppointmentFilter(BaseModel):
-    yard_location_id: Optional[int] = None
-    carrier_id: Optional[int] = None
-    type: Optional[str] = None
-    status: Optional[str] = None
-    date_from: Optional[int] = None
-    date_to: Optional[int] = None
+    yard_location_id: int | None = None
+    carrier_id: int | None = None
+    type: str | None = None
+    status: str | None = None
+    date_from: int | None = None
+    date_to: int | None = None
 
 
 class YardManagementStats(BaseModel):
@@ -365,5 +370,5 @@ class YardManagementStats(BaseModel):
 
 
 class ShipmentWithDetails(Shipment):
-    order: Optional[Order] = None
-    carrier: Optional[Carrier] = None
+    order: Order | None = None
+    carrier: Carrier | None = None

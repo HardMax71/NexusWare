@@ -1,5 +1,3 @@
-from typing import Optional, List
-
 from fastapi import HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
@@ -50,7 +48,38 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
         orders = query.offset(skip).limit(limit).all()
         return [OrderWithDetailsSchema.model_validate(x) for x in orders]
 
-    def get_summary(self, db: Session, date_from: Optional[int], date_to: Optional[int]) -> OrderSummary:
+    def advanced_search(self, db: Session, *, q: str = None, status: str = None, min_total: float = None,
+                        max_total: float = None, start_date: int = None, end_date: int = None,
+                        sort_by: str = None, sort_order: str = "asc") -> list[OrderSchema]:
+        query = db.query(self.model).options(joinedload(Order.customer))
+        if q:
+            query = query.filter(Order.customer_id.ilike(f"%{q}%"))
+        if status:
+            query = query.filter(Order.status == status)
+        if min_total:
+            query = query.filter(Order.total_amount >= min_total)
+        if max_total:
+            query = query.filter(Order.total_amount <= max_total)
+        if start_date:
+            query = query.filter(Order.order_date >= start_date)
+        if end_date:
+            query = query.filter(Order.order_date <= end_date)
+        if sort_by:
+            if sort_by == "total_amount":
+                if sort_order == "asc":
+                    query = query.order_by(Order.total_amount.asc())
+                else:
+                    query = query.order_by(Order.total_amount.desc())
+            elif sort_by == "order_date":
+                if sort_order == "asc":
+                    query = query.order_by(Order.order_date.asc())
+                else:
+                    query = query.order_by(Order.order_date.desc())
+
+        orders = query.all()
+        return [OrderSchema.model_validate(order) for order in orders]
+
+    def get_summary(self, db: Session, date_from: int | None, date_to: int | None) -> OrderSummary:
         query = db.query(func.count(Order.id).label("total_orders"),
                          func.sum(Order.total_amount).label("total_revenue"))
         if date_from:
@@ -156,7 +185,7 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
             if processing_times.max_time else 0
         )
 
-    def update_items(self, db: Session, order_id: int, items: List[OrderItemUpdate]) -> Order:
+    def update_items(self, db: Session, order_id: int, items: list[OrderItemUpdate]) -> Order:
         db_order = db.query(Order).filter(Order.id == order_id).first()
         if not db_order:
             raise HTTPException(status_code=404, detail="Order not found")

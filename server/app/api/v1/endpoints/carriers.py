@@ -28,8 +28,7 @@ def read_carriers(
         limit: int = 100,
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    carriers = crud.carrier.get_multi(db, skip=skip, limit=limit)
-    return [Carrier.model_validate(carrier) for carrier in carriers]
+    return crud.carrier.get_multi(db, skip=skip, limit=limit)
 
 
 @router.get("/{carrier_id}", response_model=shared_schemas.Carrier)

@@ -94,7 +94,7 @@ def start_pick_list(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    return crud.pick_list.start(db, pick_list_id=pick_list_id, user_id=current_user.user_id)
+    return crud.pick_list.start(db, pick_list_id=pick_list_id, user_id=current_user.id)
 
 
 @router.post("/{pick_list_id}/complete", response_model=shared_schemas.PickList)
@@ -103,4 +103,4 @@ def complete_pick_list(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    return crud.pick_list.complete(db, pick_list_id=pick_list_id, user_id=current_user.user_id)
+    return crud.pick_list.complete(db, pick_list_id=pick_list_id, user_id=current_user.id)

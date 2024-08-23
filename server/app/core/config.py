@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "SECRET"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     DATABASE_URL: str = "sqlite:///./nexusware.db"
 
     # SMTP Configuration
@@ -18,6 +19,8 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = "your-password"
     EMAIL_FROM: str = "your-email@example.com"
     EMAIL_FROM_NAME: str = "NexusWare WMS"
+
+    PASSWORD_RESET_LINK: str = "https://nexusware-wms.com/reset-password"  # Not working for now
 
     # ShipEngine API configuration
     SHIPENGINE_API_KEY: str = "SHIPENGINE_API_KEY"

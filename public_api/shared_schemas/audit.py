@@ -1,9 +1,6 @@
-# /server/app/shared_schemas/audit_log.py
-from typing import Optional, List, Dict
+from pydantic import BaseModel, ConfigDict
 
-from pydantic import BaseModel
-
-from .user import User
+from .user import UserSanitized
 
 
 class AuditLogBase(BaseModel):
@@ -11,8 +8,8 @@ class AuditLogBase(BaseModel):
     action_type: str
     table_name: str
     record_id: int
-    old_value: Optional[str] = None
-    new_value: Optional[str] = None
+    old_value: str | None = None
+    new_value: str | None = None
 
 
 class AuditLogCreate(AuditLogBase):
@@ -23,24 +20,22 @@ class AuditLog(AuditLogBase):
     id: int
     timestamp: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AuditLogWithUser(AuditLog):
-    user: User
+    user: UserSanitized
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AuditLogFilter(BaseModel):
-    user_id: Optional[int] = None
-    action_type: Optional[str] = None
-    table_name: Optional[str] = None
-    record_id: Optional[int] = None
-    date_from: Optional[int] = None
-    date_to: Optional[int] = None
+    user_id: int | None = None
+    action_type: str | None = None
+    table_name: str | None = None
+    record_id: int | None = None
+    date_from: int | None = None
+    date_to: int | None = None
 
 
 class UserActivitySummary(BaseModel):
@@ -51,16 +46,16 @@ class UserActivitySummary(BaseModel):
 
 class AuditSummary(BaseModel):
     total_logs: int
-    logs_by_action: Dict[str, int]
-    logs_by_table: Dict[str, int]
-    most_active_users: List[UserActivitySummary]
+    logs_by_action: dict[str, int]
+    logs_by_table: dict[str, int]
+    most_active_users: list[UserActivitySummary]
 
 
 class AuditLogExport(BaseModel):
-    logs: List[AuditLog]
+    logs: list[AuditLog]
     export_timestamp: int
 
 
 class AuditLogList(BaseModel):
-    logs: List[AuditLog]
+    logs: list[AuditLog]
     total: int

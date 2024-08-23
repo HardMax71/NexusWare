@@ -46,7 +46,6 @@ across mobile, web, and desktop environments.
 | Quality Control             | -      | ✅   | ✅       |
 | Billing and Invoicing       | -      | ✅   | ✅       |
 | Yard Management             | -      | ✅   | ✅       |
-| Security and Compliance     | ✅      | ✅   | ✅       |
 | System Administration       | -      | ✅   | ✅       |
 | Offline Database Management | -      | -   | ✅       |
 | Advanced Reporting          | -      | -   | ✅       |
@@ -55,7 +54,6 @@ across mobile, web, and desktop environments.
 | Batch Processing            | -      | -   | ✅       |
 | Barcode and Label Design    | -      | -   | ✅       |
 | Advanced Search and Filter  | -      | ✅   | ✅       |
-| Data Analysis Tools         | -      | -   | ✅       |
 | System Diagnostics          | -      | -   | ✅       |
 | Simulation and Modeling     | -      | -   | ✅       |
 | Training Mode               | -      | -   | ✅       |

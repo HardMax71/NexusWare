@@ -1,5 +1,3 @@
-from typing import List, Optional
-
 from public_api.shared_schemas.inventory import (
     LocationCreate, LocationUpdate, Location, LocationWithInventory, LocationFilter
 )
@@ -15,7 +13,7 @@ class LocationsAPI:
         return Location.model_validate(response)
 
     def get_locations(self, skip: int = 0, limit: int = 100,
-                      location_filter: Optional[LocationFilter] = None) -> List[LocationWithInventory]:
+                      location_filter: LocationFilter | None = None) -> list[LocationWithInventory]:
         params = {"skip": skip, "limit": limit}
         if location_filter:
             params.update(location_filter.model_dump(mode="json", exclude_unset=True))

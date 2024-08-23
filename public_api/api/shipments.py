@@ -1,5 +1,3 @@
-from typing import List, Optional
-
 from public_api.shared_schemas import (
     Shipment, ShipmentCreate, ShipmentUpdate, ShipmentFilter,
     CarrierRate, ShippingLabel, ShipmentTracking, ShipmentWithDetails
@@ -12,7 +10,7 @@ class ShipmentsAPI:
         self.client = client
 
     def get_shipments(self, skip: int = 0, limit: int = 100,
-                      filter_params: Optional[ShipmentFilter] = None) -> List[Shipment]:
+                      filter_params: ShipmentFilter | None = None) -> list[Shipment]:
         params = {"skip": skip, "limit": limit}
         if filter_params:
             params.update(filter_params.model_dump(mode="json", exclude_unset=True))
@@ -40,7 +38,7 @@ class ShipmentsAPI:
         response = self.client.post(f"/shipments/{shipment_id}/generate_label")
         return ShippingLabel.model_validate(response)
 
-    def get_carrier_rates(self, weight: float, dimensions: str, destination_zip: str) -> List[CarrierRate]:
+    def get_carrier_rates(self, weight: float, dimensions: str, destination_zip: str) -> list[CarrierRate]:
         params = {"weight": weight, "dimensions": dimensions, "destination_zip": destination_zip}
         response = self.client.get("/shipments/carrier_rates", params=params)
         return [CarrierRate.model_validate(item) for item in response]

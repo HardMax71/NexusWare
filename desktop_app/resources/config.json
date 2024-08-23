@@ -12,5 +12,9 @@
   "request_timeout": 10,
   "font": "Candara",
   "font_size": "Large",
-  "two_factor_auth": true
+  "icons_path": "resources/icons",
+  "styles_path": "resources/styles",
+  "templates_path": "resources/templates",
+  "translations_path": "resources/translations",
+  "organization_domain": "nexusware.com"
 }

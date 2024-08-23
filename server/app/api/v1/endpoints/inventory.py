@@ -84,7 +84,7 @@ def create_reorder_list(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    return crud.inventory.create_reorder_list(db, threshold=threshold)
+    return crud.inventory.get_low_stock_items(db, threshold=threshold)
 
 
 @router.get("/product_locations/{product_id}", response_model=List[shared_schemas.LocationWithInventory])
@@ -181,16 +181,19 @@ def get_inventory_forecast(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    return crud.inventory.get_inventory_forecast(db, product_id=product_id)
+    return crud.inventory.get_forecast_for_product_id(db, product_id=product_id)
 
 
-@router.post("/forecast/{product_id}", response_model=Dict)
-def generate_inventory_forecast(
-        product_id: int,
+@router.get("/trend", response_model=Dict[str, List[shared_schemas.InventoryTrendItem]])
+def get_inventory_trend(
         db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_user)
+        current_user: models.User = Depends(deps.get_current_active_user),
+        days_past: int = 5,
+        days_future: int = 5
 ):
-    return crud.inventory.generate_inventory_forecast(db, product_id=product_id)
+    historical_items, prediction_items = crud.inventory.get_inventory_trend_with_prediction(db, days_past=days_past,
+                                                                                            days_future=days_future)
+    return {"past": historical_items, "predictions": prediction_items}
 
 
 @router.get("/reorder_suggestions", response_model=List[Dict])
@@ -247,4 +250,4 @@ def adjust_inventory(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    return crud.inventory.adjust_quantity(db, id=id, adjustment=adjustment)
+    return crud.inventory.adjust_quantity(db, inventory_id=id, adjustment=adjustment)

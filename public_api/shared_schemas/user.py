@@ -1,14 +1,13 @@
 # /server/app/shared_schemas/user.py
 from enum import Enum
-from typing import Optional, List
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
 
 class RoleName(str, Enum):
-    admin = "admin"
-    manager = "manager"
-    user = "user"
+    ADMIN = "admin"
+    MANAGER = "manager"
+    USER = "user"
 
 
 class PermissionBase(BaseModel):
@@ -23,14 +22,13 @@ class PermissionCreate(PermissionBase):
 
 
 class PermissionUpdate(PermissionBase):
-    permission_name: Optional[str] = None
+    permission_name: str | None = None
 
 
 class Permission(PermissionBase):
     id: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class RoleBase(BaseModel):
@@ -38,20 +36,19 @@ class RoleBase(BaseModel):
 
 
 class RoleCreate(RoleBase):
-    permissions: List[int]
+    permissions: list[int]
 
 
 class RoleUpdate(BaseModel):
-    role_name: Optional[RoleName] = None
-    permissions: Optional[List[int]] = None
+    role_name: RoleName | None = None
+    permissions: list[int] | None = None
 
 
 class Role(RoleBase):
     id: int
-    permissions: List[Permission] = []
+    permissions: list[Permission] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserBase(BaseModel):
@@ -59,130 +56,85 @@ class UserBase(BaseModel):
     email: EmailStr
     is_active: bool = True
     role_id: int
+    two_factor_auth_enabled: bool = False
+
+    model_config = ConfigDict(from_attributes=True, extra='ignore')
 
 
 class UserCreate(UserBase):
-    password: str
+    password: str = Field(..., min_length=8)
+    two_factor_auth_secret: str | None = None
 
 
 class UserUpdate(BaseModel):
-    username: Optional[str] = None
-    email: Optional[EmailStr] = None
-    is_active: Optional[bool] = None
-    role_id: Optional[int] = None
-    password: Optional[str] = None
+    username: str | None = None
+    email: EmailStr | None = None
+    is_active: bool | None = None
+    role_id: int | None = None
+    password: str | None = Field(None, min_length=8)
+    two_factor_auth_enabled: bool | None = None
+    two_factor_auth_secret: str | None = None
 
 
-class UserSanitizedWithRole(UserBase):
+class UserSanitized(UserBase):
     id: int
     created_at: int
-    last_login: Optional[int] = None
+    last_login: int | None = None
     role: Role
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
-class User(UserBase):
-    id: int
-    created_at: int
-    last_login: Optional[int] = None
-    password_hash: str
-    password_reset_token: Optional[str] = None
-    password_reset_expiration: Optional[int] = None
-
-    class Config:
-        from_attributes = True
+class UserInDB(UserSanitized):
+    password: str
+    password_reset_token: str | None = None
+    password_reset_expiration: int | None = None
+    two_factor_auth_secret: str | None = None
 
 
-class UserInDB(User):
-    password_hash: str
+class TwoFactorLogin(BaseModel):
+    username: str
+    password: str
+    two_factor_code: str
 
 
 class Token(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str
+    expires_in: int  # This is the number of seconds until the access token expires
 
 
 class TokenData(BaseModel):
-    username: Optional[str] = None
+    username: str | None = None
 
 
 class Message(BaseModel):
     message: str
 
 
-class RolePermission(BaseModel):
-    role_id: int
-    permission_id: int
-
-    class Config:
-        from_attributes = True
-
-
-class UserWithRole(User):
-    role: Role
-
-
-class PasswordReset(BaseModel):
-    email: EmailStr
-
-
-class PasswordResetConfirm(BaseModel):
-    token: str
-    new_password: str
-
-
 class UserFilter(BaseModel):
-    username: Optional[str] = None
-    email: Optional[str] = None
-    is_active: Optional[bool] = None
-    role_id: Optional[int] = None
+    username: str | None = None
+    email: str | None = None
+    is_active: bool | None = None
+    role_id: int | None = None
 
 
-class UserActivity(BaseModel):
-    user_id: int
-    username: str
-    last_login: Optional[int]
-    total_logins: int
-    total_actions: int
-
-
-class RoleWithUsers(Role):
-    users: List[User] = []
-
-
-class UserPermissions(BaseModel):
-    user_id: int
-    username: str
-    permissions: List[Permission]
-
-
-class BulkUserCreate(BaseModel):
-    users: List[UserCreate]
-
-
-class BulkUserCreateResult(BaseModel):
-    success_count: int
-    failure_count: int
-    errors: List[str]
+class UserWithPermissions(UserSanitized):
+    permissions: list[Permission]
 
 
 class UserPermissionUpdate(BaseModel):
-    user_id: int
-    permissions: List[int]
-
-
-class UserWithPermissions(UserSanitizedWithRole):
-    permissions: List[Permission]
-
-    class Config:
-        from_attributes = True
+    permissions: list[int]
 
 
 class AllRoles(BaseModel):
-    roles: List[Role]
+    roles: list[Role]
 
 
 class AllPermissions(BaseModel):
-    permissions: List[Permission]
+    permissions: list[Permission]
+
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str

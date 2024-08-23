@@ -1,6 +1,6 @@
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QMainWindow, QTabWidget, QVBoxLayout, QWidget, QStatusBar, QMessageBox
+from PySide6.QtWidgets import QMainWindow, QTabWidget, QVBoxLayout, QWidget, QStatusBar, QMessageBox, QToolButton
 
 from desktop_app.src.utils import ConfigManager
 from public_api.api import APIClient
@@ -13,6 +13,7 @@ from .notification_center import NotificationCenter
 from .order_view import OrderView
 from .product_view import ProductView
 from .report_generator import ReportGeneratorWidget
+from .search_filter import AdvancedSearchDialog
 from .settings.settings_dialog import SettingsDialog
 from .shipment_view import ShipmentView
 from .supplier_view import SupplierView
@@ -36,7 +37,7 @@ class MainWindow(QMainWindow):
 
     def init_ui(self):
         self.setWindowTitle("NexusWare WMS")
-        self.setWindowIcon(QIcon("resources/icons/app_icon.png"))
+        self.setWindowIcon(QIcon("icons:app_icon.png"))
         self.setMinimumSize(1200, 800)
 
         central_widget = QWidget()
@@ -52,8 +53,6 @@ class MainWindow(QMainWindow):
         self.setStatusBar(self.status_bar)
 
         self.notification_center = NotificationCenter(self.api_client)
-        self.addDockWidget(Qt.RightDockWidgetArea, self.notification_center)
-        self.notification_center.hide()
 
         self.create_menu_bar()
 
@@ -98,19 +97,46 @@ class MainWindow(QMainWindow):
         file_menu.addAction("Exit", self.close)
 
         view_menu = menu_bar.addMenu("View")
-        if self.permission_manager.has_read_permission("notifications"):
-            view_menu.addAction("Toggle Notification Center", self.toggle_notification_center)
+        if self.permission_manager.has_read_permission("adv_search"):
+            view_menu.addAction("Advanced Search", self.open_advanced_search)
 
         help_menu = menu_bar.addMenu("Help")
         help_menu.addAction("User Manual", self.open_user_manual)
         help_menu.addAction("About", self.show_about_dialog)
 
+        self.add_notification_button(menu_bar)
+
+    def add_notification_button(self, menu_bar):
+        notification_button = QToolButton(self)
+        notification_button.setIcon(QIcon("icons:bell.png"))
+        notification_button.setIconSize(QSize(24, 24))
+        notification_button.setToolButtonStyle(Qt.ToolButtonIconOnly)
+        notification_button.clicked.connect(self.toggle_notification_center)
+
+        menu_bar.setCornerWidget(notification_button, Qt.TopRightCorner)
+
+        self.update_notification_icon(notification_button)
+
+    def update_notification_icon(self, button):
+        unread_notifications = len(self.notification_center.notifications_api.get_unread_notifications())
+        if unread_notifications > 0:
+            button.setIcon(QIcon("icons:bell_unread.png"))
+        else:
+            button.setIcon(QIcon("icons:bell.png"))
+
+    def toggle_notification_center(self):
+        if not self.notification_center.isVisible():
+            self.notification_center.show()
+        else:
+            self.notification_center.hide()
+
+    def open_advanced_search(self):
+        search_dialog = AdvancedSearchDialog(self.api_client, self)
+        search_dialog.exec()
+
     def open_settings(self):
         settings_dialog = SettingsDialog(self.config_manager, self, api_client=self.api_client)
         settings_dialog.exec_()
-
-    def toggle_notification_center(self):
-        self.notification_center.setVisible(not self.notification_center.isVisible())
 
     def open_user_manual(self):
         try:

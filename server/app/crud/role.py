@@ -1,6 +1,3 @@
-# /server/app/crud/role.py
-from typing import Optional, Any, Dict, Union
-
 from sqlalchemy.orm import Session
 
 from public_api.shared_schemas import RoleCreate, RoleUpdate, Role as RoleSchema
@@ -21,7 +18,7 @@ class CRUDRole(CRUDBase[Role, RoleCreate, RoleUpdate]):
 
         return RoleSchema.model_validate(db_obj)
 
-    def update(self, db: Session, *, db_obj: Role, obj_in: Union[RoleUpdate, Dict[str, Any]]) -> RoleSchema:
+    def update(self, db: Session, *, db_obj: Role, obj_in: RoleUpdate | dict[str, any]) -> RoleSchema:
         if isinstance(obj_in, dict):
             update_data = obj_in
         else:
@@ -36,7 +33,7 @@ class CRUDRole(CRUDBase[Role, RoleCreate, RoleUpdate]):
         updated_role = super().update(db, db_obj=db_obj, obj_in=update_data)
         return RoleSchema.model_validate(updated_role)
 
-    def get_by_name(self, db: Session, *, name: str) -> Optional[RoleSchema]:
+    def get_by_name(self, db: Session, *, name: str) -> RoleSchema | None:
         current_role = db.query(Role).filter(Role.role_name == name).first()
         return RoleSchema.model_validate(current_role) if current_role else None
 

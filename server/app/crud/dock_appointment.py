@@ -1,21 +1,20 @@
-from typing import Optional, List
 from datetime import timedelta
 
 from sqlalchemy.orm import Session
 
-from server.app.models import DockAppointment
 from public_api.shared_schemas import (
     DockAppointment as DockAppointmentSchema,
     DockAppointmentCreate, DockAppointmentUpdate,
     DockAppointmentFilter,
     AppointmentConflict
 )
+from server.app.models import DockAppointment
 from .base import CRUDBase
 
 
 class CRUDDockAppointment(CRUDBase[DockAppointment, DockAppointmentCreate, DockAppointmentUpdate]):
     def get_multi_with_filter(self, db: Session, *, skip: int = 0, limit: int = 100,
-                              filter_params: DockAppointmentFilter) -> List[DockAppointmentSchema]:
+                              filter_params: DockAppointmentFilter) -> list[DockAppointmentSchema]:
         query = db.query(self.model)
         if filter_params.yard_location_id:
             query = query.filter(DockAppointment.yard_location_id == filter_params.yard_location_id)
@@ -34,7 +33,7 @@ class CRUDDockAppointment(CRUDBase[DockAppointment, DockAppointmentCreate, DockA
 
     def check_conflicts(self, db: Session,
                         appointment: DockAppointmentCreate,
-                        exclude_id: Optional[int] = None) -> List[AppointmentConflict]:
+                        exclude_id: int | None = None) -> list[AppointmentConflict]:
         conflicts = []
         appointment_duration = timedelta(hours=1)  # Assume 1-hour appointments
         query = db.query(DockAppointment).filter(

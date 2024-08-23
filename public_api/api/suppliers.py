@@ -1,5 +1,3 @@
-from typing import List, Optional
-
 from public_api.shared_schemas import (
     Supplier, SupplierCreate, SupplierUpdate, SupplierFilter, PurchaseOrder
 )
@@ -11,7 +9,7 @@ class SuppliersAPI:
         self.client = client
 
     def get_suppliers(self, skip: int = 0, limit: int = 100,
-                      filter_params: Optional[SupplierFilter] = None) -> List[Supplier]:
+                      filter_params: SupplierFilter | None = None) -> list[Supplier]:
         params = {"skip": skip, "limit": limit}
         if filter_params:
             params.update(filter_params.model_dump(mode="json", exclude_unset=True))
@@ -36,7 +34,7 @@ class SuppliersAPI:
         return Supplier.model_validate(response)
 
     def get_supplier_purchase_orders(self, supplier_id: int,
-                                     skip: int = 0, limit: int = 100) -> List[PurchaseOrder]:
+                                     skip: int = 0, limit: int = 100) -> list[PurchaseOrder]:
         response = self.client.get(f"/suppliers/{supplier_id}/purchase_orders",
                                    params={"skip": skip, "limit": limit})
         return [PurchaseOrder.model_validate(item) for item in response]
