@@ -133,7 +133,7 @@ def add_task_comment(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    return crud.task.add_comment(db, task_id=task_id, comment=comment, user_id=current_user.user_id)
+    return crud.task.add_comment(db, task_id=task_id, comment=comment, user_id=current_user.id)
 
 
 @router.get("/{task_id}/comments", response_model=List[shared_schemas.TaskComment])

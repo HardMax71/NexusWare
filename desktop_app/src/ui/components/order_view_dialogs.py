@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 
 from PySide6.QtWidgets import (QVBoxLayout, QTableWidget, QTableWidgetItem,
                                QDialog, QComboBox,
@@ -15,7 +14,7 @@ from public_api.shared_schemas.order import OrderStatus
 
 class OrderDialog(QDialog):
     def __init__(self, orders_api: OrdersAPI, customers_api: CustomersAPI, products_api: ProductsAPI,
-                 order_data: Optional[OrderWithDetails] = None, parent=None):
+                 order_data: OrderWithDetails | None = None, parent=None):
         super().__init__(parent)
         self.orders_api = orders_api
         self.customers_api = customers_api

@@ -5,8 +5,8 @@ from jose import jwt
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
-from public_api import shared_schemas
 from public_api.permission_manager import PermissionManager
+from public_api.shared_schemas import user as user_schemas
 from server.app import crud, models
 from server.app.core.config import settings
 from server.app.db.database import get_db
@@ -22,10 +22,10 @@ def get_current_user(
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
         )
-        token_data = shared_schemas.TokenData(**payload)
+        token_data = user_schemas.TokenData(**payload)
     except (jwt.JWTError, ValidationError):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
         )
     user = crud.user.get_by_username(db, username=token_data.username)
@@ -51,16 +51,18 @@ def get_current_admin(
         )
     return current_user
 
+
 def get_permission_manager(
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_active_user)
+        db: Session = Depends(get_db),
+        current_user: models.User = Depends(get_current_active_user)
 ) -> PermissionManager:
     permissions = crud.user.get_user_permissions(db, current_user.id)
     return PermissionManager(permissions)
 
+
 def has_permission(name: str, action: str):
     def permission_checker(
-        permission_manager: PermissionManager = Depends(get_permission_manager)
+            permission_manager: PermissionManager = Depends(get_permission_manager)
     ):
         if not permission_manager.has_permission(name, action):
             raise HTTPException(

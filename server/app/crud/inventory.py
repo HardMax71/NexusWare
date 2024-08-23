@@ -1,7 +1,6 @@
 import time
 from collections import defaultdict
 from datetime import timedelta, datetime
-from typing import Optional, List, Dict, Tuple
 
 import numpy as np
 from fastapi import HTTPException
@@ -39,12 +38,11 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
             skip: int = 0,
             limit: int = 100,
             filter_params: InventoryFilter
-    ) -> List[InventoryWithDetails]:
+    ) -> list[InventoryWithDetails]:
         query = db.query(Inventory).options(
             joinedload(Inventory.product),
             joinedload(Inventory.location)
         )
-
         if filter_params.product_id:
             query = query.filter(Inventory.product_id == filter_params.product_id)
         if filter_params.location_id:
@@ -63,7 +61,7 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
         return [InventoryWithDetails.model_validate(item) for item in items]
 
     def get_multi_with_filter(self, db: Session, *, skip: int = 0, limit: int = 100,
-                              filter_params: InventoryFilter) -> list[InventorySchema]:
+                              filter_params: InventoryFilter) -> list[Inventory]:
         query = db.query(Inventory)
         if filter_params.product_id:
             query = query.filter(Inventory.product_id == filter_params.product_id)
@@ -77,10 +75,11 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
             query = query.filter(Inventory.quantity >= filter_params.quantity_min)
         if filter_params.quantity_max is not None:
             query = query.filter(Inventory.quantity <= filter_params.quantity_max)
+
         return [InventorySchema.model_validate(x) for x in query.offset(skip).limit(limit).all()]
 
-    def adjust_quantity(self, db: Session, id: int, adjustment: InventoryAdjustmentSchema) -> InventorySchema:
-        current_inventory = self.get(db, id=id)
+    def adjust_quantity(self, db: Session, inventory_id: int, adjustment: InventoryAdjustmentSchema) -> InventorySchema:
+        current_inventory = self.get(db, id=inventory_id)
         if not current_inventory:
             raise HTTPException(status_code=404, detail="Inventory item not found")
         current_inventory.quantity += adjustment.quantity_change
@@ -99,7 +98,7 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
         db.commit()
         db.refresh(current_inventory)
 
-        return InventorySchema.model_validate(current_inventory)
+        return current_inventory
 
     def transfer(self, db: Session, transfer: InventoryTransfer) -> InventorySchema:
         from_inventory = db.query(Inventory).filter(
@@ -192,8 +191,8 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
         db.commit()
         return [InventorySchema.model_validate(inventory) for inventory in updated_items]
 
-    def get_movement_history(self, db: Session, product_id: int, start_date: Optional[int],
-                             end_date: Optional[int]) -> list[InventoryMovementSchema]:
+    def get_movement_history(self, db: Session, product_id: int, start_date: int | None,
+                             end_date: int | None) -> list[InventoryMovementSchema]:
         query = db.query(InventoryMovement).filter(InventoryMovement.product_id == product_id)
         if start_date:
             query = query.filter(InventoryMovement.timestamp >= start_date)
@@ -411,13 +410,13 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
     def advanced_search(
             self,
             db: Session,
-            q: Optional[str] = None,
-            category_id: Optional[int] = None,
-            min_price: Optional[float] = None,
-            max_price: Optional[float] = None,
-            in_stock: Optional[bool] = None,
-            sort_by: Optional[str] = None,
-            sort_order: Optional[str] = "asc"
+            q: str | None = None,
+            category_id: int | None = None,
+            min_price: float | None = None,
+            max_price: float | None = None,
+            in_stock: bool | None = None,
+            sort_by: str | None = None,
+            sort_order: str | None = "asc"
     ) -> list[ProductSchema]:
         query = db.query(Product)
 
@@ -460,7 +459,7 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
         products = query.all()
         return [ProductSchema.model_validate(product) for product in products]
 
-    def get_forecast_for_product_id(self, db: Session, product_id: int) -> Dict:
+    def get_forecast_for_product_id(self, db: Session, product_id: int) -> dict:
         history = db.query(InventoryMovement).filter(InventoryMovement.product_id == product_id).order_by(
             InventoryMovement.timestamp).all()
 
@@ -491,7 +490,7 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
 
         return {"forecast": forecast}
 
-    def get_reorder_suggestions(self, db: Session) -> List[Dict]:
+    def get_reorder_suggestions(self, db: Session) -> list[dict]:
         products = db.query(Product).options(joinedload(Product.inventory_items)).all()
         suggestions = []
         for product in products:
@@ -531,7 +530,7 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
         return suggestions
 
     def get_inventory_trend_with_prediction(self, db: Session, days_past: int = 5, days_future: int = 5) \
-            -> Tuple[List[InventoryTrendItem], List[InventoryTrendItem]]:
+            -> (list[InventoryTrendItem], list[InventoryTrendItem]):
         end_timestamp = int(time.time())
         start_timestamp = end_timestamp - (days_past * 86400)
 

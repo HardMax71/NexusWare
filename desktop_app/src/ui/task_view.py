@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List, Optional
 
 from PySide6.QtCharts import QChart, QChartView, QPieSeries
 from PySide6.QtCore import Qt, Signal, QDate
@@ -10,7 +9,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, 
 
 from desktop_app.src.ui.components import StyledButton
 from public_api.api import APIClient, TasksAPI, UsersAPI
-from public_api.shared_schemas import TaskCreate, TaskUpdate, TaskWithAssignee, TaskFilter, UserSanitizedWithRole
+from public_api.shared_schemas import TaskCreate, TaskUpdate, TaskWithAssignee, TaskFilter, UserSanitized
 from public_api.shared_schemas.task import TaskStatus, TaskPriority
 
 
@@ -130,7 +129,7 @@ class TaskView(QWidget):
         tasks = self.tasks_api.get_tasks(filter_params=filter_params)
         self.update_task_table(tasks)
 
-    def update_task_table(self, tasks: List[TaskWithAssignee]):
+    def update_task_table(self, tasks: list[TaskWithAssignee]):
         self.task_table.setRowCount(len(tasks))
         for row, task in enumerate(tasks):
             self.task_table.setItem(row, 0, QTableWidgetItem(task.task_type.value))
@@ -222,14 +221,13 @@ class TaskView(QWidget):
 
 
 class TaskDialog(QDialog):
-    def __init__(self, tasks_api: TasksAPI, users: List[UserSanitizedWithRole],
-                 task_data: Optional[TaskWithAssignee] = None, parent=None):
+    def __init__(self, tasks_api: TasksAPI, users: list[UserSanitized],
+                 task_data: TaskWithAssignee | None = None, parent=None):
         super().__init__(parent)
         self.tasks_api = tasks_api
         self.users = users
         self.task_data = task_data
         self.init_ui()
-
 
     def init_ui(self):
         self.setWindowTitle("Create Task" if not self.task_data else "Edit Task")
@@ -319,7 +317,7 @@ class TaskDialog(QDialog):
 
 
 class TaskDetailsDialog(QDialog):
-    def __init__(self, task: TaskWithAssignee, users: List[UserSanitizedWithRole], parent=None):
+    def __init__(self, task: TaskWithAssignee, users: list[UserSanitized], parent=None):
         super().__init__(parent)
         self.task = task
         self.users = users

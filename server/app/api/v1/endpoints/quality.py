@@ -5,8 +5,8 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Query, Path, Body
 from sqlalchemy.orm import Session
 
-from .... import crud, models
 from public_api import shared_schemas
+from .... import crud, models
 from ....api import deps
 
 router = APIRouter()
@@ -224,7 +224,7 @@ def add_comment_to_quality_check(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    return crud.quality_check.add_comment(db, check_id=check_id, comment=comment, user_id=current_user.user_id)
+    return crud.quality_check.add_comment(db, check_id=check_id, comment=comment, user_id=current_user.id)
 
 
 @router.get("/reports/defect_rate", response_model=List[shared_schemas.ProductDefectRate])

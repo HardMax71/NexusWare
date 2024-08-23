@@ -1,5 +1,3 @@
-from typing import List, Optional
-
 from public_api.shared_schemas.inventory import (
     ProductCreate, ProductUpdate, Product, ProductWithCategoryAndInventory,
     ProductFilter, BarcodeData
@@ -16,7 +14,7 @@ class ProductsAPI:
         return Product.model_validate(response)
 
     def get_products(self, skip: int = 0, limit: int = 100,
-                     product_filter: Optional[ProductFilter] = None) -> List[ProductWithCategoryAndInventory]:
+                     product_filter: ProductFilter | None = None) -> list[ProductWithCategoryAndInventory]:
         params = {"skip": skip, "limit": limit}
         if product_filter:
             params.update(product_filter.model_dump(mode="json", exclude_unset=True))
@@ -41,7 +39,7 @@ class ProductsAPI:
         response = self.client.post("/products/barcode", json=barcode_data.model_dump(mode="json"))
         return Product.model_validate(response)
 
-    def get_product_substitutes(self, product_id: int) -> List[Product]:
+    def get_product_substitutes(self, product_id: int) -> list[Product]:
         response = self.client.get(f"/products/{product_id}/substitutes")
         return [Product.model_validate(item) for item in response]
 

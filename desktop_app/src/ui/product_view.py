@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List, Optional
 
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
@@ -84,7 +83,7 @@ class ProductView(QWidget):
         products = self.products_api.get_products(product_filter=filter_params)
         self.update_table(products)
 
-    def update_table(self, items: List[ProductWithCategoryAndInventory]):
+    def update_table(self, items: list[ProductWithCategoryAndInventory]):
         self.table.setRowCount(len(items))
         self.table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         for row, item in enumerate(items):
@@ -185,10 +184,9 @@ class ProductView(QWidget):
                 QMessageBox.critical(self, "Error", f"Failed to delete product: {str(e)}")
 
 
-
 class ProductDialog(QDialog):
     def __init__(self, products_api: ProductsAPI, categories_api: ProductCategoriesAPI,
-                 product_data: Optional[ProductWithCategoryAndInventory] = None, parent=None):
+                 product_data: ProductWithCategoryAndInventory | None = None, parent=None):
         super().__init__(parent)
         self.products_api = products_api
         self.categories_api = categories_api

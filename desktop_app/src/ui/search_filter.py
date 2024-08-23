@@ -6,18 +6,14 @@ from PySide6.QtWidgets import (QVBoxLayout, QHBoxLayout, QLineEdit,
                                QDialog, QPushButton, QLabel)
 
 from desktop_app.src.ui.components import StyledButton
-from public_api.api import APIClient
-from public_api.api import ProductsAPI, CustomersAPI, OrdersAPI
-from public_api.shared_schemas import ProductFilter, CustomerFilter
+from public_api.api import APIClient, SearchAPI
 
 
 class AdvancedSearchDialog(QDialog):
     def __init__(self, api_client: APIClient, parent=None):
         super().__init__(parent)
         self.api_client = api_client
-        self.products_api = ProductsAPI(api_client)
-        self.customers_api = CustomersAPI(api_client)
-        self.orders_api = OrdersAPI(api_client)
+        self.search_api = SearchAPI(api_client)
         self.init_ui()
 
     def init_ui(self):
@@ -31,7 +27,7 @@ class AdvancedSearchDialog(QDialog):
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("Enter search term")
         self.search_type = QComboBox()
-        self.search_type.addItems(["Products", "Customers"])
+        self.search_type.addItems(["Products", "Orders"])
         self.search_button = StyledButton("Search")
         self.search_button.clicked.connect(self.perform_search)
         search_layout.addWidget(QLabel("Search:"))
@@ -55,9 +51,9 @@ class AdvancedSearchDialog(QDialog):
         search_type = self.search_type.currentText()
 
         if search_type == "Products":
-            results = self.products_api.get_products(product_filter=ProductFilter(name=search_term))
-        elif search_type == "Customers":
-            results = self.customers_api.get_customers(customer_filter=CustomerFilter(name=search_term))
+            results = self.search_api.search_products(q=search_term)
+        elif search_type == "Orders":
+            results = self.search_api.search_orders(q=search_term)
         else:
             results = []
 

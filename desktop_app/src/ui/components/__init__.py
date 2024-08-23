@@ -16,7 +16,7 @@ from .dialogs import (
     MessageBox,
     FileDialog
 )
-from .error_dialog import ErrorDialog
+from .error_dialog import DetailedErrorDialog, global_exception_handler
 from .inventory_widget_dialogs import (
     InventoryDialog,
     AdjustmentDialog
@@ -38,10 +38,10 @@ __all__ = [
     "ProgressDialog",
     "MessageBox",
     "FileDialog",
-    "ErrorDialog",
     "InventoryDialog",
     "AdjustmentDialog",
     "OrderDialog",
     "OrderDetailsDialog",
-    "ShippingDialog"
+    "ShippingDialog",
+    "DetailedErrorDialog",
 ]

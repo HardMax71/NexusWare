@@ -46,7 +46,6 @@ across mobile, web, and desktop environments.
 | Quality Control             | -      | ✅   | ✅       |
 | Billing and Invoicing       | -      | ✅   | ✅       |
 | Yard Management             | -      | ✅   | ✅       |
-| Security and Compliance     | ✅      | ✅   | ✅       |
 | System Administration       | -      | ✅   | ✅       |
 | Offline Database Management | -      | -   | ✅       |
 | Advanced Reporting          | -      | -   | ✅       |

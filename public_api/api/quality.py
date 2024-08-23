@@ -1,5 +1,3 @@
-from typing import Optional, List
-
 from public_api.shared_schemas.quality import (
     QualityCheckCreate, QualityCheckUpdate, QualityCheckWithProduct, QualityCheckFilter,
     QualityMetrics, QualityStandardCreate, QualityStandardUpdate, QualityStandard,
@@ -18,7 +16,7 @@ class QualityAPI:
         return QualityCheckWithProduct.model_validate(response)
 
     def get_quality_checks(self, skip: int = 0, limit: int = 100,
-                           filter_params: Optional[QualityCheckFilter] = None) -> List[QualityCheckWithProduct]:
+                           filter_params: QualityCheckFilter | None = None) -> list[QualityCheckWithProduct]:
         params = {"skip": skip, "limit": limit}
         if filter_params:
             params.update(filter_params.model_dump(mode="json", exclude_unset=True))
@@ -38,8 +36,7 @@ class QualityAPI:
         response = self.client.delete(f"/quality/checks/{check_id}")
         return QualityCheckWithProduct.model_validate(response)
 
-    def get_quality_metrics(self, date_from: Optional[int] = None,
-                            date_to: Optional[int] = None) -> QualityMetrics:
+    def get_quality_metrics(self, date_from: int | None = None, date_to: int | None = None) -> QualityMetrics:
         params = {}
         if date_from:
             params["date_from"] = date_from
@@ -52,7 +49,7 @@ class QualityAPI:
         response = self.client.post("/quality/standards", json=standard_data.model_dump(mode="json"))
         return QualityStandard.model_validate(response)
 
-    def get_quality_standards(self, skip: int = 0, limit: int = 100) -> List[QualityStandard]:
+    def get_quality_standards(self, skip: int = 0, limit: int = 100) -> list[QualityStandard]:
         response = self.client.get("/quality/standards", params={"skip": skip, "limit": limit})
         return [QualityStandard.model_validate(item) for item in response]
 
@@ -73,7 +70,7 @@ class QualityAPI:
         response = self.client.post("/quality/alerts", json=alert_data.model_dump(mode="json"))
         return QualityAlert.model_validate(response)
 
-    def get_quality_alerts(self, skip: int = 0, limit: int = 100) -> List[QualityAlert]:
+    def get_quality_alerts(self, skip: int = 0, limit: int = 100) -> list[QualityAlert]:
         response = self.client.get("/quality/alerts", params={"skip": skip, "limit": limit})
         return [QualityAlert.model_validate(item) for item in response]
 
@@ -83,13 +80,13 @@ class QualityAPI:
         return QualityAlert.model_validate(response)
 
     def get_product_quality_history(self, product_id: int,
-                                    skip: int = 0, limit: int = 100) -> List[QualityCheckWithProduct]:
+                                    skip: int = 0, limit: int = 100) -> list[QualityCheckWithProduct]:
         response = self.client.get(f"/quality/product/{product_id}/history",
                                    params={"skip": skip, "limit": limit})
         return [QualityCheckWithProduct.model_validate(item) for item in response]
 
-    def get_quality_check_summary(self, date_from: Optional[int] = None,
-                                  date_to: Optional[int] = None) -> QualityCheckSummary:
+    def get_quality_check_summary(self,
+                                  date_from: int | None = None, date_to: int | None = None) -> QualityCheckSummary:
         params = {}
         if date_from:
             params["date_from"] = date_from
@@ -98,16 +95,16 @@ class QualityAPI:
         response = self.client.get("/quality/checks/summary", params=params)
         return QualityCheckSummary.model_validate(response)
 
-    def get_product_quality_standards(self, product_id: int) -> List[QualityStandard]:
+    def get_product_quality_standards(self, product_id: int) -> list[QualityStandard]:
         response = self.client.get(f"/quality/product/{product_id}/standards")
         return [QualityStandard.model_validate(item) for item in response]
 
-    def create_batch_quality_check(self, checks: List[QualityCheckCreate]) -> List[QualityCheckWithProduct]:
+    def create_batch_quality_check(self, checks: list[QualityCheckCreate]) -> list[QualityCheckWithProduct]:
         response = self.client.post("/quality/batch_check",
                                     json=[check.model_dump(mode="json") for check in checks])
         return [QualityCheckWithProduct.model_validate(item) for item in response]
 
-    def get_active_quality_alerts(self, skip: int = 0, limit: int = 100) -> List[QualityAlert]:
+    def get_active_quality_alerts(self, skip: int = 0, limit: int = 100) -> list[QualityAlert]:
         response = self.client.get("/quality/alerts/active", params={"skip": skip, "limit": limit})
         return [QualityAlert.model_validate(item) for item in response]
 
@@ -118,8 +115,8 @@ class QualityAPI:
         return QualityCheckComment.model_validate(response)
 
     def get_product_defect_rates(self,
-                                 date_from: Optional[int] = None,
-                                 date_to: Optional[int] = None) -> List[ProductDefectRate]:
+                                 date_from: int | None = None,
+                                 date_to: int | None = None) -> list[ProductDefectRate]:
         params = {}
         if date_from:
             params["date_from"] = date_from

@@ -1,5 +1,3 @@
-from typing import List, Optional
-
 from public_api.shared_schemas import (
     OrderCreate, OrderUpdate, Order, OrderWithDetails, OrderFilter,
     OrderSummary, ShippingInfo, OrderItemCreate, BulkOrderImportData,
@@ -17,7 +15,7 @@ class OrdersAPI:
         return Order.model_validate(response)
 
     def get_orders(self, skip: int = 0, limit: int = 100,
-                   filter_params: Optional[OrderFilter] = None) -> List[OrderWithDetails]:
+                   filter_params: OrderFilter | None = None) -> list[OrderWithDetails]:
         params = {"skip": skip, "limit": limit}
         if filter_params:
             params.update(filter_params.model_dump(mode="json", exclude_unset=True))
@@ -47,8 +45,8 @@ class OrdersAPI:
         response = self.client.delete(f"/orders/{order_id}")
         return Order.model_validate(response)
 
-    def get_order_summary(self, date_from: Optional[int] = None,
-                          date_to: Optional[int] = None) -> OrderSummary:
+    def get_order_summary(self, date_from: int | None = None,
+                          date_to: int | None = None) -> OrderSummary:
         params = {}
         if date_from:
             params["date_from"] = date_from
@@ -73,7 +71,7 @@ class OrdersAPI:
         response = self.client.post(f"/orders/{order_id}/add_item", json=item_data.model_dump(mode="json"))
         return Order.model_validate(response)
 
-    def get_backorders(self) -> List[Order]:
+    def get_backorders(self) -> list[Order]:
         response = self.client.get("/orders/backorders")
         return [Order.model_validate(item) for item in response]
 

@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List, Optional
 
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
@@ -67,7 +66,7 @@ class CustomerView(QWidget):
         customers = self.customers_api.get_customers()
         self.update_table(customers)
 
-    def update_table(self, customers: List[Customer]):
+    def update_table(self, customers: list[Customer]):
         self.customers_table.setRowCount(len(customers))
         self.customers_table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         for row, customer in enumerate(customers):
@@ -139,7 +138,7 @@ class CustomerView(QWidget):
 
 
 class CustomerDialog(QDialog):
-    def __init__(self, customers_api: CustomersAPI, customer_data: Optional[Customer] = None, parent=None):
+    def __init__(self, customers_api: CustomersAPI, customer_data: Customer | None = None, parent=None):
         super().__init__(parent)
         self.customers_api = customers_api
         self.customer_data = customer_data

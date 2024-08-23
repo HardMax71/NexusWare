@@ -1,5 +1,3 @@
-from typing import Optional, List, Dict
-
 from public_api.shared_schemas import (
     InventoryCreate, InventoryUpdate, Inventory, InventoryList, InventoryFilter,
     InventoryTransfer, InventoryReport, ProductWithInventory, Product,
@@ -19,7 +17,7 @@ class InventoryAPI:
         return Inventory.model_validate(response)
 
     def get_inventory(self, skip: int = 0, limit: int = 100,
-                      inventory_filter: Optional[InventoryFilter] = None) -> InventoryList:
+                      inventory_filter: InventoryFilter | None = None) -> InventoryList:
         params = {"skip": skip, "limit": limit}
         if inventory_filter:
             params.update(inventory_filter.model_dump(mode="json", exclude_unset=True))
@@ -47,36 +45,36 @@ class InventoryAPI:
         response = self.client.get("/inventory/report")
         return InventoryReport.model_validate(response)
 
-    def perform_cycle_count(self, location_id: int, counted_items: List[InventoryUpdate]) -> List[Inventory]:
+    def perform_cycle_count(self, location_id: int, counted_items: list[InventoryUpdate]) -> list[Inventory]:
         response = self.client.post("/inventory/cycle_count", json={
             "location_id": location_id,
             "counted_items": [item.model_dump(mode="json") for item in counted_items]
         })
         return [Inventory.model_validate(item) for item in response]
 
-    def get_low_stock_items(self, threshold: int = 10) -> List[ProductWithInventory]:
+    def get_low_stock_items(self, threshold: int = 10) -> list[ProductWithInventory]:
         response = self.client.get("/inventory/low_stock", params={"threshold": threshold})
         return [ProductWithInventory.model_validate(item) for item in response]
 
-    def get_out_of_stock_items(self) -> List[Product]:
+    def get_out_of_stock_items(self) -> list[Product]:
         response = self.client.get("/inventory/out_of_stock")
         return [Product.model_validate(item) for item in response]
 
-    def create_reorder_list(self, threshold: int = 10) -> List[Product]:
+    def create_reorder_list(self, threshold: int = 10) -> list[Product]:
         response = self.client.post("/inventory/reorder", params={"threshold": threshold})
         return [Product.model_validate(item) for item in response]
 
-    def get_product_locations(self, product_id: int) -> List[LocationWithInventory]:
+    def get_product_locations(self, product_id: int) -> list[LocationWithInventory]:
         response = self.client.get(f"/inventory/product_locations/{product_id}")
         return [LocationWithInventory.model_validate(item) for item in response]
 
-    def batch_update_inventory(self, updates: List[InventoryUpdate]) -> List[Inventory]:
+    def batch_update_inventory(self, updates: list[InventoryUpdate]) -> list[Inventory]:
         response = self.client.post("/inventory/batch_update",
                                     json=[update.model_dump(mode="json") for update in updates])
         return [Inventory.model_validate(item) for item in response]
 
-    def get_inventory_movement_history(self, product_id: int, start_date: Optional[int] = None,
-                                       end_date: Optional[int] = None) -> List[InventoryMovement]:
+    def get_inventory_movement_history(self, product_id: int, start_date: int | None = None,
+                                       end_date: int | None = None) -> list[InventoryMovement]:
         params = {}
         if start_date:
             params["start_date"] = start_date
@@ -97,11 +95,11 @@ class InventoryAPI:
         response = self.client.get("/inventory/abc_analysis")
         return ABCAnalysisResult.model_validate(response)
 
-    def optimize_inventory_locations(self) -> List[InventoryLocationSuggestion]:
+    def optimize_inventory_locations(self) -> list[InventoryLocationSuggestion]:
         response = self.client.post("/inventory/optimize_locations")
         return [InventoryLocationSuggestion.model_validate(item) for item in response]
 
-    def get_expiring_soon_inventory(self, days: int = 30) -> List[ProductWithInventory]:
+    def get_expiring_soon_inventory(self, days: int = 30) -> list[ProductWithInventory]:
         response = self.client.get("/inventory/expiring_soon", params={"days": days})
         return [ProductWithInventory.model_validate(item) for item in response]
 
@@ -113,11 +111,11 @@ class InventoryAPI:
         response = self.client.get("/inventory/storage_utilization")
         return StorageUtilization.model_validate(response)
 
-    def get_inventory_forecast(self, product_id: int) -> Dict:
+    def get_inventory_forecast(self, product_id: int) -> dict:
         response = self.client.get(f"/inventory/forecast/{product_id}")
         return response
 
-    def get_reorder_suggestions(self) -> List[Dict]:
+    def get_reorder_suggestions(self) -> list[dict]:
         response = self.client.get("/inventory/reorder_suggestions")
         return response
 

@@ -1,20 +1,17 @@
-# /server/app/crud/yard_location.py
-from typing import Optional, List
-
 from sqlalchemy.orm import Session, selectinload
 
-from server.app.models import YardLocation
 from public_api.shared_schemas import (
     YardLocation as YardLocationSchema,
     YardLocationCreate, YardLocationUpdate,
     YardLocationFilter, YardLocationWithAppointments
 )
+from server.app.models import YardLocation
 from .base import CRUDBase
 
 
 class CRUDYardLocation(CRUDBase[YardLocation, YardLocationCreate, YardLocationUpdate]):
     def get_multi_with_filter(self, db: Session, *, skip: int = 0, limit: int = 100,
-                              filter_params: YardLocationFilter) -> List[YardLocationSchema]:
+                              filter_params: YardLocationFilter) -> list[YardLocationSchema]:
         query = db.query(self.model)
         if filter_params.name:
             query = query.filter(YardLocation.name.ilike(f"%{filter_params.name}%"))
@@ -25,7 +22,7 @@ class CRUDYardLocation(CRUDBase[YardLocation, YardLocationCreate, YardLocationUp
         locations = query.offset(skip).limit(limit).all()
         return [YardLocationSchema.model_validate(location) for location in locations]
 
-    def get_with_appointments(self, db: Session, id: int) -> Optional[YardLocationWithAppointments]:
+    def get_with_appointments(self, db: Session, id: int) -> YardLocationWithAppointments | None:
         location = (db.query(self.model)
                     .filter(self.model.id == id)
                     .options(selectinload(YardLocation.appointments))

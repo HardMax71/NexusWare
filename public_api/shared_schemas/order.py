@@ -1,5 +1,4 @@
 from enum import Enum
-from typing import Optional, List
 
 from pydantic import BaseModel
 
@@ -25,10 +24,10 @@ class OrderItemCreate(OrderItemBase):
 
 
 class OrderItemUpdate(BaseModel):
-    id: Optional[int] = None
-    product_id: Optional[int] = None
-    quantity: Optional[int] = None
-    unit_price: Optional[float] = None
+    id: int | None = None
+    product_id: int | None = None
+    quantity: int | None = None
+    unit_price: float | None = None
 
 
 class OrderItem(OrderItemBase):
@@ -43,39 +42,39 @@ class OrderBase(BaseModel):
     customer_id: int
     status: OrderStatus
     total_amount: float
-    shipping_name: Optional[str] = None
-    shipping_address_line1: Optional[str] = None
-    shipping_city: Optional[str] = None
-    shipping_state: Optional[str] = None
-    shipping_postal_code: Optional[str] = None
-    shipping_country: Optional[str] = None
-    shipping_phone: Optional[str] = None
-    ship_date: Optional[int] = None
+    shipping_name: str | None = None
+    shipping_address_line1: str | None = None
+    shipping_city: str | None = None
+    shipping_state: str | None = None
+    shipping_postal_code: str | None = None
+    shipping_country: str | None = None
+    shipping_phone: str | None = None
+    ship_date: int | None = None
 
 
 class OrderCreate(OrderBase):
-    items: List[OrderItemCreate]
+    items: list[OrderItemCreate]
 
 
 class OrderUpdate(BaseModel):
-    customer_id: Optional[int] = None
-    status: Optional[OrderStatus] = None
-    total_amount: Optional[float] = None
-    shipping_name: Optional[str] = None
-    shipping_address_line1: Optional[str] = None
-    shipping_city: Optional[str] = None
-    shipping_state: Optional[str] = None
-    shipping_postal_code: Optional[str] = None
-    shipping_country: Optional[str] = None
-    shipping_phone: Optional[str] = None
-    ship_date: Optional[int] = None
-    items: Optional[List[OrderItemUpdate]] = None
+    customer_id: int | None = None
+    status: OrderStatus | None = None
+    total_amount: float | None = None
+    shipping_name: str | None = None
+    shipping_address_line1: str | None = None
+    shipping_city: str | None = None
+    shipping_state: str | None = None
+    shipping_postal_code: str | None = None
+    shipping_country: str | None = None
+    shipping_phone: str | None = None
+    ship_date: int | None = None
+    items: list[OrderItemUpdate] | None = None
 
 
 class Order(OrderBase):
     id: int
     order_date: int
-    order_items: List[OrderItem] = []
+    order_items: list[OrderItem] = []
 
     class Config:
         from_attributes = True
@@ -83,9 +82,9 @@ class Order(OrderBase):
 
 class CustomerBase(BaseModel):
     name: str
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    address: Optional[str] = None
+    email: str | None = None
+    phone: str | None = None
+    address: str | None = None
 
 
 class CustomerCreate(CustomerBase):
@@ -93,10 +92,10 @@ class CustomerCreate(CustomerBase):
 
 
 class CustomerUpdate(BaseModel):
-    name: Optional[str] = None
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    address: Optional[str] = None
+    name: str | None = None
+    email: str | None = None
+    phone: str | None = None
+    address: str | None = None
 
 
 class Customer(CustomerBase):
@@ -117,9 +116,9 @@ class POItemCreate(POItemBase):
 
 
 class POItemUpdate(BaseModel):
-    product_id: Optional[int] = None
-    quantity: Optional[int] = None
-    unit_price: Optional[float] = None
+    product_id: int | None = None
+    quantity: int | None = None
+    unit_price: float | None = None
 
 
 class POItem(POItemBase):
@@ -133,24 +132,24 @@ class POItem(POItemBase):
 class PurchaseOrderBase(BaseModel):
     supplier_id: int
     status: OrderStatus
-    expected_delivery_date: Optional[int] = None
+    expected_delivery_date: int | None = None
 
 
 class PurchaseOrderCreate(PurchaseOrderBase):
-    items: List[POItemCreate]
+    items: list[POItemCreate]
 
 
 class PurchaseOrderUpdate(BaseModel):
-    supplier_id: Optional[int] = None
-    status: Optional[OrderStatus] = None
-    expected_delivery_date: Optional[int] = None
-    items: Optional[List[POItemUpdate]] = None
+    supplier_id: int | None = None
+    status: OrderStatus | None = None
+    expected_delivery_date: int | None = None
+    items: list[POItemUpdate] | None = None
 
 
 class PurchaseOrder(PurchaseOrderBase):
     id: int
     order_date: int
-    po_items: List[POItem] = []
+    po_items: list[POItem] = []
 
     class Config:
         from_attributes = True
@@ -158,10 +157,10 @@ class PurchaseOrder(PurchaseOrderBase):
 
 class SupplierBase(BaseModel):
     name: str
-    contact_person: Optional[str] = None
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    address: Optional[str] = None
+    contact_person: str | None = None
+    email: str | None = None
+    phone: str | None = None
+    address: str | None = None
 
 
 class SupplierCreate(SupplierBase):
@@ -169,11 +168,11 @@ class SupplierCreate(SupplierBase):
 
 
 class SupplierUpdate(BaseModel):
-    name: Optional[str] = None
-    contact_person: Optional[str] = None
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    address: Optional[str] = None
+    name: str | None = None
+    contact_person: str | None = None
+    email: str | None = None
+    phone: str | None = None
+    address: str | None = None
 
 
 class Supplier(SupplierBase):
@@ -184,12 +183,12 @@ class Supplier(SupplierBase):
 
 
 class OrderFilter(BaseModel):
-    customer_id: Optional[int] = None
-    status: Optional[OrderStatus] = None
-    order_date_from: Optional[int] = None
-    order_date_to: Optional[int] = None
-    ship_date_from: Optional[int] = None
-    ship_date_to: Optional[int] = None
+    customer_id: int | None = None
+    status: OrderStatus | None = None
+    order_date_from: int | None = None
+    order_date_to: int | None = None
+    ship_date_from: int | None = None
+    ship_date_to: int | None = None
 
 
 class OrderSummary(BaseModel):
@@ -199,30 +198,30 @@ class OrderSummary(BaseModel):
 
 
 class CustomerFilter(BaseModel):
-    name: Optional[str] = None
-    email: Optional[str] = None
+    name: str | None = None
+    email: str | None = None
 
 
 class PurchaseOrderFilter(BaseModel):
-    supplier_id: Optional[int] = None
-    status: Optional[OrderStatus] = None
-    date_from: Optional[int] = None
-    date_to: Optional[int] = None
+    supplier_id: int | None = None
+    status: OrderStatus | None = None
+    date_from: int | None = None
+    date_to: int | None = None
 
 
 class SupplierFilter(BaseModel):
-    name: Optional[str] = None
-    contact_person: Optional[str] = None
+    name: str | None = None
+    contact_person: str | None = None
 
 
 class OrderWithDetails(Order):
     customer: Customer
-    order_items: List[OrderItem]
+    order_items: list[OrderItem]
 
 
 class PurchaseOrderWithDetails(PurchaseOrder):
     supplier: Supplier
-    po_items: List[POItem]
+    po_items: list[POItem]
 
 
 class ShippingInfo(BaseModel):
@@ -246,10 +245,10 @@ class OrderProcessingTimes(BaseModel):
 
 
 class BulkOrderImportData(BaseModel):
-    orders: List[OrderCreate]
+    orders: list[OrderCreate]
 
 
 class BulkOrderImportResult(BaseModel):
     success_count: int
     failure_count: int
-    errors: List[str]
+    errors: list[str]

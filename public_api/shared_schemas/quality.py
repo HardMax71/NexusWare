@@ -1,5 +1,4 @@
 # /server/app/shared_schemas/quality.py
-from typing import Optional
 
 from pydantic import BaseModel
 
@@ -10,7 +9,7 @@ class QualityCheckBase(BaseModel):
     product_id: int
     performed_by: int
     result: str
-    notes: Optional[str] = None
+    notes: str | None = None
 
 
 class QualityCheckCreate(QualityCheckBase):
@@ -18,10 +17,10 @@ class QualityCheckCreate(QualityCheckBase):
 
 
 class QualityCheckUpdate(BaseModel):
-    product_id: Optional[int] = None
-    performed_by: Optional[int] = None
-    result: Optional[str] = None
-    notes: Optional[str] = None
+    product_id: int | None = None
+    performed_by: int | None = None
+    result: str | None = None
+    notes: str | None = None
 
 
 class QualityCheck(QualityCheckBase):
@@ -37,11 +36,11 @@ class QualityCheckWithProduct(QualityCheck):
 
 
 class QualityCheckFilter(BaseModel):
-    product_id: Optional[int] = None
-    performed_by: Optional[int] = None
-    result: Optional[str] = None
-    date_from: Optional[int] = None
-    date_to: Optional[int] = None
+    product_id: int | None = None
+    performed_by: int | None = None
+    result: str | None = None
+    date_from: int | None = None
+    date_to: int | None = None
 
 
 class QualityMetrics(BaseModel):
@@ -61,9 +60,9 @@ class QualityStandardCreate(QualityStandardBase):
 
 
 class QualityStandardUpdate(BaseModel):
-    product_id: Optional[int] = None
-    criteria: Optional[str] = None
-    acceptable_range: Optional[str] = None
+    product_id: int | None = None
+    criteria: str | None = None
+    acceptable_range: str | None = None
 
 
 class QualityStandard(QualityStandardBase):
@@ -84,16 +83,16 @@ class QualityAlertCreate(QualityAlertBase):
 
 
 class QualityAlertUpdate(BaseModel):
-    product_id: Optional[int] = None
-    alert_type: Optional[str] = None
-    description: Optional[str] = None
-    resolved_at: Optional[int] = None
+    product_id: int | None = None
+    alert_type: str | None = None
+    description: str | None = None
+    resolved_at: int | None = None
 
 
 class QualityAlert(QualityAlertBase):
     id: int
     created_at: int
-    resolved_at: Optional[int] = None
+    resolved_at: int | None = None
 
     class Config:
         from_attributes = True
@@ -122,15 +121,15 @@ class ProductDefectRate(BaseModel):
 
 
 class QualityStandardFilter(BaseModel):
-    product_id: Optional[int] = None
+    product_id: int | None = None
 
 
 class QualityAlertFilter(BaseModel):
-    product_id: Optional[int] = None
-    alert_type: Optional[str] = None
-    resolved: Optional[bool] = None
-    date_from: Optional[int] = None
-    date_to: Optional[int] = None
+    product_id: int | None = None
+    alert_type: str | None = None
+    resolved: bool | None = None
+    date_from: int | None = None
+    date_to: int | None = None
 
 
 class QualityCheckSummary(BaseModel):

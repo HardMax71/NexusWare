@@ -1,6 +1,3 @@
-# /server/app/crud/shipment.py
-from typing import Optional, List
-
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
@@ -29,7 +26,7 @@ class CRUDShipment(CRUDBase[Shipment, ShipmentCreate, ShipmentUpdate]):
         shipments = query.offset(skip).limit(limit).all()
         return [ShipmentSchema.model_validate(shipment) for shipment in shipments]
 
-    def get_carrier_rates(self, db: Session, weight: float, dimensions: str, destination_zip: str) -> List[CarrierRate]:
+    def get_carrier_rates(self, db: Session, weight: float, dimensions: str, destination_zip: str) -> list[CarrierRate]:
         try:
             params = {
                 "weight": weight,
@@ -49,7 +46,7 @@ class CRUDShipment(CRUDBase[Shipment, ShipmentCreate, ShipmentUpdate]):
                 raise HTTPException(status_code=401, detail="Invalid ShipEngine API key")
             raise e
 
-    def track(self, db: Session, *, shipment_id: int) -> Optional[ShipmentTracking]:
+    def track(self, db: Session, *, shipment_id: int) -> ShipmentTracking | None:
         shipment = self.get(db, id=shipment_id)
         if not shipment:
             raise HTTPException(status_code=404, detail="Shipment not found")

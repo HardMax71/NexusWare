@@ -18,8 +18,7 @@ def read_po_items(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    po_items = crud.po_item.get_multi(db, skip=skip, limit=limit)
-    return po_items
+    return crud.po_item.get_multi(db, skip=skip, limit=limit)
 
 
 @router.get("/by_product/{product_id}", response_model=List[shared_schemas.POItem])
@@ -30,8 +29,7 @@ def read_po_items_by_product(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    po_items = crud.po_item.get_by_product(db, product_id=product_id, skip=skip, limit=limit)
-    return po_items
+    return crud.po_item.get_by_product(db, product_id=product_id, skip=skip, limit=limit)
 
 
 @router.get("/pending_receipt", response_model=List[shared_schemas.POItem])
@@ -41,8 +39,7 @@ def read_pending_receipt_po_items(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    po_items = crud.po_item.get_pending_receipt(db, skip=skip, limit=limit)
-    return po_items
+    return crud.po_item.get_pending_receipt(db, skip=skip, limit=limit)
 
 
 @router.get("/{po_item_id}", response_model=shared_schemas.POItem)

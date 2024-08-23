@@ -1,6 +1,5 @@
 # /server/app/shared_schemas/reports.py
 from enum import Enum
-from typing import List, Optional
 
 from pydantic import BaseModel
 
@@ -15,7 +14,7 @@ class InventoryItem(BaseModel):
 class InventorySummaryReport(BaseModel):
     total_items: int
     total_value: float
-    items: List[InventoryItem]
+    items: list[InventoryItem]
 
 
 class OrderSummary(BaseModel):
@@ -39,7 +38,7 @@ class WarehousePerformanceMetric(BaseModel):
 class WarehousePerformanceReport(BaseModel):
     start_date: int
     end_date: int
-    metrics: List[WarehousePerformanceMetric]
+    metrics: list[WarehousePerformanceMetric]
 
 
 class TrendDirection(str, Enum):
@@ -56,7 +55,7 @@ class KPIMetric(BaseModel):
 
 class KPIDashboard(BaseModel):
     date: int
-    metrics: List[KPIMetric]
+    metrics: list[KPIMetric]
 
 
 class ProductPerformance(BaseModel):
@@ -69,7 +68,7 @@ class ProductPerformance(BaseModel):
 class TopSellingProductsReport(BaseModel):
     start_date: int
     end_date: int
-    products: List[ProductPerformance]
+    products: list[ProductPerformance]
 
 
 class SupplierPerformance(BaseModel):
@@ -83,7 +82,7 @@ class SupplierPerformance(BaseModel):
 class SupplierPerformanceReport(BaseModel):
     start_date: int
     end_date: int
-    suppliers: List[SupplierPerformance]
+    suppliers: list[SupplierPerformance]
 
 
 class StockMovement(BaseModel):
@@ -97,7 +96,7 @@ class StockMovement(BaseModel):
 class StockMovementReport(BaseModel):
     start_date: int
     end_date: int
-    movements: List[StockMovement]
+    movements: list[StockMovement]
 
 
 class PickingEfficiency(BaseModel):
@@ -111,7 +110,7 @@ class PickingEfficiency(BaseModel):
 class PickingEfficiencyReport(BaseModel):
     start_date: int
     end_date: int
-    pickers: List[PickingEfficiency]
+    pickers: list[PickingEfficiency]
 
 
 class StorageUtilization(BaseModel):
@@ -124,7 +123,7 @@ class StorageUtilization(BaseModel):
 
 class StorageUtilizationReport(BaseModel):
     date: int
-    zones: List[StorageUtilization]
+    zones: list[StorageUtilization]
 
 
 class ReturnsAnalysis(BaseModel):
@@ -138,7 +137,7 @@ class ReturnsReport(BaseModel):
     end_date: int
     total_returns: int
     return_rate: float
-    reasons: List[ReturnsAnalysis]
+    reasons: list[ReturnsAnalysis]
 
 
 class CustomReport(BaseModel):
@@ -147,7 +146,7 @@ class CustomReport(BaseModel):
     query: str
     parameters: dict
     created_at: int
-    last_run: Optional[int]
+    last_run: int | None
 
 
 class ReportFrequency(str, Enum):
@@ -160,4 +159,4 @@ class ReportSchedule(BaseModel):
     report_id: int
     frequency: ReportFrequency
     next_run: int
-    recipients: List[str]
+    recipients: list[str]

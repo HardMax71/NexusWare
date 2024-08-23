@@ -1,5 +1,3 @@
-from typing import List, Optional
-
 from public_api.shared_schemas import (
     Task, TaskCreate, TaskUpdate, TaskWithAssignee, TaskFilter, TaskStatistics,
     UserTaskSummary, TaskComment, TaskCommentCreate
@@ -15,8 +13,9 @@ class TasksAPI:
         response = self.client.post("/tasks/", json=task.model_dump())
         return Task.model_validate(response)
 
-    def get_tasks(self, skip: int = 0, limit: int = 100, filter_params: Optional[TaskFilter] = None) -> List[
-        TaskWithAssignee]:
+    def get_tasks(self,
+                  skip: int = 0, limit: int = 100,
+                  filter_params: TaskFilter | None = None) -> list[TaskWithAssignee]:
         params = {"skip": skip, "limit": limit}
         if filter_params:
             params.update(filter_params.model_dump(exclude_none=True))
@@ -27,20 +26,20 @@ class TasksAPI:
         response = self.client.get("/tasks/statistics")
         return TaskStatistics.model_validate(response)
 
-    def get_user_task_summary(self) -> List[UserTaskSummary]:
+    def get_user_task_summary(self) -> list[UserTaskSummary]:
         response = self.client.get("/tasks/user_summary")
         return [UserTaskSummary.model_validate(item) for item in response]
 
-    def get_overdue_tasks(self, skip: int = 0, limit: int = 100) -> List[TaskWithAssignee]:
+    def get_overdue_tasks(self, skip: int = 0, limit: int = 100) -> list[TaskWithAssignee]:
         params = {"skip": skip, "limit": limit}
         response = self.client.get("/tasks/overdue", params=params)
         return [TaskWithAssignee.model_validate(item) for item in response]
 
-    def create_batch_tasks(self, tasks: List[TaskCreate]) -> List[Task]:
+    def create_batch_tasks(self, tasks: list[TaskCreate]) -> list[Task]:
         response = self.client.post("/tasks/batch_create", json=[task.model_dump() for task in tasks])
         return [Task.model_validate(item) for item in response]
 
-    def get_my_tasks(self, skip: int = 0, limit: int = 100) -> List[Task]:
+    def get_my_tasks(self, skip: int = 0, limit: int = 100) -> list[Task]:
         params = {"skip": skip, "limit": limit}
         response = self.client.get("/tasks/my_tasks", params=params)
         return [Task.model_validate(item) for item in response]
@@ -65,7 +64,7 @@ class TasksAPI:
         response = self.client.post(f"/tasks/{task_id}/comment", json=comment.model_dump())
         return TaskComment.model_validate(response)
 
-    def get_task_comments(self, task_id: int, skip: int = 0, limit: int = 100) -> List[TaskComment]:
+    def get_task_comments(self, task_id: int, skip: int = 0, limit: int = 100) -> list[TaskComment]:
         params = {"skip": skip, "limit": limit}
         response = self.client.get(f"/tasks/{task_id}/comments", params=params)
         return [TaskComment.model_validate(item) for item in response]

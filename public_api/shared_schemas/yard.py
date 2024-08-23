@@ -1,5 +1,4 @@
 from enum import Enum
-from typing import Optional, List
 
 from pydantic import BaseModel
 
@@ -27,10 +26,10 @@ class YardLocationCreate(YardLocationBase):
 
 
 class YardLocationUpdate(BaseModel):
-    name: Optional[str] = None
-    type: Optional[YardLocationType] = None
-    status: Optional[YardLocationStatus] = None
-    capacity: Optional[int] = None
+    name: str | None = None
+    type: YardLocationType | None = None
+    status: YardLocationStatus | None = None
+    capacity: int | None = None
 
 
 class YardLocation(YardLocationBase):
@@ -46,8 +45,8 @@ class DockAppointmentBase(BaseModel):
     carrier_id: int
     type: YardLocationType
     status: YardLocationStatus
-    actual_arrival_time: Optional[int] = None
-    actual_departure_time: Optional[int] = None
+    actual_arrival_time: int | None = None
+    actual_departure_time: int | None = None
 
 
 class DockAppointmentCreate(DockAppointmentBase):
@@ -55,13 +54,13 @@ class DockAppointmentCreate(DockAppointmentBase):
 
 
 class DockAppointmentUpdate(BaseModel):
-    yard_location_id: Optional[int] = None
-    appointment_time: Optional[int] = None
-    carrier_id: Optional[int] = None
-    type: Optional[YardLocationType] = None
-    status: Optional[YardLocationStatus] = None
-    actual_arrival_time: Optional[int] = None
-    actual_departure_time: Optional[int] = None
+    yard_location_id: int | None = None
+    appointment_time: int | None = None
+    carrier_id: int | None = None
+    type: YardLocationType | None = None
+    status: YardLocationStatus | None = None
+    actual_arrival_time: int | None = None
+    actual_departure_time: int | None = None
 
 
 class DockAppointment(DockAppointmentBase):
@@ -72,22 +71,22 @@ class DockAppointment(DockAppointmentBase):
 
 
 class YardLocationWithAppointments(YardLocation):
-    appointments: List[DockAppointment] = []
+    appointments: list[DockAppointment] = []
 
 
 class YardLocationFilter(BaseModel):
-    name: Optional[str] = None
-    type: Optional[YardLocationType] = None
-    status: Optional[YardLocationStatus] = None
+    name: str | None = None
+    type: YardLocationType | None = None
+    status: YardLocationStatus | None = None
 
 
 class DockAppointmentFilter(BaseModel):
-    yard_location_id: Optional[int] = None
-    carrier_id: Optional[int] = None
-    type: Optional[YardLocationType] = None
-    status: Optional[YardLocationStatus] = None
-    date_from: Optional[int] = None
-    date_to: Optional[int] = None
+    yard_location_id: int | None = None
+    carrier_id: int | None = None
+    type: YardLocationType | None = None
+    status: YardLocationStatus | None = None
+    date_from: int | None = None
+    date_to: int | None = None
 
 
 class YardStats(BaseModel):
@@ -114,7 +113,7 @@ class YardUtilizationReport(BaseModel):
     total_capacity: int
     total_utilization: int
     utilization_percentage: float
-    location_breakdown: List[YardLocationCapacity]
+    location_breakdown: list[YardLocationCapacity]
 
 
 class CarrierPerformance(BaseModel):
@@ -131,7 +130,7 @@ class YardLocationOccupancy(BaseModel):
     yard_location_id: int
     name: str
     occupied: bool
-    current_appointment: Optional[DockAppointment] = None
+    current_appointment: DockAppointment | None = None
 
 
 class YardOverview(BaseModel):
@@ -139,18 +138,18 @@ class YardOverview(BaseModel):
     occupied_locations: int
     available_locations: int
     utilization_percentage: float
-    locations: List[YardLocationOccupancy]
+    locations: list[YardLocationOccupancy]
 
 
 class AppointmentScheduleConflict(BaseModel):
-    conflicting_appointments: List[DockAppointment]
-    suggested_time_slots: List[int]
+    conflicting_appointments: list[DockAppointment]
+    suggested_time_slots: list[int]
 
 
 class CarrierSchedule(BaseModel):
     carrier_id: int
     carrier_name: str
-    appointments: List[DockAppointment]
+    appointments: list[DockAppointment]
 
 
 class YardLocationTypeDistribution(BaseModel):
@@ -162,16 +161,16 @@ class YardLocationTypeDistribution(BaseModel):
 class YardAnalytics(BaseModel):
     total_locations: int
     average_utilization: float
-    peak_hours: List[int]
-    type_distribution: List[YardLocationTypeDistribution]
-    carrier_performance: List[CarrierPerformance]
+    peak_hours: list[int]
+    type_distribution: list[YardLocationTypeDistribution]
+    carrier_performance: list[CarrierPerformance]
 
 
 class BulkAppointmentCreate(BaseModel):
-    appointments: List[DockAppointmentCreate]
+    appointments: list[DockAppointmentCreate]
 
 
 class BulkAppointmentCreateResult(BaseModel):
     success_count: int
     failure_count: int
-    errors: List[str]
+    errors: list[str]

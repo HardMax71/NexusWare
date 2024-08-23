@@ -5,8 +5,8 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, 
 
 from desktop_app.src.ui.components import StyledButton
 from public_api.api import UsersAPI, APIClient
-from public_api.shared_schemas import UserSanitizedWithRole, UserFilter, AllPermissions, UserWithPermissions, \
-    UserCreate, UserUpdate, AllRoles
+from public_api.shared_schemas import UserSanitized, UserFilter, AllPermissions, UserWithPermissions, \
+    UserCreate, UserUpdate, AllRoles, UserPermissionUpdate
 
 
 class UserManagementWidget(QWidget):
@@ -75,7 +75,7 @@ class UserManagementWidget(QWidget):
         users = self.users_api.get_users(filter_params=filter_params)
         self.update_table(users)
 
-    def update_table(self, users: list[UserSanitizedWithRole]):
+    def update_table(self, users: list[UserSanitized]):
         self.table.setRowCount(len(users))
         self.table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         for row, user in enumerate(users):
@@ -173,7 +173,7 @@ class UserManagementWidget(QWidget):
 
 
 class UserDialog(QDialog):
-    def __init__(self, users_api: UsersAPI, user: UserSanitizedWithRole = None, parent=None):
+    def __init__(self, users_api: UsersAPI, user: UserSanitized = None, parent=None):
         super().__init__(parent)
         self.users_api = users_api
         self.user = user
@@ -298,7 +298,8 @@ class PermissionManagementDialog(QDialog):
                 selected_permissions.append(item.data(Qt.UserRole))
 
         try:
-            self.users_api.update_user_permissions(self.user_id, selected_permissions)
+            permission_update = UserPermissionUpdate(permissions=selected_permissions)
+            self.users_api.update_user_permissions(self.user_id, permission_update)
             QMessageBox.information(self, "Success", "User permissions updated successfully.")
             self.accept()
         except Exception as e:

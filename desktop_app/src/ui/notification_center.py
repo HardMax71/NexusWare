@@ -1,7 +1,7 @@
 from PySide6.QtCore import Qt, QTimer, QDateTime
+from PySide6.QtGui import QColor, QBrush
 from PySide6.QtWidgets import (QVBoxLayout, QWidget, QTableWidget, QTableWidgetItem,
                                QPushButton, QHeaderView, QAbstractItemView)
-from PySide6.QtGui import QColor, QBrush, QFont
 
 from public_api.api import APIClient, NotificationsAPI
 

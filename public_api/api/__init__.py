@@ -15,6 +15,7 @@ from .products import ProductsAPI
 from .purchase_orders import PurchaseOrdersAPI
 from .quality import QualityAPI
 from .reports import ReportsAPI
+from .search import SearchAPI
 from .shipments import ShipmentsAPI
 from .suppliers import SuppliersAPI
 from .tasks import TasksAPI

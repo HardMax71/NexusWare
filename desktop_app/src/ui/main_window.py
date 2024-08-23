@@ -1,7 +1,6 @@
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QMainWindow, QTabWidget, QVBoxLayout, QWidget, QStatusBar, QMessageBox, QToolButton, \
-    QMenu, QSizePolicy
+from PySide6.QtWidgets import QMainWindow, QTabWidget, QVBoxLayout, QWidget, QStatusBar, QMessageBox, QToolButton
 
 from desktop_app.src.utils import ConfigManager
 from public_api.api import APIClient
@@ -38,7 +37,7 @@ class MainWindow(QMainWindow):
 
     def init_ui(self):
         self.setWindowTitle("NexusWare WMS")
-        self.setWindowIcon(QIcon("resources/icons/app_icon.png"))
+        self.setWindowIcon(QIcon("icons:app_icon.png"))
         self.setMinimumSize(1200, 800)
 
         central_widget = QWidget()

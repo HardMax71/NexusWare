@@ -1,10 +1,9 @@
 # /server/app/shared_schemas/task.py
 from enum import Enum
-from typing import Optional, List
 
 from pydantic import BaseModel
 
-from .user import User
+from .user import UserSanitized
 
 
 class TaskStatus(str, Enum):
@@ -41,12 +40,12 @@ class TaskCreate(TaskBase):
 
 
 class TaskUpdate(BaseModel):
-    task_type: Optional[TaskType] = None
-    description: Optional[str] = None
-    assigned_to: Optional[int] = None
-    due_date: Optional[int] = None
-    priority: Optional[TaskPriority] = None
-    status: Optional[TaskStatus] = None
+    task_type: TaskType | None = None
+    description: str | None = None
+    assigned_to: int | None = None
+    due_date: int | None = None
+    priority: TaskPriority | None = None
+    status: TaskStatus | None = None
 
 
 class Task(TaskBase):
@@ -58,16 +57,16 @@ class Task(TaskBase):
 
 
 class TaskWithAssignee(Task):
-    assigned_user: Optional[User] = None
+    assigned_user: UserSanitized | None = None
 
 
 class TaskFilter(BaseModel):
-    task_type: Optional[TaskType] = None
-    assigned_to: Optional[int] = None
-    priority: Optional[TaskPriority] = None
-    status: Optional[TaskStatus] = None
-    due_date_from: Optional[int] = None
-    due_date_to: Optional[int] = None
+    task_type: TaskType | None = None
+    assigned_to: int | None = None
+    priority: TaskPriority | None = None
+    status: TaskStatus | None = None
+    due_date_from: int | None = None
+    due_date_to: int | None = None
 
 
 class TaskCommentBase(BaseModel):
@@ -104,7 +103,7 @@ class UserTaskSummary(BaseModel):
 
 
 class TaskWithComments(Task):
-    comments: List[TaskComment] = []
+    comments: list[TaskComment] = []
 
 
 class TaskPriorityUpdate(BaseModel):
@@ -154,14 +153,14 @@ class TaskAnalytics(BaseModel):
     total_tasks: int
     completion_rate: float
     average_completion_time: float
-    type_distribution: List[TaskTypeDistribution]
+    type_distribution: list[TaskTypeDistribution]
 
 
 class BulkTaskCreate(BaseModel):
-    tasks: List[TaskCreate]
+    tasks: list[TaskCreate]
 
 
 class BulkTaskCreateResult(BaseModel):
     success_count: int
     failure_count: int
-    errors: List[str]
+    errors: list[str]

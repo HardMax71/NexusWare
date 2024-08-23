@@ -1,14 +1,13 @@
 # /server/app/crud/location.py
-from typing import Optional
 
 from sqlalchemy.orm import Session, joinedload
 
-from server.app.models import (
-    Location
-)
 from public_api.shared_schemas import (
     LocationCreate,
     LocationUpdate, LocationWithInventory as LocationWithInventorySchema, LocationFilter
+)
+from server.app.models import (
+    Location
 )
 from .base import CRUDBase
 
@@ -36,7 +35,7 @@ class CRUDLocation(CRUDBase[Location, LocationCreate, LocationUpdate]):
         locations = query.offset(skip).limit(limit).all()
         return [LocationWithInventorySchema.model_validate(location) for location in locations]
 
-    def get_with_inventory(self, db: Session, id: int) -> Optional[LocationWithInventorySchema]:
+    def get_with_inventory(self, db: Session, id: int) -> LocationWithInventorySchema | None:
         location = db.query(Location).filter(Location.id == id).options(
             joinedload(Location.inventory_items)).first()
         return LocationWithInventorySchema.model_validate(location) if location else None

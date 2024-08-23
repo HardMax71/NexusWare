@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List, Optional
 
 from PySide6.QtCore import Signal, QDate
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
@@ -80,7 +79,7 @@ class ShipmentView(QWidget):
         shipments = self.shipments_api.get_shipments(filter_params=filter_params)
         self.update_table(shipments)
 
-    def update_table(self, shipments: List[Shipment]):
+    def update_table(self, shipments: list[Shipment]):
         self.table.setRowCount(len(shipments))
         for row, shipment in enumerate(shipments):
             shipment_details = self.shipments_api.get_shipment_with_details(shipment.id)
@@ -184,7 +183,7 @@ class ShipmentView(QWidget):
 
 class ShipmentDialog(QDialog):
     def __init__(self, shipments_api: ShipmentsAPI, orders_api: OrdersAPI,
-                 carriers_api: CarriersAPI, shipment_data: Optional[Shipment] = None, parent=None):
+                 carriers_api: CarriersAPI, shipment_data: Shipment | None = None, parent=None):
         super().__init__(parent)
         self.shipments_api = shipments_api
         self.orders_api = orders_api

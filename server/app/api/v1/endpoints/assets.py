@@ -31,7 +31,7 @@ def read_assets(
         current_user: models.User = Depends(deps.has_permission("asset", "read"))
 ):
     assets = crud.asset.get_multi_with_filter(db, skip=skip, limit=limit, filter_params=asset_filter)
-    total = crud.asset.count_with_filter(db, filter_params=asset_filter)
+    total = len(assets)
     return {"assets": assets, "total": total}
 
 
@@ -172,7 +172,7 @@ def read_asset(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.has_permission("asset", "read"))
 ):
-    asset = crud.asset.get_with_maintenance(db, id=asset_id)
+    asset = crud.asset.get_with_maintenance(db, asset_id=asset_id)
     if asset is None:
         raise HTTPException(status_code=404, detail="Asset not found")
     return asset

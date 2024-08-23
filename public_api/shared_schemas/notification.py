@@ -1,5 +1,4 @@
 # /public_api/shared_schemas/notification.py
-from typing import Optional
 
 from pydantic import BaseModel
 
@@ -14,7 +13,7 @@ class NotificationCreate(NotificationBase):
 
 
 class NotificationUpdate(BaseModel):
-    is_read: Optional[bool] = None
+    is_read: bool | None = None
 
 
 class Notification(NotificationBase):

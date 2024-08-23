@@ -84,7 +84,7 @@ def create_reorder_list(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    return crud.inventory.create_reorder_list(db, threshold=threshold)
+    return crud.inventory.get_low_stock_items(db, threshold=threshold)
 
 
 @router.get("/product_locations/{product_id}", response_model=List[shared_schemas.LocationWithInventory])
@@ -250,4 +250,4 @@ def adjust_inventory(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
-    return crud.inventory.adjust_quantity(db, id=id, adjustment=adjustment)
+    return crud.inventory.adjust_quantity(db, inventory_id=id, adjustment=adjustment)
