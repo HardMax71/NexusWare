@@ -29,6 +29,5 @@ class LocationsAPI:
                                    json=location_data.model_dump(mode="json", exclude_unset=True))
         return Location.model_validate(response)
 
-    def delete_location(self, location_id: int) -> Location:
-        response = self.client.delete(f"/locations/{location_id}")
-        return Location.model_validate(response)
+    def delete_location(self, location_id: int) -> None:
+        self.client.delete(f"/locations/{location_id}")

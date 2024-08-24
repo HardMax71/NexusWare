@@ -57,7 +57,7 @@ def update_yard_location(
     return crud.yard_location.update(db, db_obj=location, obj_in=location_in)
 
 
-@router.delete("/locations/{location_id}", response_model=shared_schemas.YardLocation)
+@router.delete("/locations/{location_id}", status_code=204)
 def delete_yard_location(
         location_id: int = Path(..., title="The ID of the yard location to delete"),
         db: Session = Depends(deps.get_db),
@@ -66,7 +66,7 @@ def delete_yard_location(
     location = crud.yard_location.get(db, id=location_id)
     if location is None:
         raise HTTPException(status_code=404, detail="Yard location not found")
-    return crud.yard_location.remove(db, id=location_id)
+    crud.yard_location.remove(db, id=location_id)
 
 
 # Dock Appointment routes
@@ -123,7 +123,7 @@ def update_dock_appointment(
     return crud.dock_appointment.update(db, db_obj=appointment, obj_in=appointment_in)
 
 
-@router.delete("/appointments/{appointment_id}", response_model=shared_schemas.DockAppointment)
+@router.delete("/appointments/{appointment_id}", status_code=204)
 def delete_dock_appointment(
         appointment_id: int = Path(..., title="The ID of the dock appointment to delete"),
         db: Session = Depends(deps.get_db),
@@ -132,7 +132,7 @@ def delete_dock_appointment(
     appointment = crud.dock_appointment.get(db, id=appointment_id)
     if appointment is None:
         raise HTTPException(status_code=404, detail="Dock appointment not found")
-    return crud.dock_appointment.remove(db, id=appointment_id)
+    crud.dock_appointment.remove(db, id=appointment_id)
 
 
 @router.get("/utilization", response_model=shared_schemas.YardUtilizationReport)

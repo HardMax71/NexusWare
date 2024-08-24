@@ -1,9 +1,10 @@
 from datetime import datetime
 
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QVBoxLayout, QTableWidget, QTableWidgetItem,
                                QDialog, QComboBox,
                                QFormLayout, QDateEdit, QDoubleSpinBox, QSpinBox, QDialogButtonBox, QLabel, QGroupBox,
-                               QLineEdit, QMessageBox)
+                               QLineEdit, QMessageBox, QHeaderView, QHBoxLayout, QWidget)
 
 from desktop_app.src.ui.components import StyledButton
 from public_api.api import OrdersAPI, CustomersAPI, ProductsAPI, ShipmentsAPI, CarriersAPI
@@ -24,8 +25,15 @@ class OrderDialog(QDialog):
 
     def init_ui(self):
         self.setWindowTitle("Create Order" if not self.order_data else "Edit Order")
-        layout = QVBoxLayout(self)
+        self.setMinimumWidth(850)
+        main_layout = QVBoxLayout(self)
+        content_layout = QHBoxLayout()
 
+        # Left side: Order Information
+        left_widget = QWidget()
+        left_layout = QVBoxLayout(left_widget)
+
+        info_group = QGroupBox("Order Information")
         form_layout = QFormLayout()
 
         self.customer_combo = QComboBox()
@@ -46,22 +54,38 @@ class OrderDialog(QDialog):
         self.total_amount.setPrefix("$")
         form_layout.addRow("Total Amount:", self.total_amount)
 
-        layout.addLayout(form_layout)
+        info_group.setLayout(form_layout)
+        left_layout.addWidget(info_group)
+        left_layout.addStretch(1)
+        content_layout.addWidget(left_widget)
 
-        # Order Items
+        # Right side: Order Items Table
+        items_group = QGroupBox("Order Items")
+        items_layout = QVBoxLayout()
         self.items_table = QTableWidget()
         self.items_table.setColumnCount(4)
         self.items_table.setHorizontalHeaderLabels(["Product", "Quantity", "Unit Price", "Actions"])
-        layout.addWidget(self.items_table)
+
+        # Set column widths
+        header = self.items_table.horizontalHeader()
+        header.setSectionResizeMode(QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(0, QHeaderView.Stretch)  # Stretch the product column
+        items_layout.addWidget(self.items_table)
 
         add_item_button = StyledButton("Add Item")
         add_item_button.clicked.connect(self.add_item)
-        layout.addWidget(add_item_button)
+        items_layout.addWidget(add_item_button)
 
+        items_group.setLayout(items_layout)
+        content_layout.addWidget(items_group, 1)  # Give the table more stretch
+
+        main_layout.addLayout(content_layout)
+
+        # OK and Cancel buttons at the bottom
         button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         button_box.accepted.connect(self.accept)
         button_box.rejected.connect(self.reject)
-        layout.addWidget(button_box)
+        main_layout.addWidget(button_box)
 
         if self.order_data:
             self.populate_data()
@@ -112,14 +136,21 @@ class OrderDialog(QDialog):
         self.items_table.removeRow(row)
 
     def accept(self):
+        if self.items_table.rowCount() == 0:
+            QMessageBox.critical(self, "Error",
+                                 "Cannot create an order without any items. Please add at least one item.")
+            return
+
         customer = self.customers_api.get_customers()[self.customer_combo.currentIndex()]
         status = self.status_combo.currentText()
         order_date = int(self.order_date.dateTime().toPython().timestamp())
         total_amount = self.total_amount.value()
 
         items = []
+        all_products = self.products_api.get_products()
         for row in range(self.items_table.rowCount()):
-            product = self.products_api.get_products()[self.items_table.cellWidget(row, 0).currentIndex()]
+            product_combo: QComboBox = self.items_table.cellWidget(row, 0)
+            product = all_products[product_combo.currentIndex()]
             quantity = self.items_table.cellWidget(row, 1).value()
             unit_price = self.items_table.cellWidget(row, 2).value()
 
@@ -171,33 +202,27 @@ class OrderDetailsDialog(QDialog):
 
     def init_ui(self):
         self.setWindowTitle(f"Order Details - #{self.order.id}")
-        layout = QVBoxLayout(self)
+        self.setMinimumWidth(800)
+        self.setMinimumHeight(400)
+        main_layout = QVBoxLayout(self)
 
+        content_layout = QHBoxLayout()
+
+        left_widget = QWidget()
+        left_layout = QVBoxLayout(left_widget)
+
+        # Order Information
+        info_group = QGroupBox("Order Information")
         info_layout = QFormLayout()
         info_layout.addRow("Order ID:", QLabel(str(self.order.id)))
         info_layout.addRow("Customer:", QLabel(self.order.customer.name))
         info_layout.addRow("Status:", QLabel(self.order.status))
         info_layout.addRow("Order Date:", QLabel(datetime.fromtimestamp(self.order.order_date).strftime("%Y-%m-%d")))
         info_layout.addRow("Total Amount:", QLabel(f"${self.order.total_amount:.2f}"))
+        info_group.setLayout(info_layout)
+        left_layout.addWidget(info_group)
 
-        layout.addLayout(info_layout)
-
-        items_table = QTableWidget()
-        items_table.setColumnCount(4)
-        items_table.setHorizontalHeaderLabels(["Product", "Quantity", "Unit Price", "Total"])
-        items_table.setRowCount(len(self.order.order_items))
-
-        for row, item in enumerate(self.order.order_items):
-            items_table.setItem(row, 0, QTableWidgetItem(item.product.name))
-            items_table.setItem(row, 1, QTableWidgetItem(str(item.quantity)))
-            items_table.setItem(row, 2, QTableWidgetItem(f"${item.unit_price:.2f}"))
-            items_table.setItem(row, 3, QTableWidgetItem(f"${item.quantity * item.unit_price:.2f}"))
-
-        items_table.setHorizontalHeaderLabels(["Product", "Quantity", "Unit Price", "Total"])
-        items_table.setRowCount(len(self.order.order_items))
-
-        layout.addWidget(items_table)
-
+        # Shipping Information
         if self.order.shipping_address_line1:
             shipping_group = QGroupBox("Shipping Information")
             shipping_layout = QFormLayout()
@@ -209,11 +234,43 @@ class OrderDetailsDialog(QDialog):
             shipping_layout.addRow("Country:", QLabel(self.order.shipping_country))
             shipping_layout.addRow("Phone:", QLabel(self.order.shipping_phone))
             shipping_group.setLayout(shipping_layout)
-            layout.addWidget(shipping_group)
+            left_layout.addWidget(shipping_group)
 
+        left_layout.addStretch(1)  # Add stretch to push groups to the top
+        content_layout.addWidget(left_widget)
+
+        # Right side: Order Items Table
+        items_group = QGroupBox("Order Items")
+        items_layout = QVBoxLayout()
+        items_table = QTableWidget()
+        items_table.setColumnCount(4)
+        items_table.setHorizontalHeaderLabels(["Product", "Quantity", "Unit Price", "Total"])
+        items_table.setRowCount(len(self.order.order_items))
+
+        for row, item in enumerate(self.order.order_items):
+            items_table.setItem(row, 0, QTableWidgetItem(item.product.name))
+            items_table.setItem(row, 1, QTableWidgetItem(str(item.quantity)))
+            items_table.setItem(row, 2, QTableWidgetItem(f"${item.unit_price:.2f}"))
+            items_table.setItem(row, 3, QTableWidgetItem(f"${item.quantity * item.unit_price:.2f}"))
+
+        # Set column widths
+        header = items_table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(3, QHeaderView.ResizeToContents)
+
+        items_table.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        items_layout.addWidget(items_table)
+        items_group.setLayout(items_layout)
+        content_layout.addWidget(items_group, 1)  # Give the table more stretch
+
+        main_layout.addLayout(content_layout)
+
+        # OK button at the bottom
         button_box = QDialogButtonBox(QDialogButtonBox.Ok)
         button_box.accepted.connect(self.accept)
-        layout.addWidget(button_box)
+        main_layout.addWidget(button_box)
 
         self.adjustSize()
 

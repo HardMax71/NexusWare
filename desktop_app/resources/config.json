@@ -10,7 +10,7 @@
   "api_test_url": "http://127.0.0.1:8000/",
   "shipengine_api_key": "TEST_API",
   "request_timeout": 10,
-  "font": "Candara",
+  "font": "Consolas",
   "font_size": "Large",
   "icons_path": "resources/icons",
   "styles_path": "resources/styles",

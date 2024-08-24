@@ -52,9 +52,8 @@ class TasksAPI:
         response = self.client.put(f"/tasks/{task_id}", json=task_update.model_dump(exclude_unset=True))
         return Task.model_validate(response)
 
-    def delete_task(self, task_id: int) -> Task:
-        response = self.client.delete(f"/tasks/{task_id}")
-        return Task.model_validate(response)
+    def delete_task(self, task_id: int) -> None:
+        self.client.delete(f"/tasks/{task_id}")
 
     def complete_task(self, task_id: int) -> Task:
         response = self.client.post(f"/tasks/{task_id}/complete")

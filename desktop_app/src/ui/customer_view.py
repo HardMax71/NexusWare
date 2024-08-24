@@ -146,6 +146,7 @@ class CustomerDialog(QDialog):
 
     def init_ui(self):
         self.setWindowTitle("Create Customer" if not self.customer_data else "Edit Customer")
+        self.setMinimumSize(300, 200)
         layout = QVBoxLayout(self)
 
         form_layout = QFormLayout()
@@ -218,6 +219,7 @@ class CustomerDetailsDialog(QDialog):
 
     def init_ui(self):
         self.setWindowTitle(f"Customer Details - {self.customer.name}")
+        self.setMinimumSize(550, 400)
         layout = QVBoxLayout(self)
 
         form_layout = QFormLayout()
@@ -232,7 +234,9 @@ class CustomerDetailsDialog(QDialog):
         orders_table = QTableWidget()
         orders_table.setColumnCount(4)
         orders_table.setHorizontalHeaderLabels(["Order ID", "Date", "Total Amount", "Status"])
-        orders_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        header = orders_table.horizontalHeader()
+        header.setSectionResizeMode(QHeaderView.Stretch)
+        # header.setSectionResizeMode(0, QHeaderView.Stretch)
 
         try:
             orders = self.customers_api.get_customer_orders(self.customer.id)

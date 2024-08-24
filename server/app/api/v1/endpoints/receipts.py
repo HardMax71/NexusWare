@@ -64,7 +64,7 @@ def update_receipt(
     return crud.receipt.update_with_items(db, db_obj=receipt, obj_in=receipt_in)
 
 
-@router.delete("/{receipt_id}", response_model=shared_schemas.Receipt)
+@router.delete("/{receipt_id}", status_code=204)
 def delete_receipt(
         receipt_id: int = Path(..., title="The ID of the receipt to delete"),
         db: Session = Depends(deps.get_db),
@@ -73,7 +73,7 @@ def delete_receipt(
     receipt = crud.receipt.get(db, id=receipt_id)
     if receipt is None:
         raise HTTPException(status_code=404, detail="Receipt not found")
-    return crud.receipt.remove(db, id=receipt_id)
+    crud.receipt.remove(db, id=receipt_id)
 
 
 @router.post("/{receipt_id}/quality_check", response_model=shared_schemas.Receipt)

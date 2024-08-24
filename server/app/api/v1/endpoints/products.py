@@ -89,7 +89,7 @@ def update_product(
     return crud.product.update(db, db_obj=product, obj_in=product_in)
 
 
-@router.delete("/{product_id}", response_model=shared_schemas.Product)
+@router.delete("/{product_id}", status_code=204)
 def delete_product(
         product_id: int,
         db: Session = Depends(deps.get_db),
@@ -98,7 +98,7 @@ def delete_product(
     product = crud.product.get(db, id=product_id)
     if product is None:
         raise HTTPException(status_code=404, detail="Product not found")
-    return crud.product.remove(db, id=product_id)
+    crud.product.remove(db, id=product_id)
 
 
 @router.get("/{product_id}/substitutes", response_model=List[shared_schemas.Product])

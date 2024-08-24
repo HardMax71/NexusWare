@@ -56,7 +56,7 @@ def update_location(
     return crud.location.update(db, db_obj=location, obj_in=location_in)
 
 
-@router.delete("/{location_id}", response_model=shared_schemas.Location)
+@router.delete("/{location_id}", status_code=204)
 def delete_location(
         location_id: int,
         db: Session = Depends(deps.get_db),
@@ -65,4 +65,4 @@ def delete_location(
     location = crud.location.get(db, id=location_id)
     if location is None:
         raise HTTPException(status_code=404, detail="Location not found")
-    return crud.location.remove(db, id=location_id)
+    crud.location.remove(db, id=location_id)

@@ -32,9 +32,8 @@ class QualityAPI:
                                    json=check_data.model_dump(mode="json", exclude_unset=True))
         return QualityCheckWithProduct.model_validate(response)
 
-    def delete_quality_check(self, check_id: int) -> QualityCheckWithProduct:
-        response = self.client.delete(f"/quality/checks/{check_id}")
-        return QualityCheckWithProduct.model_validate(response)
+    def delete_quality_check(self, check_id: int) -> None:
+        self.client.delete(f"/quality/checks/{check_id}")
 
     def get_quality_metrics(self, date_from: int | None = None, date_to: int | None = None) -> QualityMetrics:
         params = {}
@@ -62,9 +61,8 @@ class QualityAPI:
                                    json=standard_data.model_dump(mode="json", exclude_unset=True))
         return QualityStandard.model_validate(response)
 
-    def delete_quality_standard(self, standard_id: int) -> QualityStandard:
-        response = self.client.delete(f"/quality/standards/{standard_id}")
-        return QualityStandard.model_validate(response)
+    def delete_quality_standard(self, standard_id: int) -> None:
+        self.client.delete(f"/quality/standards/{standard_id}")
 
     def create_quality_alert(self, alert_data: QualityAlertCreate) -> QualityAlert:
         response = self.client.post("/quality/alerts", json=alert_data.model_dump(mode="json"))

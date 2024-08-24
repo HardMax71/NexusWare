@@ -56,7 +56,7 @@ def update_supplier(
     return crud.supplier.update(db, db_obj=supplier, obj_in=supplier_in)
 
 
-@router.delete("/{supplier_id}", response_model=shared_schemas.Supplier)
+@router.delete("/{supplier_id}", status_code=204)
 def delete_supplier(
         supplier_id: int,
         db: Session = Depends(deps.get_db),
@@ -65,7 +65,7 @@ def delete_supplier(
     supplier = crud.supplier.get(db, id=supplier_id)
     if supplier is None:
         raise HTTPException(status_code=404, detail="Supplier not found")
-    return crud.supplier.remove(db, id=supplier_id)
+    crud.supplier.remove(db, id=supplier_id)
 
 
 

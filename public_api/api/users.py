@@ -106,9 +106,8 @@ class UsersAPI:
         response = self.client.put(f"/users/{user_id}", json=user_update.model_dump(exclude_unset=True))
         return UserSanitized.model_validate(response)
 
-    def delete_user(self, user_id: int) -> UserSanitized:
-        response = self.client.delete(f"/users/{user_id}")
-        return UserSanitized.model_validate(response)
+    def delete_user(self, user_id: int) -> None:
+        self.client.delete(f"/users/{user_id}")
 
     def get_current_user_permissions(self) -> PermissionManager:
         if not self._permission_manager:

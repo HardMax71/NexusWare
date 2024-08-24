@@ -253,7 +253,7 @@ def update_user(
     return user_schemas.UserSanitized.model_validate(updated_user)
 
 
-@router.delete("/{user_id}", response_model=user_schemas.UserSanitized)
+@router.delete("/{user_id}", status_code=204)
 def delete_user(
         user_id: int,
         db: Session = Depends(deps.get_db),
@@ -262,4 +262,4 @@ def delete_user(
     user = crud.user.get(db, id=user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return crud.user.remove(db, id=user_id)
+    crud.user.remove(db, id=user_id)

@@ -56,7 +56,7 @@ def update_customer(
     return crud.customer.update(db, db_obj=customer, obj_in=customer_in)
 
 
-@router.delete("/{customer_id}", response_model=shared_schemas.Customer)
+@router.delete("/{customer_id}", status_code=204)
 def delete_customer(
         customer_id: int,
         db: Session = Depends(deps.get_db),
@@ -65,7 +65,7 @@ def delete_customer(
     customer = crud.customer.get(db, id=customer_id)
     if customer is None:
         raise HTTPException(status_code=404, detail="Customer not found")
-    return crud.customer.remove(db, id=customer_id)
+    crud.customer.remove(db, id=customer_id)
 
 
 @router.get("/{customer_id}/orders", response_model=List[shared_schemas.Order])

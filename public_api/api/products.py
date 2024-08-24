@@ -30,9 +30,8 @@ class ProductsAPI:
                                    json=product_data.model_dump(mode="json", exclude_unset=True))
         return Product.model_validate(response)
 
-    def delete_product(self, product_id: int) -> Product:
-        response = self.client.delete(f"/products/{product_id}")
-        return Product.model_validate(response)
+    def delete_product(self, product_id: int) -> None:
+        self.client.delete(f"/products/{product_id}")
 
     def get_product_by_barcode(self, barcode: str) -> Product:
         barcode_data = BarcodeData(barcode=barcode)

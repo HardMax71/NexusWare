@@ -21,8 +21,12 @@ class BarcodeDesignerWidget(QWidget):
         self.init_ui()
 
     def init_ui(self):
-        layout = QVBoxLayout(self)
-        layout.setSpacing(10)
+        main_layout = QHBoxLayout(self)
+        main_layout.setSpacing(20)
+
+        # Left column
+        left_column = QVBoxLayout()
+        left_column.setSpacing(10)
 
         # Barcode type selection
         type_layout = QHBoxLayout()
@@ -33,8 +37,7 @@ class BarcodeDesignerWidget(QWidget):
         self.barcode_type.view().setMouseTracking(True)
         self.barcode_type.view().entered.connect(self.show_hint)
         type_layout.addWidget(self.barcode_type)
-        type_layout.addStretch()
-        layout.addLayout(type_layout)
+        left_column.addLayout(type_layout)
 
         # Data input
         data_layout = QVBoxLayout()
@@ -43,30 +46,40 @@ class BarcodeDesignerWidget(QWidget):
         self.data_input.setPlaceholderText("Enter barcode data (JSON format)")
         self.data_input.setMinimumHeight(100)
         data_layout.addWidget(self.data_input)
-        layout.addLayout(data_layout)
+        left_column.addLayout(data_layout)
 
         # Generate button
         self.generate_button = StyledButton("Generate Barcode")
         self.generate_button.clicked.connect(self.generate_barcode)
-        layout.addWidget(self.generate_button)
+        left_column.addWidget(self.generate_button)
+
+        left_column.addStretch(1)
+
+        # Right column
+        right_column = QVBoxLayout()
+        right_column.setSpacing(10)
 
         # Barcode display
         self.barcode_label = QLabel()
         self.barcode_label.setAlignment(Qt.AlignCenter)
         self.barcode_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.barcode_label.setStyleSheet("border: 1px solid #ccc;")
-        layout.addWidget(self.barcode_label, 1)
+        right_column.addWidget(self.barcode_label, 1)
 
         # Save button
         self.save_button = StyledButton("Save Barcode")
         self.save_button.clicked.connect(self.save_barcode)
         self.save_button.setEnabled(False)
-        layout.addWidget(self.save_button)
+        right_column.addWidget(self.save_button)
+
+        # Add columns to main layout
+        main_layout.addLayout(left_column)
+        main_layout.addLayout(right_column)
 
         if self.product_data:
             self.pre_fill_product_data()
 
-        self.setMinimumSize(400, 600)
+        self.setMinimumSize(800, 600)
 
     def setup_barcode_types(self):
         barcode_types = [

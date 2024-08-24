@@ -47,7 +47,7 @@ def update_role(
     return updated_role
 
 
-@router.delete("/{role_id}", response_model=shared_schemas.Role)
+@router.delete("/{role_id}", status_code=204)
 def delete_role(
         role_id: int,
         db: Session = Depends(deps.get_db),
@@ -56,5 +56,4 @@ def delete_role(
     role = crud.role.get(db, id=role_id)
     if not role:
         raise HTTPException(status_code=404, detail="Role not found")
-    deleted_role = crud.role.remove(db, id=role_id)
-    return deleted_role
+    crud.role.remove(db, id=role_id)

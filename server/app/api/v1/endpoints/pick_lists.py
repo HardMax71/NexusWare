@@ -76,7 +76,7 @@ def update_pick_list(
     return crud.pick_list.update_with_items(db, db_obj=pick_list, obj_in=pick_list_in)
 
 
-@router.delete("/{pick_list_id}", response_model=shared_schemas.PickList)
+@router.delete("/{pick_list_id}", status_code=204)
 def delete_pick_list(
         pick_list_id: int = Path(..., title="The ID of the pick list to delete"),
         db: Session = Depends(deps.get_db),
@@ -85,7 +85,7 @@ def delete_pick_list(
     pick_list = crud.pick_list.get(db, id=pick_list_id)
     if pick_list is None:
         raise HTTPException(status_code=404, detail="Pick list not found")
-    return crud.pick_list.remove(db, id=pick_list_id)
+    crud.pick_list.remove(db, id=pick_list_id)
 
 
 @router.post("/{pick_list_id}/start", response_model=shared_schemas.PickList)

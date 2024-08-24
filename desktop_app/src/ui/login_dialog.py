@@ -29,8 +29,8 @@ class LoginDialog(QDialog):
         form_layout.setFieldGrowthPolicy(QFormLayout.AllNonFixedFieldsGrow)
 
         self.username_input = QLineEdit()
-        self.username_input.setPlaceholderText("Enter username (email)")
-        form_layout.addRow("Username:", self.username_input)
+        self.username_input.setPlaceholderText("Enter email")
+        form_layout.addRow("Email:", self.username_input)
 
         self.password_input = QLineEdit()
         self.password_input.setEchoMode(QLineEdit.Password)

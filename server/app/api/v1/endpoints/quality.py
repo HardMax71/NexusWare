@@ -57,7 +57,7 @@ def update_quality_check(
     return crud.quality_check.update(db, db_obj=check, obj_in=check_in)
 
 
-@router.delete("/checks/{check_id}", response_model=shared_schemas.QualityCheck)
+@router.delete("/checks/{check_id}", status_code=204)
 def delete_quality_check(
         check_id: int = Path(..., title="The ID of the quality check to delete"),
         db: Session = Depends(deps.get_db),
@@ -66,7 +66,7 @@ def delete_quality_check(
     check = crud.quality_check.get(db, id=check_id)
     if check is None:
         raise HTTPException(status_code=404, detail="Quality check not found")
-    return crud.quality_check.remove(db, id=check_id)
+    crud.quality_check.remove(db, id=check_id)
 
 
 @router.get("/metrics", response_model=shared_schemas.QualityMetrics)
@@ -123,7 +123,7 @@ def update_quality_standard(
     return crud.quality_standard.update(db, db_obj=standard, obj_in=standard_in)
 
 
-@router.delete("/standards/{standard_id}", response_model=shared_schemas.QualityStandard)
+@router.delete("/standards/{standard_id}", status_code=204)
 def delete_quality_standard(
         standard_id: int = Path(..., title="The ID of the quality standard to delete"),
         db: Session = Depends(deps.get_db),
@@ -132,7 +132,7 @@ def delete_quality_standard(
     standard = crud.quality_standard.get(db, id=standard_id)
     if standard is None:
         raise HTTPException(status_code=404, detail="Quality standard not found")
-    return crud.quality_standard.remove(db, id=standard_id)
+    crud.quality_standard.remove(db, id=standard_id)
 
 
 @router.post("/alerts", response_model=shared_schemas.QualityAlert)

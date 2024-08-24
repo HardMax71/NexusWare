@@ -58,6 +58,8 @@ class APIClient:
     def request_call(self, method: str, endpoint: str, **kwargs):
         response = self.session.request(method, f"{self.base_url}{endpoint}", **kwargs)
         response.raise_for_status()
+        if response.status_code == 204:
+            return None
         return response.json()
 
     def get(self, endpoint: str, params: dict | None = None, headers: dict | None = None):

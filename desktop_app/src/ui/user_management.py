@@ -181,6 +181,7 @@ class UserDialog(QDialog):
 
     def init_ui(self):
         self.setWindowTitle("Add User" if not self.user else "Edit User")
+        self.setMinimumSize(400, 200)
         layout = QVBoxLayout(self)
 
         form_layout = QFormLayout()

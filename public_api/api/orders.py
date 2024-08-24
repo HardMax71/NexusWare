@@ -11,7 +11,7 @@ class OrdersAPI:
         self.client = client
 
     def create_order(self, order_data: OrderCreate) -> Order:
-        response = self.client.post("/orders/", json=order_data.model_dump(mode="json"))
+        response = self.client.post("/orders/", json=order_data.model_dump())
         return Order.model_validate(response)
 
     def get_orders(self, skip: int = 0, limit: int = 100,
@@ -41,9 +41,8 @@ class OrdersAPI:
 
         return Order.model_validate(response)
 
-    def delete_order(self, order_id: int) -> Order:
-        response = self.client.delete(f"/orders/{order_id}")
-        return Order.model_validate(response)
+    def delete_order(self, order_id: int) -> None:
+        self.client.delete(f"/orders/{order_id}")
 
     def get_order_summary(self, date_from: int | None = None,
                           date_to: int | None = None) -> OrderSummary:

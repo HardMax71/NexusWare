@@ -119,6 +119,5 @@ class InventoryAPI:
         response = self.client.get("/inventory/reorder_suggestions")
         return response
 
-    def delete_inventory_item(self, id: int) -> Inventory:
-        response = self.client.delete(f"/inventory/{id}")
-        return Inventory.model_validate(response)
+    def delete_inventory_item(self, inventory_item_id: int) -> None:
+        self.client.delete(f"/inventory/{inventory_item_id}")

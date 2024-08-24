@@ -3,7 +3,7 @@ from datetime import datetime
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
                                QHeaderView, QDialog, QLineEdit, QStackedWidget, QMessageBox, QComboBox,
-                               QFormLayout, QDoubleSpinBox, QDialogButtonBox, QLabel, QMainWindow)
+                               QFormLayout, QDoubleSpinBox, QDialogButtonBox, QLabel, QMainWindow, QTextEdit)
 
 from desktop_app.src.ui import BarcodeDesignerWidget
 from desktop_app.src.ui.components import StyledButton
@@ -214,7 +214,7 @@ class ProductDialog(QDialog):
         self.price_input.setPrefix("$")
         form_layout.addRow("Price:", self.price_input)
 
-        self.description_input = QLineEdit()
+        self.description_input = QTextEdit()
         form_layout.addRow("Description:", self.description_input)
 
         layout.addLayout(form_layout)
@@ -285,6 +285,7 @@ class ProductDetailsDialog(QDialog):
 
     def init_ui(self):
         self.setWindowTitle(f"Product Details - {self.product.name}")
+        self.setMinimumWidth(500)
         layout = QVBoxLayout(self)
 
         info_layout = QFormLayout()
@@ -300,6 +301,11 @@ class ProductDetailsDialog(QDialog):
         inventory_table.setColumnCount(3)
         inventory_table.setHorizontalHeaderLabels(["Location", "Quantity", "Last Updated"])
         inventory_table.setRowCount(len(self.product.inventory_items))
+        inventory_table.setSortingEnabled(True)
+
+        header = inventory_table.horizontalHeader()
+        header.setSectionResizeMode(QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(0, QHeaderView.Stretch)
 
         for row, item in enumerate(self.product.inventory_items):
             location = self.locations_api.get_location(item.location_id)
@@ -310,7 +316,6 @@ class ProductDetailsDialog(QDialog):
             inventory_table.setItem(row, 2, QTableWidgetItem(
                 datetime.fromtimestamp(item.last_updated).strftime("%Y-%m-%d %H:%M:%S")))
 
-        inventory_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         layout.addWidget(inventory_table)
 
         button_box = QDialogButtonBox(QDialogButtonBox.Ok)

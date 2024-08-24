@@ -25,6 +25,5 @@ class ProductCategoriesAPI:
                                    json=category_data.model_dump(mode="json", exclude_unset=True))
         return ProductCategory.model_validate(response)
 
-    def delete_category(self, category_id: int) -> ProductCategory:
-        response = self.client.delete(f"/product_categories/{category_id}")
-        return ProductCategory.model_validate(response)
+    def delete_category(self, category_id: int) -> None:
+        self.client.delete(f"/product_categories/{category_id}")

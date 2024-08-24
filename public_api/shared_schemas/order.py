@@ -19,8 +19,10 @@ class OrderItemBase(BaseModel):
     unit_price: float
 
 
-class OrderItemCreate(OrderItemBase):
-    pass
+class OrderItemCreate(BaseModel):
+    product_id: int
+    quantity: int
+    unit_price: float
 
 
 class OrderItemUpdate(BaseModel):
@@ -41,6 +43,7 @@ class OrderItem(OrderItemBase):
 class OrderBase(BaseModel):
     customer_id: int
     status: OrderStatus
+    order_date: int
     total_amount: float
     shipping_name: str | None = None
     shipping_address_line1: str | None = None
@@ -59,6 +62,7 @@ class OrderCreate(OrderBase):
 class OrderUpdate(BaseModel):
     customer_id: int | None = None
     status: OrderStatus | None = None
+    order_date: int | None = None
     total_amount: float | None = None
     shipping_name: str | None = None
     shipping_address_line1: str | None = None

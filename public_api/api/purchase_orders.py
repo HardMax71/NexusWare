@@ -30,9 +30,8 @@ class PurchaseOrdersAPI:
                                    json=po_data.model_dump(mode="json", exclude_unset=True))
         return PurchaseOrder.model_validate(response)
 
-    def delete_purchase_order(self, po_id: int) -> PurchaseOrder:
-        response = self.client.delete(f"/purchase_orders/{po_id}")
-        return PurchaseOrder.model_validate(response)
+    def delete_purchase_order(self, po_id: int) -> None:
+        self.client.delete(f"/purchase_orders/{po_id}")
 
     def receive_purchase_order(self, po_id: int, received_items: list[POItemReceive]) -> PurchaseOrder:
         response = self.client.post(f"/purchase_orders/{po_id}/receive",

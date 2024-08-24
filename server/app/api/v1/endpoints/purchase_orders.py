@@ -56,7 +56,7 @@ def update_purchase_order(
     return crud.purchase_order.update(db, db_obj=po, obj_in=po_in)
 
 
-@router.delete("/{po_id}", response_model=shared_schemas.PurchaseOrder)
+@router.delete("/{po_id}", status_code=204)
 def delete_purchase_order(
         po_id: int,
         db: Session = Depends(deps.get_db),
@@ -65,7 +65,7 @@ def delete_purchase_order(
     po = crud.purchase_order.get(db, id=po_id)
     if po is None:
         raise HTTPException(status_code=404, detail="Purchase Order not found")
-    return crud.purchase_order.remove(db, id=po_id)
+    crud.purchase_order.remove(db, id=po_id)
 
 
 @router.post("/{po_id}/receive", response_model=shared_schemas.PurchaseOrder)
