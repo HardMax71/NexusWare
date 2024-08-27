@@ -1,41 +1,86 @@
 from sqlalchemy.orm import Session
 
-from public_api.shared_schemas import RoleCreate, RoleUpdate, Role as RoleSchema
-from server.app.models import Role, RolePermission
+from public_api.shared_schemas import RoleCreate, RoleUpdate, Role as RoleSchema, RolePermission, Permission
+from server.app.models import Role as RoleModel, RolePermission as RolePermissionModel
 from .base import CRUDBase
 
 
-class CRUDRole(CRUDBase[Role, RoleCreate, RoleUpdate]):
+class CRUDRole(CRUDBase[RoleModel, RoleCreate, RoleUpdate]):
     def create(self, db: Session, *, obj_in: RoleCreate) -> RoleSchema:
-        db_obj = Role(role_name=obj_in.role_name)
+        db_obj = RoleModel(name=obj_in.name)
         db.add(db_obj)
+        db.flush()
+
+        for perm in obj_in.permissions:
+            role_permission = RolePermissionModel(
+                role_id=db_obj.id,
+                permission_id=perm.permission_id,
+                can_read=perm.can_read,
+                can_write=perm.can_write,
+                can_edit=perm.can_edit,
+                can_delete=perm.can_delete
+            )
+            db.add(role_permission)
+
         db.commit()
         db.refresh(db_obj)
+        return self._to_schema(db_obj)
 
-        for permission_id in obj_in.permissions:
-            db.add(RolePermission(role_id=db_obj.id, permission_id=permission_id))
+    def update(self, db: Session, *, db_obj: RoleModel, obj_in: RoleUpdate) -> RoleSchema:
+        if obj_in.name is not None:
+            db_obj.name = obj_in.name
+
+        if obj_in.permissions is not None:
+            # Delete existing permissions
+            db.query(RolePermissionModel).filter(RolePermissionModel.role_id == db_obj.id).delete()
+
+            # Add new permissions
+            for perm in obj_in.permissions:
+                role_permission = RolePermissionModel(
+                    role_id=db_obj.id,
+                    permission_id=perm.permission_id,
+                    can_read=perm.can_read,
+                    can_write=perm.can_write,
+                    can_edit=perm.can_edit,
+                    can_delete=perm.can_delete
+                )
+                db.add(role_permission)
+
         db.commit()
+        db.refresh(db_obj)
+        return self._to_schema(db_obj)
 
-        return RoleSchema.model_validate(db_obj)
-
-    def update(self, db: Session, *, db_obj: Role, obj_in: RoleUpdate | dict[str, any]) -> RoleSchema:
-        if isinstance(obj_in, dict):
-            update_data = obj_in
-        else:
-            update_data = obj_in.model_dump(exclude_unset=True)
-
-        if "permissions" in update_data:
-            db.query(RolePermission).filter(RolePermission.role_id == db_obj.id).delete()
-            for permission_id in update_data["permissions"]:
-                db.add(RolePermission(role_id=db_obj.id, permission_id=permission_id))
-            del update_data["permissions"]
-
-        updated_role = super().update(db, db_obj=db_obj, obj_in=update_data)
-        return RoleSchema.model_validate(updated_role)
+    def get(self, db: Session, id: int) -> RoleSchema | None:
+        db_obj = db.query(RoleModel).filter(RoleModel.id == id).first()
+        return self._to_schema(db_obj) if db_obj else None
 
     def get_by_name(self, db: Session, *, name: str) -> RoleSchema | None:
-        current_role = db.query(Role).filter(Role.role_name == name).first()
-        return RoleSchema.model_validate(current_role) if current_role else None
+        db_obj = db.query(RoleModel).filter(RoleModel.name == name).first()
+        return self._to_schema(db_obj) if db_obj else None
+
+    def remove(self, db: Session, *, id: int) -> None:
+        db_obj = db.query(RoleModel).filter(RoleModel.id == id).first()
+        if db_obj:
+            db.delete(db_obj)
+            db.commit()
+
+    def _to_schema(self, db_obj: RoleModel) -> RoleSchema:
+        return RoleSchema(
+            id=db_obj.id,
+            name=db_obj.name,
+            permissions=[
+                RolePermission(
+                    id=rp.id,
+                    role_id=rp.role_id,
+                    permission_id=rp.permission_id,
+                    can_read=rp.can_read,
+                    can_write=rp.can_write,
+                    can_edit=rp.can_edit,
+                    can_delete=rp.can_delete,
+                    permission=Permission(id=rp.permission.id, name=rp.permission.name)
+                ) for rp in db_obj.role_permissions
+            ]
+        )
 
 
-role = CRUDRole(Role)
+role = CRUDRole(RoleModel)

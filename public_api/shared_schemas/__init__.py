@@ -72,10 +72,11 @@ from .task import (TaskBase, TaskCreate, TaskUpdate, Task,
                    BulkTaskCreate, BulkTaskCreateResult)
 # User shared_schemas
 from .user import (
-    RoleName, PermissionBase, PermissionCreate, PermissionUpdate, Permission,
+    PermissionBase, PermissionCreate, PermissionUpdate, Permission,
     RoleBase, RoleCreate, RoleUpdate, Role, UserBase, UserUpdate, UserSanitized,
     UserInDB, TwoFactorLogin, Token, Message, UserFilter, UserWithPermissions,
-    AllRoles, AllPermissions, UserPermissionUpdate, UserCreate, RefreshTokenRequest
+    AllRoles, AllPermissions, UserPermissionUpdate, UserCreate, RefreshTokenRequest,
+    RolePermission, RolePermissionCreate, RolePermissionUpdate
 )
 # Warehouse shared_schemas
 from .warehouse import (

@@ -1,17 +1,25 @@
 # /server/app/api/v1/endpoints/roles.py
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from .... import crud, models
 from public_api import shared_schemas
+from .... import crud, models
 from ....api import deps
 
 router = APIRouter()
 
 
-@router.get("/", response_model=List[shared_schemas.Role])
+@router.post("/", response_model=shared_schemas.Role)
+def create_role(
+        role: shared_schemas.RoleCreate,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_admin)
+):
+    return crud.role.create_with_permissions(db=db, obj_in=role)
+
+
+@router.get("/", response_model=list[shared_schemas.Role])
 def read_roles(
         skip: int = 0,
         limit: int = 100,
@@ -36,15 +44,14 @@ def read_role(
 @router.put("/{role_id}", response_model=shared_schemas.Role)
 def update_role(
         role_id: int,
-        role_in: shared_schemas.RoleUpdate,
+        role: shared_schemas.RoleUpdate,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_admin)
 ):
-    role = crud.role.get(db, id=role_id)
-    if not role:
+    db_role = crud.role.get(db, id=role_id)
+    if not db_role:
         raise HTTPException(status_code=404, detail="Role not found")
-    updated_role = crud.role.update(db, db_obj=role, obj_in=role_in)
-    return updated_role
+    return crud.role.update_with_permissions(db=db, db_obj=db_role, obj_in=role)
 
 
 @router.delete("/{role_id}", status_code=204)
