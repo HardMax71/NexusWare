@@ -25,6 +25,5 @@ class PermissionsAPI:
                                    json=permission_data.model_dump(mode="json", exclude_unset=True))
         return Permission.model_validate(response)
 
-    def delete_permission(self, permission_id: int) -> Permission:
-        response = self.client.delete(f"/permissions/{permission_id}")
-        return Permission.model_validate(response)
+    def delete_permission(self, permission_id: int) -> None:
+        self.client.delete(f"/permissions/{permission_id}")

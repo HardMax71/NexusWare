@@ -5,6 +5,8 @@ from public_api.shared_schemas import (
 )
 from .client import APIClient
 from ..permission_manager import PermissionManager
+from ..shared_schemas.user import UserPermission, RoleCreate, Role, RoleUpdate, PermissionCreate, Permission, \
+    PermissionUpdate
 
 
 class UsersAPI:
@@ -70,9 +72,10 @@ class UsersAPI:
         response = self.client.get("/users/permissions")
         return AllPermissions.model_validate(response)
 
-    def get_my_permissions(self) -> AllPermissions:
+    def get_my_permissions(self) -> list[UserPermission]:
         response = self.client.get("/users/my_permissions")
-        return AllPermissions.model_validate(response)
+        user_with_permissions = UserWithPermissions.model_validate(response)
+        return user_with_permissions.permissions
 
     def get_all_roles(self) -> AllRoles:
         response = self.client.get("/users/roles")
@@ -106,14 +109,13 @@ class UsersAPI:
         response = self.client.put(f"/users/{user_id}", json=user_update.model_dump(exclude_unset=True))
         return UserSanitized.model_validate(response)
 
-    def delete_user(self, user_id: int) -> UserSanitized:
-        response = self.client.delete(f"/users/{user_id}")
-        return UserSanitized.model_validate(response)
+    def delete_user(self, user_id: int) -> None:
+        self.client.delete(f"/users/{user_id}")
 
     def get_current_user_permissions(self) -> PermissionManager:
         if not self._permission_manager:
-            response = self.get_my_permissions()
-            self._permission_manager = PermissionManager(response.permissions)
+            permissions = self.get_my_permissions()
+            self._permission_manager = PermissionManager(permissions)
         return self._permission_manager
 
     def has_permission(self, permission_name: str, action: str) -> bool:

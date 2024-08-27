@@ -29,9 +29,8 @@ class CustomersAPI:
                                    json=customer_data.model_dump(mode="json", exclude_unset=True))
         return Customer.model_validate(response)
 
-    def delete_customer(self, customer_id: int) -> Customer:
-        response = self.client.delete(f"/customers/{customer_id}")
-        return Customer.model_validate(response)
+    def delete_customer(self, customer_id: int) -> None:
+        self.client.delete(f"/customers/{customer_id}")
 
     def get_customer_orders(self, customer_id: int, skip: int = 0, limit: int = 100) -> list[Order]:
         response = self.client.get(f"/customers/{customer_id}/orders", params={"skip": skip, "limit": limit})

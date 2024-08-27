@@ -2,23 +2,23 @@ from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMainWindow, QTabWidget, QVBoxLayout, QWidget, QStatusBar, QMessageBox, QToolButton
 
+from desktop_app.src.ui.views.customers import CustomerView
+from desktop_app.src.ui.views.inventory.inventory_view import InventoryView
+from desktop_app.src.ui.views.orders import OrderView
+from desktop_app.src.ui.views.products import ProductView
+from desktop_app.src.ui.views.shipments import ShipmentView
+from desktop_app.src.ui.views.suppliers import SupplierView
+from desktop_app.src.ui.views.tasks import TaskView
+from desktop_app.src.ui.views.user_mgmt.user_mgmt_widget import UserManagementWidget
 from desktop_app.src.utils import ConfigManager
 from public_api.api import APIClient
 from public_api.permission_manager import PermissionManager
 from .components.dialogs import UserManualDialog, AboutDialog
-from .customer_view import CustomerView
 from .dashboard import DashboardWidget
-from .inventory_view import InventoryView
 from .notification_center import NotificationCenter
-from .order_view import OrderView
-from .product_view import ProductView
 from .report_generator import ReportGeneratorWidget
 from .search_filter import AdvancedSearchDialog
 from .settings.settings_dialog import SettingsDialog
-from .shipment_view import ShipmentView
-from .supplier_view import SupplierView
-from .task_view import TaskView
-from .user_management import UserManagementWidget
 
 
 class MainWindow(QMainWindow):

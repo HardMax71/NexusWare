@@ -56,7 +56,7 @@ def update_carrier(
     return crud.carrier.update(db, db_obj=carrier, obj_in=carrier_in)
 
 
-@router.delete("/{carrier_id}", response_model=shared_schemas.Carrier)
+@router.delete("/{carrier_id}", status_code=204)
 def delete_carrier(
         carrier_id: int = Path(..., title="The ID of the carrier to delete"),
         db: Session = Depends(deps.get_db),
@@ -65,4 +65,4 @@ def delete_carrier(
     carrier = crud.carrier.get(db, id=carrier_id)
     if carrier is None:
         raise HTTPException(status_code=404, detail="Carrier not found")
-    return crud.carrier.remove(db, id=carrier_id)
+    crud.carrier.remove(db, id=carrier_id)

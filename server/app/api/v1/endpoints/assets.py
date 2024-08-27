@@ -97,7 +97,7 @@ def update_asset_maintenance(
     return crud.asset_maintenance.update(db, db_obj=maintenance, obj_in=maintenance_in)
 
 
-@router.delete("/maintenance/{maintenance_id}", response_model=shared_schemas.AssetMaintenance)
+@router.delete("/maintenance/{maintenance_id}", status_code=204)
 def delete_asset_maintenance(
         maintenance_id: int,
         db: Session = Depends(deps.get_db),
@@ -106,7 +106,7 @@ def delete_asset_maintenance(
     maintenance = crud.asset_maintenance.get(db, id=maintenance_id)
     if maintenance is None:
         raise HTTPException(status_code=404, detail="Asset maintenance record not found")
-    return crud.asset_maintenance.remove(db, id=maintenance_id)
+    crud.asset_maintenance.remove(db, id=maintenance_id)
 
 
 @router.get("/maintenance/types", response_model=list[str])
@@ -191,7 +191,7 @@ def update_asset(
     return crud.asset.update(db, db_obj=asset, obj_in=asset_in)
 
 
-@router.delete("/{asset_id}", response_model=shared_schemas.Asset)
+@router.delete("/{asset_id}", status_code=204)
 def delete_asset(
         asset_id: int,
         db: Session = Depends(deps.get_db),
@@ -200,7 +200,7 @@ def delete_asset(
     asset = crud.asset.get(db, id=asset_id)
     if asset is None:
         raise HTTPException(status_code=404, detail="Asset not found")
-    return crud.asset.remove(db, id=asset_id)
+    crud.asset.remove(db, id=asset_id)
 
 
 @router.get("/{asset_id}/current_location", response_model=shared_schemas.Location)

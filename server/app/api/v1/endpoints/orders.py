@@ -104,7 +104,7 @@ def update_order(
     return crud.order.update(db, db_obj=order, obj_in=order_in)
 
 
-@router.delete("/{order_id}", response_model=shared_schemas.Order)
+@router.delete("/{order_id}", status_code=204)
 def delete_order(
         order_id: int,
         db: Session = Depends(deps.get_db),
@@ -113,7 +113,7 @@ def delete_order(
     order = crud.order.get(db, id=order_id)
     if order is None:
         raise HTTPException(status_code=404, detail="Order not found")
-    return crud.order.remove(db, id=order_id)
+    crud.order.remove(db, id=order_id)
 
 
 @router.post("/{order_id}/cancel", response_model=shared_schemas.Order)

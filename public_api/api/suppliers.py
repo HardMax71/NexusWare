@@ -29,9 +29,8 @@ class SuppliersAPI:
                                    json=supplier_data.model_dump(mode="json", exclude_unset=True))
         return Supplier.model_validate(response)
 
-    def delete_supplier(self, supplier_id: int) -> Supplier:
-        response = self.client.delete(f"/suppliers/{supplier_id}")
-        return Supplier.model_validate(response)
+    def delete_supplier(self, supplier_id: int) -> None:
+        self.client.delete(f"/suppliers/{supplier_id}")
 
     def get_supplier_purchase_orders(self, supplier_id: int,
                                      skip: int = 0, limit: int = 100) -> list[PurchaseOrder]:

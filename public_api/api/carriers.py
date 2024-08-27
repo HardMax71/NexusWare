@@ -25,6 +25,5 @@ class CarriersAPI:
                                    json=carrier_data.model_dump(mode="json", exclude_unset=True))
         return Carrier.model_validate(response)
 
-    def delete_carrier(self, carrier_id: int) -> Carrier:
-        response = self.client.delete(f"/carriers/{carrier_id}")
-        return Carrier.model_validate(response)
+    def delete_carrier(self, carrier_id: int) -> None:
+        self.client.delete(f"/carriers/{carrier_id}")

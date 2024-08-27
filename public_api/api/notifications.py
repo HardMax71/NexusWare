@@ -29,9 +29,8 @@ class NotificationsAPI:
         response = self.client.put(f"/notifications/{notification_id}", json=notification_update.model_dump())
         return Notification.model_validate(response)
 
-    def delete_notification(self, notification_id: int) -> Notification:
-        response = self.client.delete(f"/notifications/{notification_id}")
-        return Notification.model_validate(response)
+    def delete_notification(self, notification_id: int) -> None:
+        self.client.delete(f"/notifications/{notification_id}")
 
     def mark_as_read(self, notification_id: int) -> Notification:
         response = self.client.put(f"/notifications/{notification_id}/read")

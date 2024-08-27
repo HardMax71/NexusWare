@@ -30,9 +30,8 @@ class PickListsAPI:
                                    json=pick_list_data.model_dump(mode="json", exclude_unset=True))
         return PickList.model_validate(response)
 
-    def delete_pick_list(self, pick_list_id: int) -> PickList:
-        response = self.client.delete(f"/pick_lists/{pick_list_id}")
-        return PickList.model_validate(response)
+    def delete_pick_list(self, pick_list_id: int) -> None:
+        self.client.delete(f"/pick_lists/{pick_list_id}")
 
     def optimize_picking_route(self, pick_list_id: int) -> OptimizedPickingRoute:
         response = self.client.get("/pick_lists/optimize_route", params={"pick_list_id": pick_list_id})

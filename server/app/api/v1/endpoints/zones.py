@@ -56,7 +56,7 @@ def update_zone(
     return crud.zone.update(db, db_obj=zone, obj_in=zone_in)
 
 
-@router.delete("/{zone_id}", response_model=shared_schemas.Zone)
+@router.delete("/{zone_id}", status_code=204)
 def delete_zone(
         zone_id: int,
         db: Session = Depends(deps.get_db),
@@ -65,4 +65,4 @@ def delete_zone(
     zone = crud.zone.get(db, id=zone_id)
     if zone is None:
         raise HTTPException(status_code=404, detail="Zone not found")
-    return crud.zone.remove(db, id=zone_id)
+    crud.zone.remove(db, id=zone_id)

@@ -204,7 +204,7 @@ def get_reorder_suggestions(
     return crud.inventory.get_reorder_suggestions(db)
 
 
-@router.delete("/{id}", status_code=200)
+@router.delete("/{id}", status_code=204)
 def delete_inventory_item(
         id: int,
         db: Session = Depends(deps.get_db),
@@ -214,8 +214,7 @@ def delete_inventory_item(
     if not inventory_item:
         raise HTTPException(status_code=404, detail="Inventory item not found")
 
-    inventory_item = crud.inventory.remove(db, id=id)
-    return inventory_item
+    crud.inventory.remove(db, id=id)
 
 
 @router.get("/{id}", response_model=shared_schemas.Inventory)

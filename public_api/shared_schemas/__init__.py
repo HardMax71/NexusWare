@@ -45,7 +45,7 @@ from .order import (
     OrderFilter, OrderSummary, CustomerFilter, PurchaseOrderFilter,
     SupplierFilter, OrderWithDetails, PurchaseOrderWithDetails,
     ShippingInfo, POItemReceive, OrderProcessingTimes,
-    BulkOrderImportData, BulkOrderImportResult
+    BulkOrderImportData, BulkOrderImportResult, OrderStatus
 )
 # Quality shared_schemas
 from .quality import (QualityCheckBase, QualityCheckCreate,
@@ -69,13 +69,14 @@ from .task import (TaskBase, TaskCreate, TaskUpdate, Task,
                    TaskPriorityUpdate, TaskAssignmentUpdate, TaskStatusUpdate,
                    TaskDueDateUpdate, TaskProgressUpdate, TaskDependency,
                    TaskDependencyCreate, TaskTimeline, TaskAnalytics,
-                   BulkTaskCreate, BulkTaskCreateResult)
+                   BulkTaskCreate, BulkTaskCreateResult, TaskPriority, TaskStatus)
 # User shared_schemas
 from .user import (
-    RoleName, PermissionBase, PermissionCreate, PermissionUpdate, Permission,
+    PermissionBase, PermissionCreate, PermissionUpdate, Permission,
     RoleBase, RoleCreate, RoleUpdate, Role, UserBase, UserUpdate, UserSanitized,
     UserInDB, TwoFactorLogin, Token, Message, UserFilter, UserWithPermissions,
-    AllRoles, AllPermissions, UserPermissionUpdate, UserCreate, RefreshTokenRequest
+    AllRoles, AllPermissions, UserPermissionUpdate, UserCreate, RefreshTokenRequest,
+    RolePermission, RolePermissionCreate, RolePermissionUpdate
 )
 # Warehouse shared_schemas
 from .warehouse import (
@@ -89,7 +90,7 @@ from .warehouse import (
     LocationInventoryUpdate, OptimizedPickingRoute, PickingPerformance,
     ReceiptDiscrepancy, ShippingLabel, CarrierRate, ShipmentTracking,
     InventoryMovementCreate, InventoryAdjustmentCreate,
-    ShipmentWithDetails
+    ShipmentWithDetails, ShipmentStatus
 )
 # Yard shared_schemas
 from .yard import (

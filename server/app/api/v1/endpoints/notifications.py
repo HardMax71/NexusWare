@@ -84,7 +84,7 @@ def update_notification(
     return crud.notification.update(db, db_obj=notification, obj_in=notification_update)
 
 
-@router.delete("/{notification_id}", response_model=Notification)
+@router.delete("/{notification_id}", status_code=204)
 def delete_notification(
         notification_id: int,
         db: Session = Depends(deps.get_db),
@@ -93,4 +93,4 @@ def delete_notification(
     notification = crud.notification.get(db, id=notification_id)
     if not notification or notification.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Notification not found")
-    return crud.notification.remove(db, id=notification_id)
+    crud.notification.remove(db, id=notification_id)

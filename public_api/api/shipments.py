@@ -30,9 +30,8 @@ class ShipmentsAPI:
                                    json=shipment_data.model_dump(mode="json", exclude_unset=True))
         return Shipment.model_validate(response)
 
-    def delete_shipment(self, shipment_id: int) -> Shipment:
-        response = self.client.delete(f"/shipments/{shipment_id}")
-        return Shipment.model_validate(response)
+    def delete_shipment(self, shipment_id: int) -> None:
+        self.client.delete(f"/shipments/{shipment_id}")
 
     def generate_shipping_label(self, shipment_id: int) -> ShippingLabel:
         response = self.client.post(f"/shipments/{shipment_id}/generate_label")

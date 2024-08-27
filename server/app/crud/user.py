@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from public_api.shared_schemas import user as user_schemas
 from server.app.core.security import get_password_hash, verify_password
-from server.app.models import User, Permission, Role
+from server.app.models import User, Permission, Role, RolePermission
 from .base import CRUDBase
 
 
@@ -49,7 +49,9 @@ class CRUDUser(CRUDBase[User, user_schemas.UserCreate, user_schemas.UserUpdate])
         return super().update(db, db_obj=db_obj, obj_in=update_data)
 
     def authenticate(self, db: Session, *, email: str, password: str) -> user_schemas.UserSanitized | None:
-        user = db.query(User).filter(User.email == email).first()
+        user = db.query(User).options(
+            joinedload(User.role).joinedload(Role.role_permissions).joinedload(RolePermission.permission)
+        ).filter(User.email == email).first()
         if not user or not verify_password(password, user.password):
             return None
 
@@ -66,7 +68,7 @@ class CRUDUser(CRUDBase[User, user_schemas.UserCreate, user_schemas.UserUpdate])
         return user.is_active
 
     def is_admin(self, user: User) -> bool:
-        return user.role.role_name.lower() == user_schemas.RoleName.ADMIN.value
+        return user.role.name.lower() == "admin"
 
     def change_role(self, db: Session, *, user_id: int, new_role_id: int) -> user_schemas.UserSanitized | None:
         user = self.get(db, id=user_id)
@@ -86,41 +88,79 @@ class CRUDUser(CRUDBase[User, user_schemas.UserCreate, user_schemas.UserUpdate])
 
     def get_user_with_permissions(self, db: Session, user_id: int) -> user_schemas.UserWithPermissions | None:
         user = db.query(User).options(
-            joinedload(User.role).joinedload(Role.permissions)
+            joinedload(User.role).joinedload(Role.role_permissions).joinedload(RolePermission.permission)
         ).filter(User.id == user_id).first()
-        return user_schemas.UserWithPermissions.model_validate(user) if user else None
 
-    def update_user_permissions(self,
-                                db: Session,
-                                *,
-                                user_id: int,
-                                permission_ids: list[int]) -> user_schemas.UserWithPermissions:
+        if not user:
+            return None
+
+        user_permissions = [
+            user_schemas.UserPermission(
+                id=role_permission.permission.id,
+                name=role_permission.permission.name,
+                can_read=role_permission.can_read,
+                can_write=role_permission.can_write,
+                can_edit=role_permission.can_edit,
+                can_delete=role_permission.can_delete
+            )
+            for role_permission in user.role.role_permissions
+        ]
+
+        return user_schemas.UserWithPermissions(
+            **user_schemas.UserSanitized.model_validate(user).model_dump(),
+            permissions=user_permissions
+        )
+
+    def update_user_permissions(
+            self,
+            db: Session,
+            *,
+            user_id: int,
+            permissions: list[user_schemas.RolePermissionCreate]
+    ) -> user_schemas.UserWithPermissions:
         user = self.get(db, id=user_id)
         if not user:
             raise ValueError("User not found")
 
-        permissions = db.query(Permission).filter(Permission.id.in_(permission_ids)).all()
-        user.permissions = permissions
-        db.add(user)
+        # Clear existing role permissions
+        db.query(RolePermission).filter(RolePermission.role_id == user.role_id).delete()
+
+        # Add new role permissions
+        for perm in permissions:
+            permission = db.query(Permission).filter(Permission.id == perm.permission_id).first()
+            if permission:
+                role_permission = RolePermission(
+                    role_id=user.role_id,
+                    permission_id=permission.id,
+                    can_read=perm.can_read,
+                    can_write=perm.can_write,
+                    can_edit=perm.can_edit,
+                    can_delete=perm.can_delete
+                )
+                db.add(role_permission)
+
         db.commit()
         db.refresh(user)
-        return user_schemas.UserWithPermissions.model_validate(user)
+        return self.get_user_with_permissions(db, user_id)
 
     def get_user_permissions(self, db: Session, user_id: int) -> list[Permission]:
         user = self.get_user_with_permissions(db, user_id)
         return user.permissions if user else []
 
-    def check_permission(self, db: Session, user_id: int, name: str, action: str) -> bool:
-        user_permissions = self.get_user_permissions(db, user_id)
-        for perm in user_permissions:
-            if perm.permission_name == name:
-                if action == 'read' and perm.can_read:
-                    return True
-                if action == 'write' and perm.can_write:
-                    return True
-                if action == 'delete' and perm.can_delete:
-                    return True
-        return False
+    def check_permission(self, db: Session, user_id: int, permission_name: str, action: str) -> bool:
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            return False
+
+        role_permission = db.query(RolePermission).join(Permission).filter(
+            RolePermission.role_id == user.role_id,
+            Permission.name == permission_name
+        ).first()
+
+        if not role_permission:
+            return False
+
+        return getattr(role_permission, f"can_{action}", False)
 
     def get_all_permissions(self, db: Session) -> list[Permission]:
         return db.query(Permission).all()

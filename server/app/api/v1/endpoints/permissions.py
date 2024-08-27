@@ -57,7 +57,7 @@ def update_permission(
     return shared_schemas.Permission.model_validate(updated_permission)
 
 
-@router.delete("/{permission_id}", response_model=shared_schemas.Permission)
+@router.delete("/{permission_id}", status_code=204)
 def delete_permission(
         permission_id: int,
         db: Session = Depends(deps.get_db),
@@ -66,5 +66,4 @@ def delete_permission(
     permission = crud.permission.get(db, id=permission_id)
     if not permission:
         raise HTTPException(status_code=404, detail="Permission not found")
-    deleted_permission = crud.permission.remove(db, id=permission_id)
-    return shared_schemas.Permission.model_validate(deleted_permission)
+    crud.permission.remove(db, id=permission_id)

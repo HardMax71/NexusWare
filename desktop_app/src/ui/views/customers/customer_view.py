@@ -1,13 +1,12 @@
-from datetime import datetime
-
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
-                               QHeaderView, QDialog, QLineEdit, QFormLayout, QDialogButtonBox,
-                               QMessageBox, QLabel, QStackedWidget)
+                               QHeaderView, QDialog, QLineEdit, QMessageBox, QStackedWidget)
 
 from desktop_app.src.ui.components import StyledButton
 from public_api.api import CustomersAPI, APIClient, UsersAPI
-from public_api.shared_schemas import Customer, CustomerCreate, CustomerUpdate
+from public_api.shared_schemas import Customer
+from .customer_details_dialog import CustomerDetailsDialog
+from .customer_dialog import CustomerDialog
 
 
 class CustomerView(QWidget):
@@ -135,120 +134,3 @@ class CustomerView(QWidget):
                 QMessageBox.information(self, "Success", f"Customer {customer.name} deleted successfully.")
             except Exception as e:
                 QMessageBox.critical(self, "Error", f"Failed to delete customer: {str(e)}")
-
-
-class CustomerDialog(QDialog):
-    def __init__(self, customers_api: CustomersAPI, customer_data: Customer | None = None, parent=None):
-        super().__init__(parent)
-        self.customers_api = customers_api
-        self.customer_data = customer_data
-        self.init_ui()
-
-    def init_ui(self):
-        self.setWindowTitle("Create Customer" if not self.customer_data else "Edit Customer")
-        layout = QVBoxLayout(self)
-
-        form_layout = QFormLayout()
-
-        self.name_input = QLineEdit()
-        form_layout.addRow("Name:", self.name_input)
-
-        self.email_input = QLineEdit()
-        form_layout.addRow("Email:", self.email_input)
-
-        self.phone_input = QLineEdit()
-        form_layout.addRow("Phone:", self.phone_input)
-
-        self.address_input = QLineEdit()
-        form_layout.addRow("Address:", self.address_input)
-
-        layout.addLayout(form_layout)
-
-        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        button_box.accepted.connect(self.accept)
-        button_box.rejected.connect(self.reject)
-        layout.addWidget(button_box)
-
-        if self.customer_data:
-            self.populate_data()
-
-    def populate_data(self):
-        self.name_input.setText(self.customer_data.name)
-        self.email_input.setText(self.customer_data.email or "")
-        self.phone_input.setText(self.customer_data.phone or "")
-        self.address_input.setText(self.customer_data.address or "")
-
-    def accept(self):
-        name = self.name_input.text()
-        email = self.email_input.text()
-        phone = self.phone_input.text()
-        address = self.address_input.text()
-
-        try:
-            if self.customer_data:
-                customer_update = CustomerUpdate(
-                    name=name,
-                    email=email,
-                    phone=phone,
-                    address=address
-                )
-                self.customers_api.update_customer(self.customer_data.id, customer_update)
-                QMessageBox.information(self, "Success", f"Customer {name} updated successfully.")
-            else:
-                customer_create = CustomerCreate(
-                    name=name,
-                    email=email,
-                    phone=phone,
-                    address=address
-                )
-                new_customer = self.customers_api.create_customer(customer_create)
-                QMessageBox.information(self, "Success", f"Customer {new_customer.name} created successfully.")
-
-            super().accept()
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"An error occurred: {str(e)}")
-
-
-class CustomerDetailsDialog(QDialog):
-    def __init__(self, customer: Customer, customers_api: CustomersAPI, parent=None):
-        super().__init__(parent)
-        self.customer = customer
-        self.customers_api = customers_api
-        self.init_ui()
-
-    def init_ui(self):
-        self.setWindowTitle(f"Customer Details - {self.customer.name}")
-        layout = QVBoxLayout(self)
-
-        form_layout = QFormLayout()
-        form_layout.addRow("Name:", QLabel(self.customer.name))
-        form_layout.addRow("Email:", QLabel(self.customer.email or "N/A"))
-        form_layout.addRow("Phone:", QLabel(self.customer.phone or "N/A"))
-        form_layout.addRow("Address:", QLabel(self.customer.address or "N/A"))
-
-        layout.addLayout(form_layout)
-
-        # Customer Orders
-        orders_table = QTableWidget()
-        orders_table.setColumnCount(4)
-        orders_table.setHorizontalHeaderLabels(["Order ID", "Date", "Total Amount", "Status"])
-        orders_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-
-        try:
-            orders = self.customers_api.get_customer_orders(self.customer.id)
-            orders_table.setRowCount(len(orders))
-            for row, order in enumerate(orders):
-                orders_table.setItem(row, 0, QTableWidgetItem(str(order.id)))
-                orders_table.setItem(row, 1,
-                                     QTableWidgetItem(datetime.fromtimestamp(order.order_date).strftime("%Y-%m-%d")))
-                orders_table.setItem(row, 2, QTableWidgetItem(f"${order.total_amount:.2f}"))
-                orders_table.setItem(row, 3, QTableWidgetItem(order.status))
-        except Exception as e:
-            QMessageBox.warning(self, "Error", f"Failed to load customer orders: {str(e)}")
-
-        layout.addWidget(QLabel("Customer Orders:"))
-        layout.addWidget(orders_table)
-
-        button_box = QDialogButtonBox(QDialogButtonBox.Ok)
-        button_box.accepted.connect(self.accept)
-        layout.addWidget(button_box)

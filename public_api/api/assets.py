@@ -31,9 +31,8 @@ class AssetsAPI:
         response = self.client.put(f"/assets/{asset_id}", json=asset_data.model_dump(mode="json", exclude_unset=True))
         return Asset.model_validate(response)
 
-    def delete_asset(self, asset_id: int) -> Asset:
-        response = self.client.delete(f"/assets/{asset_id}")
-        return Asset.model_validate(response)
+    def delete_asset(self, asset_id: int) -> None:
+        self.client.delete(f"/assets/{asset_id}")
 
     def get_asset_types(self) -> list[str]:
         response = self.client.get("/assets/types")
@@ -65,9 +64,8 @@ class AssetsAPI:
                                    json=maintenance_data.model_dump(mode="json", exclude_unset=True))
         return AssetMaintenance.model_validate(response)
 
-    def delete_asset_maintenance(self, maintenance_id: int) -> AssetMaintenance:
-        response = self.client.delete(f"/assets/maintenance/{maintenance_id}")
-        return AssetMaintenance.model_validate(response)
+    def delete_asset_maintenance(self, maintenance_id: int) -> None:
+        self.client.delete(f"/assets/maintenance/{maintenance_id}")
 
     def get_maintenance_types(self) -> list[str]:
         response = self.client.get("/assets/maintenance/types")

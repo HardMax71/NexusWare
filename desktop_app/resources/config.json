@@ -4,17 +4,18 @@
   "update_download_url": "https://downloads.nexusware.com/releases",
   "language": "Spanish",
   "auto_update": false,
-  "start_on_startup": true,
+  "start_on_startup": false,
   "theme": "light",
   "api_base_url": "http://127.0.0.1:8000/api/v1",
   "api_test_url": "http://127.0.0.1:8000/",
   "shipengine_api_key": "TEST_API",
   "request_timeout": 10,
-  "font": "Candara",
+  "font": "Consolas",
   "font_size": "Large",
   "icons_path": "resources/icons",
   "styles_path": "resources/styles",
   "templates_path": "resources/templates",
   "translations_path": "resources/translations",
-  "organization_domain": "nexusware.com"
+  "organization_domain": "nexusware.com",
+  "show_manual_after_login": false
 }

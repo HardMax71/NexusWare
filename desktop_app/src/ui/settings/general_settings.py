@@ -47,7 +47,20 @@ class GeneralSettingsWidget(QWidget):
         startup_layout.addWidget(self.startup_toggle)
         layout.addLayout(startup_layout)
 
+        # Show manual toggle
+        manual_layout = QHBoxLayout()
+        manual_label = StyledLabel("Show manual after login:")
+        self.manual_toggle = ToggleSwitch()
+        self.manual_toggle.setChecked(self.config_manager.get("show_manual_after_login", True))
+        self.manual_toggle.toggled.connect(self.on_show_manual_toggled)
+        manual_layout.addWidget(manual_label)
+        manual_layout.addWidget(self.manual_toggle)
+        layout.addLayout(manual_layout)
+
         layout.addStretch()
+
+    def on_show_manual_toggled(self, state):
+        self.config_manager.set("show_manual_after_login", state)
 
     def on_language_changed(self, language):
         self.config_manager.set("language", language)

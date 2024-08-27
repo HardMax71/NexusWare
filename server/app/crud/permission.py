@@ -10,8 +10,8 @@ from .base import CRUDBase
 
 class CRUDPermission(CRUDBase[Permission, PermissionCreate, PermissionUpdate]):
     def get_by_name(self, db: Session, *, name: str) -> PermissionSchema | None:
-        current_permission = db.query(Permission).filter(Permission.permission_name == name).first()
-        return PermissionSchema.model_validate(current_permission) if current_permission else None
+        permission = db.query(Permission).filter(Permission.name == name).first()
+        return PermissionSchema.model_validate(permission) if permission else None
 
 
 permission = CRUDPermission(Permission)

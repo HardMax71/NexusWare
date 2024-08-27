@@ -11,7 +11,7 @@ from public_api.api import UsersAPI
 from services.authentication import AuthenticationService
 from services.offline_manager import OfflineManager
 from services.update_manager import UpdateManager
-from ui.login_dialog import LoginDialog
+from ui.views.auth import LoginDialog
 from ui.main_window import MainWindow
 from utils.config_manager import ConfigManager
 from utils.logger import setup_logger
@@ -106,6 +106,11 @@ def main():
 
     try:
         main_window = app_context.create_and_show_main_window()  # noqa
+
+        show_manual = app_context.config_manager.get("show_manual_after_login", True)
+        if show_manual:
+            main_window.open_user_manual()
+
     except HTTPError as e:
         print(e)
         QMessageBox.critical(None, "Error", str(e))

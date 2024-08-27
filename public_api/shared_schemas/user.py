@@ -1,20 +1,10 @@
 # /server/app/shared_schemas/user.py
-from enum import Enum
 
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
 
-class RoleName(str, Enum):
-    ADMIN = "admin"
-    MANAGER = "manager"
-    USER = "user"
-
-
 class PermissionBase(BaseModel):
-    permission_name: str
-    can_read: bool = False
-    can_write: bool = False
-    can_delete: bool = False
+    name: str
 
 
 class PermissionCreate(PermissionBase):
@@ -22,7 +12,7 @@ class PermissionCreate(PermissionBase):
 
 
 class PermissionUpdate(PermissionBase):
-    permission_name: str | None = None
+    name: str | None = None
 
 
 class Permission(PermissionBase):
@@ -31,25 +21,53 @@ class Permission(PermissionBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class RolePermissionBase(BaseModel):
+    permission_id: int
+    can_read: bool = False
+    can_write: bool = False
+    can_edit: bool = False
+    can_delete: bool = False
+
+
+
+class RolePermissionCreate(RolePermissionBase):
+    pass
+
+
+class RolePermissionUpdate(RolePermissionBase):
+    pass
+
+
+class RolePermission(RolePermissionBase):
+    id: int
+    role_id: int
+    permission: Permission
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+
 class RoleBase(BaseModel):
-    role_name: RoleName
+    name: str
 
 
 class RoleCreate(RoleBase):
-    permissions: list[int]
+    permissions: list[RolePermissionCreate]
 
 
-class RoleUpdate(BaseModel):
-    role_name: RoleName | None = None
-    permissions: list[int] | None = None
+class RoleUpdate(RoleBase):
+    name: str | None = None
+    permissions: list[RolePermissionCreate] | None = None
 
 
 class Role(RoleBase):
     id: int
-    permissions: list[Permission] = []
+    role_permissions: list[RolePermission] = []
 
     model_config = ConfigDict(from_attributes=True)
 
+class RoleInDB(Role):
+    pass
 
 class UserBase(BaseModel):
     username: str
@@ -92,6 +110,19 @@ class UserInDB(UserSanitized):
     two_factor_auth_secret: str | None = None
 
 
+class UserPermission(BaseModel):
+    id: int
+    name: str
+    can_read: bool
+    can_write: bool
+    can_edit: bool
+    can_delete: bool
+
+
+class UserWithPermissions(UserSanitized):
+    permissions: list[UserPermission]
+
+
 class TwoFactorLogin(BaseModel):
     username: str
     password: str
@@ -102,7 +133,7 @@ class Token(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str
-    expires_in: int  # This is the number of seconds until the access token expires
+    expires_in: int
 
 
 class TokenData(BaseModel):
@@ -120,12 +151,8 @@ class UserFilter(BaseModel):
     role_id: int | None = None
 
 
-class UserWithPermissions(UserSanitized):
-    permissions: list[Permission]
-
-
 class UserPermissionUpdate(BaseModel):
-    permissions: list[int]
+    permissions: list[RolePermissionCreate]
 
 
 class AllRoles(BaseModel):

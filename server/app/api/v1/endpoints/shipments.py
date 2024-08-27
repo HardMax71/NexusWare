@@ -68,7 +68,7 @@ def update_shipment(
     return crud.shipment.update(db, db_obj=shipment, obj_in=shipment_in)
 
 
-@router.delete("/{shipment_id}", response_model=shared_schemas.Shipment)
+@router.delete("/{shipment_id}", status_code=204)
 def delete_shipment(
         shipment_id: int = Path(..., title="The ID of the shipment to delete"),
         db: Session = Depends(deps.get_db),
@@ -77,7 +77,7 @@ def delete_shipment(
     shipment = crud.shipment.get(db, id=shipment_id)
     if shipment is None:
         raise HTTPException(status_code=404, detail="Shipment not found")
-    return crud.shipment.remove(db, id=shipment_id)
+    crud.shipment.remove(db, id=shipment_id)
 
 
 @router.post("/{shipment_id}/generate_label", response_model=shared_schemas.ShippingLabel)

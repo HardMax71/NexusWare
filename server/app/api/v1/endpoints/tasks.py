@@ -102,7 +102,7 @@ def update_task(
     return crud.task.update(db, db_obj=task, obj_in=task_in)
 
 
-@router.delete("/{task_id}", response_model=shared_schemas.Task)
+@router.delete("/{task_id}", status_code=204)
 def delete_task(
         task_id: int = Path(..., title="The ID of the task to delete"),
         db: Session = Depends(deps.get_db),
@@ -111,7 +111,7 @@ def delete_task(
     task = crud.task.get(db, id=task_id)
     if task is None:
         raise HTTPException(status_code=404, detail="Task not found")
-    return crud.task.remove(db, id=task_id)
+    crud.task.remove(db, id=task_id)
 
 
 @router.post("/{task_id}/complete", response_model=shared_schemas.Task)
