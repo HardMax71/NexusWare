@@ -21,3 +21,4 @@ from .suppliers import SuppliersAPI
 from .tasks import TasksAPI
 from .users import UsersAPI
 from .warehouse import WarehouseAPI
+from .roles import RolesAPI

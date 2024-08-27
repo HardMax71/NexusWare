@@ -123,29 +123,3 @@ class UsersAPI:
 
     def clear_permissions_cache(self):
         self._permission_manager = None
-
-    def get_role(self, role_id: int) -> Role:
-        response = self.client.get(f"/users/roles/{role_id}")
-        return Role.model_validate(response)
-
-    def create_role(self, role: RoleCreate) -> Role:
-        response = self.client.post("/users/roles", json=role.model_dump())
-        return Role.model_validate(response)
-
-    def update_role(self, role_id: int, role_update: RoleUpdate) -> Role:
-        response = self.client.put(f"/users/roles/{role_id}", json=role_update.model_dump())
-        return Role.model_validate(response)
-
-    def delete_role(self, role_id: int) -> None:
-        self.client.delete(f"/users/roles/{role_id}")
-
-    def create_permission(self, permission: PermissionCreate) -> Permission:
-        response = self.client.post("/users/permissions", json=permission.model_dump())
-        return Permission.model_validate(response)
-
-    def update_permission(self, permission_id: int, permission_update: PermissionUpdate) -> Permission:
-        response = self.client.put(f"/users/permissions/{permission_id}", json=permission_update.model_dump())
-        return Permission.model_validate(response)
-
-    def delete_permission(self, permission_id: int) -> None:
-        self.client.delete(f"/users/permissions/{permission_id}")

@@ -1,39 +1,77 @@
-@startuml
-!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+@startuml NexusWare Architecture
+skin rose
+left to right direction
+!include <C4/C4_Container>
 
-LAYOUT_WITH_LEGEND()
-
-Container(server, "NexusWare Server", "Python, FastAPI")
-Container(client, "NexusWare Client", "Python, Flet")
-
-Container_Boundary(server_boundary, "NexusWare Server") {
-    Component(api, "API", "FastAPI")
-    Component(auth_service, "Authentication Service", "FastAPI, Pydantic")
-    Component(inventory_service, "Inventory Service", "FastAPI, Pydantic")
-    Component(order_service, "Order Service", "FastAPI, Pydantic")
-    Component(reporting_service, "Reporting Service", "FastAPI, Pydantic")
-    ComponentDb(database, "Database", "SQLite")
+' Element definitions
+package "Frontend" {
+rectangle "Desktop App" as desktop_app
+rectangle "Web App" as web_app
+rectangle "Mobile App" as mobile_app
 }
 
-Container_Boundary(client_boundary, "NexusWare Client") {
-    Component(ui, "User Interface", "Flet")
-    Component(api_client, "API Client", "Python Requests")
-    Component(local_storage, "Local Storage", "SQLite")
+package "Backend" {
+rectangle "API Server" as api_server
+rectangle "Authentication Service" as auth_service
+rectangle "Inventory Service" as inventory_service
+rectangle "Order Service" as order_service
+rectangle "Warehouse Service" as warehouse_service
+rectangle "Quality Service" as quality_service
+rectangle "Reporting Service" as reporting_service
+rectangle "Task Management Service" as task_service
+
+
+database "SQLite Database" as sqlite_db
+
+note bottom of sqlite_db
+  Stores all system data:
+  - Users
+  - Inventory
+  - Orders
+  - Warehouse layout
+  - Quality checks
+  - Tasks
+end note
 }
 
-Rel(client, api, "Uses", "HTTP/REST")
+' Frontend to API Server connections
+desktop_app --> api_server : HTTP/REST
+web_app --> api_server : HTTP/REST
+mobile_app --> api_server : HTTP/REST
 
-Rel(api, auth_service, "Routes to")
-Rel(api, inventory_service, "Routes to")
-Rel(api, order_service, "Routes to")
-Rel(api, reporting_service, "Routes to")
+' API Server to Services connections
+api_server --> auth_service : Internal API
+api_server --> inventory_service : Internal API
+api_server --> order_service : Internal API
+api_server --> warehouse_service : Internal API
+api_server --> quality_service : Internal API
+api_server --> reporting_service : Internal API
+api_server --> task_service : Internal API
 
-Rel(auth_service, database, "Reads/Writes")
-Rel(inventory_service, database, "Reads/Writes")
-Rel(order_service, database, "Reads/Writes")
-Rel(reporting_service, database, "Reads")
+' Services to Database connections
+auth_service --> sqlite_db : SQL
+inventory_service --> sqlite_db : SQL
+order_service --> sqlite_db : SQL
+warehouse_service --> sqlite_db : SQL
+quality_service --> sqlite_db : SQL
+reporting_service --> sqlite_db : SQL
+task_service --> sqlite_db : SQL
 
-Rel(ui, api_client, "Uses")
-Rel(api_client, local_storage, "Reads/Writes")
+' Additional details
+note right of desktop_app
+  Python, PySide6
+end note
+
+note right of web_app
+  TBA
+end note
+
+note right of mobile_app
+  TBA
+end note
+
+note right of api_server
+  FastAPI-based RESTful API
+end note
 
 @enduml

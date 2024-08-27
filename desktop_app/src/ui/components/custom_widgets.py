@@ -6,9 +6,13 @@ from PySide6.QtWidgets import (
 
 
 class StyledButton(QPushButton):
-    def __init__(self, text, parent=None):
+    def __init__(self, text, parent=None, icon_path: str = None):
         super().__init__(text, parent)
-        self.setIcon(self.get_icon_for_text(text))
+        if icon_path:
+            # TODO: move from built-in pyside icons to custom icons
+            self.setIcon(QIcon(icon_path))  # temp fix before get icon for text will be removed
+        else:
+            self.setIcon(self.get_icon_for_text(text))
 
         # If an icon is set, hide the text
         if not self.icon().isNull():
@@ -49,7 +53,7 @@ class StyledComboBox(QComboBox):
 class StyledLabel(QLabel):
     def __init__(self, text, parent=None):
         super().__init__(text, parent)
-        self.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        self.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignVCenter)
 
 
 class CollapsibleBox(QWidget):

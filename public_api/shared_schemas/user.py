@@ -22,6 +22,7 @@ class Permission(PermissionBase):
 
 
 class RolePermissionBase(BaseModel):
+    permission_id: int
     can_read: bool = False
     can_write: bool = False
     can_edit: bool = False
@@ -30,7 +31,7 @@ class RolePermissionBase(BaseModel):
 
 
 class RolePermissionCreate(RolePermissionBase):
-    permission_id: int
+    pass
 
 
 class RolePermissionUpdate(RolePermissionBase):
@@ -40,7 +41,6 @@ class RolePermissionUpdate(RolePermissionBase):
 class RolePermission(RolePermissionBase):
     id: int
     role_id: int
-    permission_id: int
     permission: Permission
 
     model_config = ConfigDict(from_attributes=True)
@@ -62,10 +62,12 @@ class RoleUpdate(RoleBase):
 
 class Role(RoleBase):
     id: int
-    permissions: list[RolePermission] = []
+    role_permissions: list[RolePermission] = []
 
     model_config = ConfigDict(from_attributes=True)
 
+class RoleInDB(Role):
+    pass
 
 class UserBase(BaseModel):
     username: str
