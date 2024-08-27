@@ -45,7 +45,7 @@ from .order import (
     OrderFilter, OrderSummary, CustomerFilter, PurchaseOrderFilter,
     SupplierFilter, OrderWithDetails, PurchaseOrderWithDetails,
     ShippingInfo, POItemReceive, OrderProcessingTimes,
-    BulkOrderImportData, BulkOrderImportResult
+    BulkOrderImportData, BulkOrderImportResult, OrderStatus
 )
 # Quality shared_schemas
 from .quality import (QualityCheckBase, QualityCheckCreate,
@@ -69,7 +69,7 @@ from .task import (TaskBase, TaskCreate, TaskUpdate, Task,
                    TaskPriorityUpdate, TaskAssignmentUpdate, TaskStatusUpdate,
                    TaskDueDateUpdate, TaskProgressUpdate, TaskDependency,
                    TaskDependencyCreate, TaskTimeline, TaskAnalytics,
-                   BulkTaskCreate, BulkTaskCreateResult)
+                   BulkTaskCreate, BulkTaskCreateResult, TaskPriority, TaskStatus)
 # User shared_schemas
 from .user import (
     PermissionBase, PermissionCreate, PermissionUpdate, Permission,
@@ -90,7 +90,7 @@ from .warehouse import (
     LocationInventoryUpdate, OptimizedPickingRoute, PickingPerformance,
     ReceiptDiscrepancy, ShippingLabel, CarrierRate, ShipmentTracking,
     InventoryMovementCreate, InventoryAdjustmentCreate,
-    ShipmentWithDetails
+    ShipmentWithDetails, ShipmentStatus
 )
 # Yard shared_schemas
 from .yard import (

@@ -3,9 +3,10 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, 
                                QHeaderView, QDialog, QLineEdit, QMessageBox, QComboBox)
 
 from desktop_app.src.ui.components import StyledButton
-from desktop_app.src.ui.user_mgmt_dialogs import UserDialog, RolePermissionManagementDialog
 from public_api.api import UsersAPI, APIClient, RolesAPI
 from public_api.shared_schemas import UserSanitized, UserFilter
+from .role_permission_mgmt_dialog import RolePermissionManagementDialog
+from .user_dialog import UserDialog
 
 
 class UserManagementWidget(QWidget):

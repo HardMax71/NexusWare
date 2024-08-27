@@ -1,9 +1,7 @@
 from PySide6.QtWidgets import (QVBoxLayout, QDialog, QLineEdit, QMessageBox, QDialogButtonBox, QFormLayout)
 
 from public_api.api import RolesAPI
-from public_api.shared_schemas import Permission, \
-    PermissionCreate, \
-    PermissionUpdate
+from public_api.shared_schemas import Permission, PermissionCreate, PermissionUpdate
 
 
 class PermissionDialog(QDialog):

@@ -5,10 +5,12 @@ from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
                                QHeaderView, QDialog, QLineEdit, QStackedWidget, QMessageBox, QComboBox)
 
-from desktop_app.src.ui.components import StyledButton, ShippingDialog, OrderDialog, OrderDetailsDialog
+from desktop_app.src.ui.components import StyledButton
 from public_api.api import OrdersAPI, APIClient, CustomersAPI, ProductsAPI, ShipmentsAPI, CarriersAPI, UsersAPI
-from public_api.shared_schemas import (OrderWithDetails, OrderFilter)
-from public_api.shared_schemas.order import OrderStatus
+from public_api.shared_schemas import OrderWithDetails, OrderFilter, OrderStatus
+from .order_details_dialog import OrderDetailsDialog
+from .order_dialog import OrderDialog
+from .shipping_dialog import ShippingDialog
 
 
 class OrderView(QWidget):

@@ -3,8 +3,9 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, 
                                QHeaderView, QDialog, QMessageBox, QListWidgetItem,
                                QListWidget, QTabWidget, QPushButton)
 
-from desktop_app.src.ui.user_mgmt_dialogs import RoleDialog, PermissionDialog
 from public_api.api import RolesAPI
+from .permission_dialog import PermissionDialog
+from .role_dialog import RoleDialog
 
 
 class RolePermissionManagementDialog(QDialog):

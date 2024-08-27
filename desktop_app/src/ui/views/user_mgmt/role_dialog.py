@@ -3,8 +3,7 @@ from PySide6.QtWidgets import (QVBoxLayout, QTableWidget, QTableWidgetItem,
                                QHeaderView, QDialog, QLineEdit, QMessageBox, QDialogButtonBox, QLabel, QCheckBox)
 
 from public_api.api import RolesAPI
-from public_api.shared_schemas import RoleCreate, RoleUpdate
-from public_api.shared_schemas.user import RolePermissionCreate
+from public_api.shared_schemas import RoleCreate, RoleUpdate, RolePermissionCreate
 
 
 class RoleDialog(QDialog):
