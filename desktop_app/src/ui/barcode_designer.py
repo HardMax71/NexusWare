@@ -10,6 +10,7 @@ from barcode import get_barcode_class
 from barcode.writer import ImageWriter
 
 from desktop_app.src.ui.components import StyledButton, StyledLabel
+from desktop_app.src.ui.icon_path_enum import IconPath
 
 
 class BarcodeDesignerWidget(QWidget):
@@ -49,7 +50,7 @@ class BarcodeDesignerWidget(QWidget):
         left_column.addLayout(data_layout)
 
         # Generate button
-        self.generate_button = StyledButton("Generate Barcode")
+        self.generate_button = StyledButton("Generate Barcode", icon_path=IconPath.BARCODE)
         self.generate_button.clicked.connect(self.generate_barcode)
         left_column.addWidget(self.generate_button)
 
@@ -67,7 +68,7 @@ class BarcodeDesignerWidget(QWidget):
         right_column.addWidget(self.barcode_label, 1)
 
         # Save button
-        self.save_button = StyledButton("Save Barcode")
+        self.save_button = StyledButton("Save Barcode", icon_path=IconPath.SAVE)
         self.save_button.clicked.connect(self.save_barcode)
         self.save_button.setEnabled(False)
         right_column.addWidget(self.save_button)

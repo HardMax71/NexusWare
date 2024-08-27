@@ -7,6 +7,7 @@ from public_api.api import CustomersAPI, APIClient, UsersAPI
 from public_api.shared_schemas import Customer
 from .customer_details_dialog import CustomerDetailsDialog
 from .customer_dialog import CustomerDialog
+from ...icon_path_enum import IconPath
 
 
 class CustomerView(QWidget):
@@ -38,7 +39,7 @@ class CustomerView(QWidget):
         self.search_input.textChanged.connect(self.filter_customers)
         controls_layout.addWidget(self.search_input)
 
-        self.refresh_button = StyledButton("Refresh")
+        self.refresh_button = StyledButton("Refresh", icon_path=IconPath.REFRESH)
         self.refresh_button.clicked.connect(self.refresh_customers)
         controls_layout.addWidget(self.refresh_button)
 
@@ -55,7 +56,7 @@ class CustomerView(QWidget):
 
         # Floating Action Button for adding new customers
         if self.permission_manager.has_write_permission("customers"):
-            self.fab = StyledButton("+")
+            self.fab = StyledButton("+", icon_path=IconPath.PLUS)
             self.fab.clicked.connect(self.add_customer)
             layout.addWidget(self.fab)
 
@@ -79,17 +80,17 @@ class CustomerView(QWidget):
             actions_layout.setContentsMargins(0, 0, 0, 0)
             actions_layout.setSpacing(2)
 
-            view_button = StyledButton("View")
+            view_button = StyledButton("View", icon_path=IconPath.VIEW)
             view_button.clicked.connect(lambda _, c=customer: self.view_customer(c))
             actions_layout.addWidget(view_button)
 
             if self.permission_manager.has_write_permission("customers"):
-                edit_button = StyledButton("Edit")
+                edit_button = StyledButton("Edit", icon_path=IconPath.EDIT)
                 edit_button.clicked.connect(lambda _, c=customer: self.edit_customer(c))
                 actions_layout.addWidget(edit_button)
 
             if self.permission_manager.has_delete_permission("customers"):
-                delete_button = StyledButton("Delete")
+                delete_button = StyledButton("Delete", icon_path=IconPath.DELETE)
                 delete_button.clicked.connect(lambda _, c=customer: self.delete_customer(c))
                 actions_layout.addWidget(delete_button)
 

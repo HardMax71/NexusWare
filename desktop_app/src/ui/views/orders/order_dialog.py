@@ -5,6 +5,7 @@ from PySide6.QtWidgets import (QVBoxLayout, QTableWidget, QDialog, QComboBox,
                                QMessageBox, QHeaderView, QHBoxLayout, QWidget)
 
 from desktop_app.src.ui.components import StyledButton
+from desktop_app.src.ui.icon_path_enum import IconPath
 from public_api.api import OrdersAPI, CustomersAPI, ProductsAPI
 from public_api.shared_schemas import (OrderWithDetails, OrderCreate, OrderUpdate, OrderItemCreate, OrderItemUpdate,
                                        OrderStatus)
@@ -69,7 +70,7 @@ class OrderDialog(QDialog):
         header.setSectionResizeMode(0, QHeaderView.Stretch)  # Stretch the product column
         items_layout.addWidget(self.items_table)
 
-        add_item_button = StyledButton("Add Item")
+        add_item_button = StyledButton("Add Item", icon_path=IconPath.PLUS)
         add_item_button.clicked.connect(self.add_item)
         items_layout.addWidget(add_item_button)
 
@@ -116,7 +117,7 @@ class OrderDialog(QDialog):
         price_spin.setMaximum(100000)
         price_spin.setPrefix("$")
 
-        delete_button = StyledButton("Delete")
+        delete_button = StyledButton("Delete", icon_path=IconPath.DELETE)
         delete_button.clicked.connect(lambda: self.delete_item(row))
 
         self.items_table.setCellWidget(row, 0, product_combo)

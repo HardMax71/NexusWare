@@ -10,6 +10,7 @@ from public_api.api import APIClient, TasksAPI, UsersAPI
 from public_api.shared_schemas import TaskWithAssignee, TaskFilter, TaskStatus, TaskPriority
 from .task_dialog import TaskDialog
 from .tasks_details_dialog import TaskDetailsDialog
+from ...icon_path_enum import IconPath
 
 
 class TaskView(QWidget):
@@ -44,7 +45,7 @@ class TaskView(QWidget):
         layout.addWidget(self.switch_view_button)
 
         # Floating Action Button for adding new tasks
-        self.fab = StyledButton("+")
+        self.fab = StyledButton("+", icon_path=IconPath.PLUS)
         self.fab.clicked.connect(self.add_task)
         layout.addWidget(self.fab)
 
@@ -73,7 +74,7 @@ class TaskView(QWidget):
         self.priority_combo.setToolTip("Filter by task priority")
         filter_layout.addWidget(self.priority_combo)
 
-        self.refresh_button = StyledButton("Refresh")
+        self.refresh_button = StyledButton("Refresh", icon_path=IconPath.REFRESH)
         self.refresh_button.clicked.connect(self.refresh_tasks)
         filter_layout.addWidget(self.refresh_button)
 
@@ -144,15 +145,15 @@ class TaskView(QWidget):
             actions_layout.setContentsMargins(0, 0, 0, 0)
             actions_layout.setSpacing(2)
 
-            view_button = StyledButton("View")
+            view_button = StyledButton("View", icon_path=IconPath.VIEW)
             view_button.clicked.connect(lambda _, t=task: self.view_task(t))
             actions_layout.addWidget(view_button)
 
-            edit_button = StyledButton("Edit")
+            edit_button = StyledButton("Edit", icon_path=IconPath.EDIT)
             edit_button.clicked.connect(lambda _, t=task: self.edit_task(t))
             actions_layout.addWidget(edit_button)
 
-            delete_button = StyledButton("Delete")
+            delete_button = StyledButton("Delete", icon_path=IconPath.DELETE)
             delete_button.clicked.connect(lambda _, t=task: self.delete_task(t))
             actions_layout.addWidget(delete_button)
 

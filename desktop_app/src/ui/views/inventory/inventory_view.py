@@ -10,6 +10,7 @@ from public_api.shared_schemas import InventoryWithDetails, Inventory
 from .adjustment_dialog import AdjustmentDialog
 from .inventory_dialog import InventoryDialog
 from .inventory_planning import InventoryPlanningWidget
+from ...icon_path_enum import IconPath
 
 
 class InventoryView(QWidget):
@@ -43,7 +44,7 @@ class InventoryView(QWidget):
         self.search_input.textChanged.connect(self.filter_inventory)
         controls_layout.addWidget(self.search_input)
 
-        self.refresh_button = StyledButton("Refresh")
+        self.refresh_button = StyledButton("Refresh", icon_path=IconPath.REFRESH)
         self.refresh_button.clicked.connect(self.refresh_inventory)
         controls_layout.addWidget(self.refresh_button)
 
@@ -65,7 +66,7 @@ class InventoryView(QWidget):
 
         # Floating Action Button for adding new items
         if self.permission_manager.has_write_permission("inventory"):
-            self.fab = StyledButton("+")
+            self.fab = StyledButton("+", icon_path=IconPath.PLUS)
             self.fab.clicked.connect(self.add_item)
             layout.addWidget(self.fab)
 
@@ -98,16 +99,16 @@ class InventoryView(QWidget):
             actions_layout.setSpacing(2)
 
             if self.permission_manager.has_write_permission("inventory"):
-                edit_button = StyledButton("Edit")
+                edit_button = StyledButton("Edit", icon_path=IconPath.EDIT)
                 edit_button.clicked.connect(lambda _, i=item.id: self.edit_item(i))
                 actions_layout.addWidget(edit_button)
 
-                adjust_button = StyledButton("Adjust")
+                adjust_button = StyledButton("Adjust", icon_path=IconPath.ADJUST)
                 adjust_button.clicked.connect(lambda _, i=item.id: self.adjust_item(i))
                 actions_layout.addWidget(adjust_button)
 
             if self.permission_manager.has_delete_permission("inventory"):
-                delete_button = StyledButton("Delete")
+                delete_button = StyledButton("Delete", icon_path=IconPath.DELETE)
                 delete_button.clicked.connect(lambda _, i=item.id: self.delete_item(i))
                 actions_layout.addWidget(delete_button)
 

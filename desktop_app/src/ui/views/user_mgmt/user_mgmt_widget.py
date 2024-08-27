@@ -7,6 +7,7 @@ from public_api.api import UsersAPI, APIClient, RolesAPI
 from public_api.shared_schemas import UserSanitized, UserFilter
 from .role_permission_mgmt_dialog import RolePermissionManagementDialog
 from .user_dialog import UserDialog
+from ...icon_path_enum import IconPath
 
 
 class UserManagementWidget(QWidget):
@@ -39,7 +40,7 @@ class UserManagementWidget(QWidget):
         self.role_combo.currentTextChanged.connect(self.filter_users)
         controls_layout.addWidget(self.role_combo)
 
-        self.refresh_button = StyledButton("Refresh")
+        self.refresh_button = StyledButton("Refresh", icon_path=IconPath.REFRESH)
         self.refresh_button.clicked.connect(self.refresh_users)
         controls_layout.addWidget(self.refresh_button)
 
@@ -58,7 +59,7 @@ class UserManagementWidget(QWidget):
 
         # Floating Action Button for adding new users
         if self.permission_manager.has_write_permission("user_management"):
-            self.fab = StyledButton("+")
+            self.fab = StyledButton("+", icon_path=IconPath.PLUS)
             self.fab.clicked.connect(self.add_user)
             layout.addWidget(self.fab)
 
@@ -92,12 +93,12 @@ class UserManagementWidget(QWidget):
             actions_layout.setSpacing(2)
 
             if self.permission_manager.has_write_permission("user_management"):
-                edit_button = StyledButton("Edit")
+                edit_button = StyledButton("Edit", icon_path=IconPath.EDIT)
                 edit_button.clicked.connect(lambda _, uid=user.id: self.edit_user(uid))
                 actions_layout.addWidget(edit_button)
 
             if self.permission_manager.has_delete_permission("user_management"):
-                delete_button = StyledButton("Delete")
+                delete_button = StyledButton("Delete", icon_path=IconPath.DELETE)
                 delete_button.clicked.connect(lambda _, uid=user.id: self.delete_user(uid))
                 actions_layout.addWidget(delete_button)
 

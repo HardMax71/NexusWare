@@ -4,40 +4,20 @@ from PySide6.QtWidgets import (
     QPushButton, QLineEdit, QComboBox, QLabel, QWidget, QVBoxLayout, QGraphicsOpacityEffect, QFrame, QStyle
 )
 
+from desktop_app.src.ui.icon_path_enum import IconPath
+
 
 class StyledButton(QPushButton):
-    def __init__(self, text, parent=None, icon_path: str = None):
+    def __init__(self, text, parent=None, icon_path: IconPath = None):
         super().__init__(text, parent)
-        if icon_path:
-            # TODO: move from built-in pyside icons to custom icons
-            self.setIcon(QIcon(icon_path))  # temp fix before get icon for text will be removed
-        else:
-            self.setIcon(self.get_icon_for_text(text))
 
-        # If an icon is set, hide the text
-        if not self.icon().isNull():
+        if icon_path:  # hiding text, setting icon and tooltip
+            icon_path_value: str = icon_path.value
+            self.setIcon(QIcon(icon_path_value))
             self.setText("")
             self.setToolTip(text)  # Set tooltip to original text
-
-    def get_icon_for_text(self, text):  # https://www.pythonguis.com/faq/built-in-qicons-pyqt/
-        icon_map = {
-            "+": "SP_FileDialogNewFolder",
-            "View": "SP_FileDialogContentsView",
-            "Refresh": "SP_BrowserReload",
-            "Edit": "SP_FileDialogDetailedView",
-            "Delete": "SP_TrashIcon",
-            "Adjust": "SP_ArrowUp",
-            "Ship": "SP_DialogApplyButton",
-            "Search": "SP_FileDialogContentsView",
-            "Track": "SP_FileDialogInfoView",
-            "Label": "SP_FileIcon",
-            "Permissions": "SP_DialogHelpButton",
-            "Barcode": "SP_DriveDVDIcon",
-        }
-
-        if text in icon_map:
-            return self.style().standardIcon(getattr(QStyle, icon_map[text]))
-        return QIcon()
+        else:  # setting text if no icon
+            self.setText(text)
 
 
 class StyledLineEdit(QLineEdit):
