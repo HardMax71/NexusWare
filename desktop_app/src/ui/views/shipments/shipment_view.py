@@ -10,6 +10,7 @@ from public_api.shared_schemas import Shipment, ShipmentFilter, ShipmentStatus
 from .shipment_details_dialog import ShipmentDetailsDialog
 from .shipment_dialog import ShipmentDialog
 from .shipment_tracking_dialog import ShipmentTrackingDialog
+from ...icon_path_enum import IconPath
 
 
 class ShipmentView(QWidget):
@@ -46,7 +47,7 @@ class ShipmentView(QWidget):
         self.search_input.textChanged.connect(self.filter_shipments)
         controls_layout.addWidget(self.search_input)
 
-        self.refresh_button = StyledButton("Refresh")
+        self.refresh_button = StyledButton("Refresh", icon_path=IconPath.REFRESH)
         self.refresh_button.clicked.connect(self.refresh_shipments)
         controls_layout.addWidget(self.refresh_button)
 
@@ -64,7 +65,7 @@ class ShipmentView(QWidget):
         self.stacked_widget.addWidget(main_widget)
 
         # Floating Action Button for adding new shipments
-        self.fab = StyledButton("+")
+        self.fab = StyledButton("+", icon_path=IconPath.PLUS)
         self.fab.clicked.connect(self.create_shipment)
         layout.addWidget(self.fab)
 
@@ -103,15 +104,15 @@ class ShipmentView(QWidget):
             actions_layout.setContentsMargins(0, 0, 0, 0)
             actions_layout.setSpacing(2)
 
-            view_button = StyledButton("View")
+            view_button = StyledButton("View", icon_path=IconPath.VIEW)
             view_button.clicked.connect(lambda _, s=shipment: self.view_shipment(s))
-            edit_button = StyledButton("Edit")
+            edit_button = StyledButton("Edit", icon_path=IconPath.EDIT)
             edit_button.clicked.connect(lambda _, s=shipment: self.edit_shipment(s))
-            track_button = StyledButton("Track")
+            track_button = StyledButton("Track", icon_path=IconPath.TRACK)
             track_button.clicked.connect(lambda _, s=shipment: self.track_shipment(s))
-            label_button = StyledButton("Label")
+            label_button = StyledButton("Label", icon_path=IconPath.LABEL)
             label_button.clicked.connect(lambda _, s=shipment: self.generate_label(s))
-            delete_button = StyledButton("Delete")
+            delete_button = StyledButton("Delete", icon_path=IconPath.DELETE)
             delete_button.clicked.connect(lambda _, s=shipment: self.delete_shipment(s))
 
             actions_layout.addWidget(view_button)

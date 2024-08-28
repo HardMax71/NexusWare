@@ -1,5 +1,4 @@
 # /server/app/api/v1/endpoints/products.py
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session, joinedload
@@ -21,7 +20,7 @@ def create_product(
     return crud.product.create(db=db, obj_in=product)
 
 
-@router.get("/", response_model=List[shared_schemas.ProductWithCategoryAndInventory])
+@router.get("/", response_model=list[shared_schemas.ProductWithCategoryAndInventory])
 def read_products(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
@@ -101,7 +100,7 @@ def delete_product(
     crud.product.remove(db, id=product_id)
 
 
-@router.get("/{product_id}/substitutes", response_model=List[shared_schemas.Product])
+@router.get("/{product_id}/substitutes", response_model=list[shared_schemas.Product])
 def get_product_substitutes(
         product_id: int,
         db: Session = Depends(deps.get_db),

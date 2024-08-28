@@ -1,5 +1,4 @@
 # /server/app/api/v1/endpoints/product_categories.py
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -20,7 +19,7 @@ def create_category(
     return crud.product_category.create(db=db, obj_in=category)
 
 
-@router.get("/", response_model=List[shared_schemas.ProductCategory])
+@router.get("/", response_model=list[shared_schemas.ProductCategory])
 def read_categories(
         db: Session = Depends(deps.get_db),
         skip: int = 0,

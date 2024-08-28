@@ -1,5 +1,4 @@
 # /server/app/api/v1/endpoints/po_items.py
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Body
 from sqlalchemy.orm import Session
@@ -11,7 +10,7 @@ from ....api import deps
 router = APIRouter()
 
 
-@router.get("/", response_model=List[shared_schemas.POItem])
+@router.get("/", response_model=list[shared_schemas.POItem])
 def read_po_items(
         skip: int = 0,
         limit: int = 100,
@@ -21,7 +20,7 @@ def read_po_items(
     return crud.po_item.get_multi(db, skip=skip, limit=limit)
 
 
-@router.get("/by_product/{product_id}", response_model=List[shared_schemas.POItem])
+@router.get("/by_product/{product_id}", response_model=list[shared_schemas.POItem])
 def read_po_items_by_product(
         product_id: int = Path(..., title="The ID of the product to filter by"),
         skip: int = 0,
@@ -32,7 +31,7 @@ def read_po_items_by_product(
     return crud.po_item.get_by_product(db, product_id=product_id, skip=skip, limit=limit)
 
 
-@router.get("/pending_receipt", response_model=List[shared_schemas.POItem])
+@router.get("/pending_receipt", response_model=list[shared_schemas.POItem])
 def read_pending_receipt_po_items(
         skip: int = 0,
         limit: int = 100,

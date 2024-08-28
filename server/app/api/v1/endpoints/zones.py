@@ -1,5 +1,4 @@
 # /server/app/api/v1/endpoints/zones.py
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -20,7 +19,7 @@ def create_zone(
     return crud.zone.create(db=db, obj_in=zone)
 
 
-@router.get("/", response_model=List[shared_schemas.ZoneWithLocations])
+@router.get("/", response_model=list[shared_schemas.ZoneWithLocations])
 def read_zones(
         db: Session = Depends(deps.get_db),
         skip: int = 0,

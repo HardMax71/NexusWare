@@ -1,7 +1,5 @@
 # /server/app/api/v1/endpoints/quality.py
 
-from typing import List
-
 from fastapi import APIRouter, Depends, HTTPException, Query, Path, Body
 from sqlalchemy.orm import Session
 
@@ -21,7 +19,7 @@ def create_quality_check(
     return crud.quality_check.create(db=db, obj_in=check)
 
 
-@router.get("/checks", response_model=List[shared_schemas.QualityCheckWithProduct])
+@router.get("/checks", response_model=list[shared_schemas.QualityCheckWithProduct])
 def read_quality_checks(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
@@ -88,7 +86,7 @@ def create_quality_standard(
     return crud.quality_standard.create(db=db, obj_in=standard)
 
 
-@router.get("/standards", response_model=List[shared_schemas.QualityStandard])
+@router.get("/standards", response_model=list[shared_schemas.QualityStandard])
 def read_quality_standards(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
@@ -144,7 +142,7 @@ def create_quality_alert(
     return crud.quality_alert.create(db=db, obj_in=alert)
 
 
-@router.get("/alerts", response_model=List[shared_schemas.QualityAlert])
+@router.get("/alerts", response_model=list[shared_schemas.QualityAlert])
 def read_quality_alerts(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
@@ -167,7 +165,7 @@ def resolve_quality_alert(
     return crud.quality_alert.update(db, db_obj=alert, obj_in=alert_in)
 
 
-@router.get("/product/{product_id}/history", response_model=List[shared_schemas.QualityCheckWithProduct])
+@router.get("/product/{product_id}/history", response_model=list[shared_schemas.QualityCheckWithProduct])
 def get_product_quality_history(
         product_id: int = Path(..., title="The ID of the product to get quality history for"),
         db: Session = Depends(deps.get_db),
@@ -189,7 +187,7 @@ def get_quality_check_summary(
     return crud.quality_check.get_summary(db, date_from=date_from, date_to=date_to)
 
 
-@router.get("/product/{product_id}/standards", response_model=List[shared_schemas.QualityStandard])
+@router.get("/product/{product_id}/standards", response_model=list[shared_schemas.QualityStandard])
 def get_product_quality_standards(
         product_id: int = Path(..., title="The ID of the product to get quality standards for"),
         db: Session = Depends(deps.get_db),
@@ -198,16 +196,16 @@ def get_product_quality_standards(
     return crud.quality_standard.get_by_product(db, product_id=product_id)
 
 
-@router.post("/batch_check", response_model=List[shared_schemas.QualityCheck])
+@router.post("/batch_check", response_model=list[shared_schemas.QualityCheck])
 def create_batch_quality_check(
-        checks: List[shared_schemas.QualityCheckCreate],
+        checks: list[shared_schemas.QualityCheckCreate],
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.quality_check.create_batch(db=db, obj_in_list=checks)
 
 
-@router.get("/alerts/active", response_model=List[shared_schemas.QualityAlert])
+@router.get("/alerts/active", response_model=list[shared_schemas.QualityAlert])
 def get_active_quality_alerts(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
@@ -227,7 +225,7 @@ def add_comment_to_quality_check(
     return crud.quality_check.add_comment(db, check_id=check_id, comment=comment, user_id=current_user.id)
 
 
-@router.get("/reports/defect_rate", response_model=List[shared_schemas.ProductDefectRate])
+@router.get("/reports/defect_rate", response_model=list[shared_schemas.ProductDefectRate])
 def get_product_defect_rates(
         db: Session = Depends(deps.get_db),
         date_from: int = Query(None),

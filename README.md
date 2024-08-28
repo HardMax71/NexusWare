@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./diagrams/app_icon.png" alt="NexusWare Icon" width="200" height="200">
+  <img src="./desktop_app/resources/icons/app_icon.png" alt="NexusWare Icon" width="200" height="200">
 </p>
 <p align="center">
   <b><span style="font-size:24px;">NexusWare</span></b>
@@ -55,7 +55,6 @@ across mobile, web, and desktop environments.
 | Barcode and Label Design    | -      | -   | ✅       |
 | Advanced Search and Filter  | -      | ✅   | ✅       |
 | System Diagnostics          | -      | -   | ✅       |
-| Simulation and Modeling     | -      | -   | ✅       |
 | Training Mode               | -      | -   | ✅       |
 | Customization Tools         | -      | -   | ✅       |
 

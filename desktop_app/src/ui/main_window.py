@@ -12,10 +12,12 @@ from desktop_app.src.ui.views.tasks import TaskView
 from desktop_app.src.ui.views.user_mgmt.user_mgmt_widget import UserManagementWidget
 from desktop_app.src.utils import ConfigManager
 from public_api.api import APIClient
-from public_api.permission_manager import PermissionManager
+from public_api.permissions import PermissionName
+from public_api.permissions.permission_manager import PermissionManager
 from .components.dialogs import UserManualDialog, AboutDialog
 from .dashboard import DashboardWidget
 from .notification_center import NotificationCenter
+from .qtutorial import QTutorialManager
 from .report_generator import ReportGeneratorWidget
 from .search_filter import AdvancedSearchDialog
 from .settings.settings_dialog import SettingsDialog
@@ -29,11 +31,6 @@ class MainWindow(QMainWindow):
         self.config_manager = config_manager
         self.permission_manager = permission_manager
         self.init_ui()
-
-        # TODO : Implement training mode, now it overlaps with the main window
-        # self.training_manager = TrainingModeManager(self, self.config_manager)
-        # QApplication.instance().processEvents()  # Ensure UI is fully loaded
-        # self.training_manager.start_training()
 
     def init_ui(self):
         self.setWindowTitle("NexusWare WMS")
@@ -56,48 +53,50 @@ class MainWindow(QMainWindow):
 
         self.create_menu_bar()
 
+        if self.config_manager.get("start_tutorial", True):
+            self.initialize_tutorial_manager()
+
+    def initialize_tutorial_manager(self):
+        tutorial_steps = [
+            (self.tab_widget, "This is the main window where you can navigate between different tabs."),
+            (self.tab_widget.tabBar(), "Click on a tab to view the content."),
+            (self.status_bar, "This is the status bar where you can see notifications and other messages."),
+            (self.menuBar(), "Use the menu bar to access different features."),
+            (self.notification_center, "Click on the bell icon to view notifications."),
+        ]
+
+        self.tutorial_manager = QTutorialManager(self, tutorial_steps, show_step_number=True)
+        self.tutorial_manager.start_tutorial()
+
     def add_tabs_based_on_permissions(self):
-        tab_permissions = {
-            "Dashboard": "dashboard",
-            "Inventory": "inventory",
-            "Orders": "orders",
-            "Products": "products",
-            "Suppliers": "suppliers",
-            "Customers": "customers",
-            "Shipments": "shipments",
-            "Reports": "reports",
-            "User Management": "user_management",
-            "Tasks Management": "tasks_management",
-        }
-
         tab_classes = {
-            "Dashboard": DashboardWidget,
-            "Inventory": InventoryView,
-            "Orders": OrderView,
-            "Products": ProductView,
-            "Suppliers": SupplierView,
-            "Customers": CustomerView,
-            "Shipments": ShipmentView,
-            "Reports": ReportGeneratorWidget,
-            "User Management": UserManagementWidget,
-            "Tasks Management": TaskView,
+            PermissionName.DASHBOARD: DashboardWidget,
+            PermissionName.INVENTORY: InventoryView,
+            PermissionName.ORDERS: OrderView,
+            PermissionName.PRODUCTS: ProductView,
+            PermissionName.SUPPLIERS: SupplierView,
+            PermissionName.CUSTOMERS: CustomerView,
+            PermissionName.SHIPMENTS: ShipmentView,
+            PermissionName.REPORTS: ReportGeneratorWidget,
+            PermissionName.USER_MANAGEMENT: UserManagementWidget,
+            PermissionName.TASKS_MANAGEMENT: TaskView,
         }
 
-        for tab_name, permission_name in tab_permissions.items():
-            if self.permission_manager.has_read_permission(permission_name):
-                tab_widget = tab_classes[tab_name](self.api_client)
-                self.tab_widget.addTab(tab_widget, tab_name)
+        for tab_name, tab_class in tab_classes.items():
+            if self.permission_manager.has_read_permission(tab_name):
+                tab_widget = tab_class(self.api_client)
+                self.tab_widget.addTab(tab_widget, tab_name.value)
 
     def create_menu_bar(self):
         menu_bar = self.menuBar()
 
         file_menu = menu_bar.addMenu("File")
-        if self.permission_manager.has_read_permission("settings"):
+        if self.permission_manager.has_read_permission(PermissionName.SETTINGS):
             file_menu.addAction("Settings", self.open_settings)
         file_menu.addAction("Exit", self.close)
 
         view_menu = menu_bar.addMenu("View")
-        if self.permission_manager.has_read_permission("adv_search"):
+        if self.permission_manager.has_read_permission(PermissionName.ADVANCED_SEARCH):
             view_menu.addAction("Advanced Search", self.open_advanced_search)
 
         help_menu = menu_bar.addMenu("Help")

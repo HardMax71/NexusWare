@@ -1,5 +1,4 @@
 # /server/app/api/v1/endpoints/yard.py
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Path, Body
 from sqlalchemy.orm import Session
@@ -21,7 +20,7 @@ def create_yard_location(
     return crud.yard_location.create(db=db, obj_in=location)
 
 
-@router.get("/locations", response_model=List[shared_schemas.YardLocation])
+@router.get("/locations", response_model=list[shared_schemas.YardLocation])
 def read_yard_locations(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
@@ -83,7 +82,7 @@ def create_dock_appointment(
     return crud.dock_appointment.create(db=db, obj_in=appointment)
 
 
-@router.get("/appointments", response_model=List[shared_schemas.DockAppointment])
+@router.get("/appointments", response_model=list[shared_schemas.DockAppointment])
 def read_dock_appointments(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
@@ -144,7 +143,7 @@ def get_yard_utilization(
     return crud.yard.get_utilization_report(db, date=date)
 
 
-@router.get("/carrier_performance", response_model=List[shared_schemas.CarrierPerformance])
+@router.get("/carrier_performance", response_model=list[shared_schemas.CarrierPerformance])
 def get_carrier_performance(
         start_date: int = Query(...),
         end_date: int = Query(...),
@@ -154,7 +153,7 @@ def get_carrier_performance(
     return crud.yard.get_carrier_performance(db, start_date=start_date, end_date=end_date)
 
 
-@router.post("/check_availability", response_model=List[shared_schemas.AppointmentConflict])
+@router.post("/check_availability", response_model=list[shared_schemas.AppointmentConflict])
 def check_appointment_availability(
         appointment: shared_schemas.DockAppointmentCreate,
         db: Session = Depends(deps.get_db),

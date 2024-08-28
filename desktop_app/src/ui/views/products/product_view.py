@@ -6,9 +6,11 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, 
 from desktop_app.src.ui import BarcodeDesignerWidget
 from desktop_app.src.ui.components import StyledButton
 from public_api.api import ProductsAPI, APIClient, ProductCategoriesAPI, LocationsAPI, UsersAPI
+from public_api.permissions import PermissionName
 from public_api.shared_schemas.inventory import (ProductWithCategoryAndInventory, ProductFilter)
 from .product_details_dialog import ProductDetailsDialog
 from .product_dialog import ProductDialog
+from ...icon_path_enum import IconPath
 
 
 class ProductView(QWidget):
@@ -48,7 +50,7 @@ class ProductView(QWidget):
         self.category_combo.currentIndexChanged.connect(self.refresh_products)
         controls_layout.addWidget(self.category_combo)
 
-        self.refresh_button = StyledButton("Refresh")
+        self.refresh_button = StyledButton("Refresh", icon_path=IconPath.REFRESH)
         self.refresh_button.clicked.connect(self.refresh_products)
         controls_layout.addWidget(self.refresh_button)
 
@@ -64,8 +66,8 @@ class ProductView(QWidget):
         self.stacked_widget.addWidget(main_widget)
 
         # Floating Action Button for adding new products
-        if self.permission_manager.has_write_permission("products"):
-            self.fab = StyledButton("+")
+        if self.permission_manager.has_write_permission(PermissionName.PRODUCTS):
+            self.fab = StyledButton("+", icon_path=IconPath.PLUS)
             self.fab.clicked.connect(self.create_new_product)
             layout.addWidget(self.fab)
 
@@ -99,21 +101,21 @@ class ProductView(QWidget):
             actions_layout.setContentsMargins(0, 0, 0, 0)
             actions_layout.setSpacing(2)
 
-            view_button = StyledButton("View")
+            view_button = StyledButton("View", icon_path=IconPath.VIEW)
             view_button.clicked.connect(lambda _, i=item.id: self.view_product(i))
             actions_layout.addWidget(view_button)
 
-            barcode_button = StyledButton("Barcode")
+            barcode_button = StyledButton("Barcode", icon_path=IconPath.BARCODE)
             barcode_button.clicked.connect(lambda _, i=item: self.generate_barcode(i))
             actions_layout.addWidget(barcode_button)
 
-            if self.permission_manager.has_write_permission("products"):
-                edit_button = StyledButton("Edit")
+            if self.permission_manager.has_write_permission(PermissionName.PRODUCTS):
+                edit_button = StyledButton("Edit", icon_path=IconPath.EDIT)
                 edit_button.clicked.connect(lambda _, i=item.id: self.edit_product(i))
                 actions_layout.addWidget(edit_button)
 
-            if self.permission_manager.has_delete_permission("products"):
-                delete_button = StyledButton("Delete")
+            if self.permission_manager.has_delete_permission(PermissionName.PRODUCTS):
+                delete_button = StyledButton("Delete", icon_path=IconPath.DELETE)
                 delete_button.clicked.connect(lambda _, i=item.id: self.delete_product(i))
                 actions_layout.addWidget(delete_button)
 

@@ -7,6 +7,7 @@ from PySide6.QtWidgets import (QVBoxLayout, QHBoxLayout, QLineEdit, QComboBox, Q
                                QGroupBox, QGridLayout, QWidget)
 
 from desktop_app.src.ui.components import StyledButton
+from desktop_app.src.ui.icon_path_enum import IconPath
 from public_api.api import APIClient, SearchAPI
 from public_api.shared_schemas.order import OrderStatus
 
@@ -38,7 +39,7 @@ class AdvancedSearchDialog(QDialog):
         self.search_options_layout = QVBoxLayout(self.search_options_widget)
         left_layout.addWidget(self.search_options_widget)
 
-        self.search_button = StyledButton("Search")
+        self.search_button = StyledButton("Search", icon_path=IconPath.SEARCH)
         self.search_button.clicked.connect(self.perform_search)
         left_layout.addWidget(self.search_button)
 

@@ -98,7 +98,7 @@ class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):
         db.commit()
         db.refresh(current_inventory)
 
-        return current_inventory
+        return InventorySchema.model_validate(current_inventory)
 
     def transfer(self, db: Session, transfer: InventoryTransfer) -> InventorySchema:
         from_inventory = db.query(Inventory).filter(

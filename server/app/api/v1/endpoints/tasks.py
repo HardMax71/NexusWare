@@ -1,5 +1,4 @@
 # /server/app/api/v1/endpoints/tasks.py
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Body
 from sqlalchemy.orm import Session
@@ -20,7 +19,7 @@ def create_task(
     return crud.task.create(db=db, obj_in=task)
 
 
-@router.get("/", response_model=List[shared_schemas.TaskWithAssignee])
+@router.get("/", response_model=list[shared_schemas.TaskWithAssignee])
 def read_tasks(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
@@ -39,7 +38,7 @@ def get_task_statistics(
     return crud.task.get_statistics(db)
 
 
-@router.get("/user_summary", response_model=List[shared_schemas.UserTaskSummary])
+@router.get("/user_summary", response_model=list[shared_schemas.UserTaskSummary])
 def get_user_task_summary(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
@@ -47,7 +46,7 @@ def get_user_task_summary(
     return crud.task.get_user_summary(db)
 
 
-@router.get("/overdue", response_model=List[shared_schemas.TaskWithAssignee])
+@router.get("/overdue", response_model=list[shared_schemas.TaskWithAssignee])
 def get_overdue_tasks(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
@@ -57,16 +56,16 @@ def get_overdue_tasks(
     return crud.task.get_overdue(db, skip=skip, limit=limit)
 
 
-@router.post("/batch_create", response_model=List[shared_schemas.Task])
+@router.post("/batch_create", response_model=list[shared_schemas.Task])
 def create_batch_tasks(
-        tasks: List[shared_schemas.TaskCreate],
+        tasks: list[shared_schemas.TaskCreate],
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.task.create_batch(db=db, obj_in_list=tasks)
 
 
-@router.get("/my_tasks", response_model=List[shared_schemas.Task])
+@router.get("/my_tasks", response_model=list[shared_schemas.Task])
 def get_my_tasks(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
@@ -136,7 +135,7 @@ def add_task_comment(
     return crud.task.add_comment(db, task_id=task_id, comment=comment, user_id=current_user.id)
 
 
-@router.get("/{task_id}/comments", response_model=List[shared_schemas.TaskComment])
+@router.get("/{task_id}/comments", response_model=list[shared_schemas.TaskComment])
 def get_task_comments(
         task_id: int = Path(..., title="The ID of the task to get comments for"),
         db: Session = Depends(deps.get_db),

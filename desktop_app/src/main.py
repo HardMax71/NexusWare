@@ -11,8 +11,8 @@ from public_api.api import UsersAPI
 from services.authentication import AuthenticationService
 from services.offline_manager import OfflineManager
 from services.update_manager import UpdateManager
-from ui.views.auth import LoginDialog
 from ui.main_window import MainWindow
+from ui.views.auth import LoginDialog
 from utils.config_manager import ConfigManager
 from utils.logger import setup_logger
 

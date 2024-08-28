@@ -157,10 +157,11 @@ def get_all_permissions(
 
 @router.get("/my_permissions", response_model=user_schemas.UserWithPermissions)
 def get_my_permissions(
-    db: Session = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_active_user)
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.user.get_user_with_permissions(db, current_user.id)
+
 
 @router.get("/roles", response_model=user_schemas.AllRoles)
 def get_all_roles(
@@ -197,6 +198,8 @@ def create_user(
     db_user = crud.user.get_by_email(db, email=user.email)
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
+
+    user.password = security.get_password_hash(user.password)
     return crud.user.create(db=db, obj_in=user)
 
 
@@ -216,12 +219,13 @@ def get_user_permissions(
 
 @router.put("/{user_id}/permissions", response_model=user_schemas.UserWithPermissions)
 def update_user_permissions(
-    user_id: int,
-    permission_update: user_schemas.UserPermissionUpdate,
-    db: Session = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_admin),
+        user_id: int,
+        permission_update: user_schemas.UserPermissionUpdate,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_admin),
 ):
     return crud.user.update_user_permissions(db, user_id=user_id, permissions=permission_update.permissions)
+
 
 @router.get("/{user_id}", response_model=user_schemas.UserSanitized)
 def read_user(
@@ -265,31 +269,34 @@ def delete_user(
         raise HTTPException(status_code=404, detail="User not found")
     crud.user.remove(db, id=user_id)
 
+
 @router.get("/roles/{role_id}", response_model=user_schemas.Role)
 def get_role(
-    role_id: int,
-    db: Session = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_admin)
+        role_id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_admin)
 ):
     db_role = crud.role.get(db, id=role_id)
     if not db_role:
         raise HTTPException(status_code=404, detail="Role not found")
     return db_role
 
+
 @router.post("/roles", response_model=user_schemas.Role)
 def create_role(
-    role: user_schemas.RoleCreate,
-    db: Session = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_admin)
+        role: user_schemas.RoleCreate,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_admin)
 ):
     return crud.role.create(db=db, obj_in=role)
 
+
 @router.put("/roles/{role_id}", response_model=user_schemas.Role)
 def update_role(
-    role_id: int,
-    role_update: user_schemas.RoleUpdate,
-    db: Session = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_admin)
+        role_id: int,
+        role_update: user_schemas.RoleUpdate,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_admin)
 ):
     db_role = crud.role.get(db, id=role_id)
     if not db_role:
@@ -297,11 +304,12 @@ def update_role(
     updated_role = crud.role.update(db=db, db_obj=db_role, obj_in=role_update)
     return updated_role
 
+
 @router.delete("/roles/{role_id}", status_code=204)
 def delete_role(
-    role_id: int,
-    db: Session = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_admin)
+        role_id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_admin)
 ):
     db_role = crud.role.get(db, id=role_id)
     if not db_role:

@@ -1,5 +1,4 @@
 # /server/app/api/v1/endpoints/carriers.py
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Body
 from sqlalchemy.orm import Session
@@ -21,7 +20,7 @@ def create_carrier(
     return crud.carrier.create(db=db, obj_in=carrier)
 
 
-@router.get("/", response_model=List[Carrier])
+@router.get("/", response_model=list[Carrier])
 def read_carriers(
         db: Session = Depends(deps.get_db),
         skip: int = 0,

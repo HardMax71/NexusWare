@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QListWidget, QTextEdit, QLabel
 
 from .components import StyledButton
+from .icon_path_enum import IconPath
 
 
 class OfflineModeWidget(QWidget):
@@ -16,7 +17,7 @@ class OfflineModeWidget(QWidget):
         # Status and controls
         status_layout = QHBoxLayout()
         self.status_label = QLabel("Offline Mode: Inactive")
-        self.toggle_button = StyledButton("Enable Offline Mode")
+        self.toggle_button = StyledButton("Enable Offline Mode", icon_path=IconPath.OFFLINE)
         self.toggle_button.clicked.connect(self.toggle_offline_mode)
         status_layout.addWidget(self.status_label)
         status_layout.addWidget(self.toggle_button)
@@ -27,7 +28,7 @@ class OfflineModeWidget(QWidget):
         layout.addWidget(self.pending_actions)
 
         # Sync button
-        self.sync_button = StyledButton("Sync with Server")
+        self.sync_button = StyledButton("Sync with Server", icon_path=IconPath.SYNC)
         self.sync_button.clicked.connect(self.sync_with_server)
         layout.addWidget(self.sync_button)
 

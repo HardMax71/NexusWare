@@ -7,10 +7,12 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, 
 
 from desktop_app.src.ui.components import StyledButton
 from public_api.api import OrdersAPI, APIClient, CustomersAPI, ProductsAPI, ShipmentsAPI, CarriersAPI, UsersAPI
+from public_api.permissions import PermissionName
 from public_api.shared_schemas import OrderWithDetails, OrderFilter, OrderStatus
 from .order_details_dialog import OrderDetailsDialog
 from .order_dialog import OrderDialog
 from .shipping_dialog import ShippingDialog
+from ...icon_path_enum import IconPath
 
 
 class OrderView(QWidget):
@@ -51,7 +53,7 @@ class OrderView(QWidget):
         self.status_combo.currentTextChanged.connect(self.refresh_orders)
         controls_layout.addWidget(self.status_combo)
 
-        self.refresh_button = StyledButton("Refresh")
+        self.refresh_button = StyledButton("Refresh", icon_path=IconPath.REFRESH)
         self.refresh_button.clicked.connect(self.refresh_orders)
         controls_layout.addWidget(self.refresh_button)
 
@@ -68,8 +70,8 @@ class OrderView(QWidget):
         self.stacked_widget.addWidget(main_widget)
 
         # Floating Action Button for adding new orders
-        if self.permission_manager.has_write_permission("orders"):
-            self.fab = StyledButton("+")
+        if self.permission_manager.has_write_permission(PermissionName.ORDERS):
+            self.fab = StyledButton("+", icon_path=IconPath.PLUS)
             self.fab.clicked.connect(self.create_new_order)
             layout.addWidget(self.fab)
 
@@ -99,16 +101,16 @@ class OrderView(QWidget):
             actions_layout.setContentsMargins(0, 0, 0, 0)
             actions_layout.setSpacing(2)
 
-            view_button = StyledButton("View")
+            view_button = StyledButton("View", icon_path=IconPath.VIEW)
             view_button.clicked.connect(lambda _, i=item.id: self.view_order(i))
             actions_layout.addWidget(view_button)
 
-            if self.permission_manager.has_write_permission("orders"):
-                edit_button = StyledButton("Edit")
+            if self.permission_manager.has_write_permission(PermissionName.ORDERS):
+                edit_button = StyledButton("Edit", icon_path=IconPath.EDIT)
                 edit_button.clicked.connect(lambda _, i=item.id: self.edit_order(i))
                 actions_layout.addWidget(edit_button)
 
-                ship_button = StyledButton("Ship")
+                ship_button = StyledButton("Ship", icon_path=IconPath.SHIP)
                 ship_button.clicked.connect(lambda _, i=item.id: self.ship_order(i))
                 actions_layout.addWidget(ship_button)
 
@@ -117,8 +119,8 @@ class OrderView(QWidget):
                     ship_button.setEnabled(False)
                     ship_button.setToolTip("Order already shipped")
 
-            if self.permission_manager.has_delete_permission("orders"):
-                delete_button = StyledButton("Delete")
+            if self.permission_manager.has_delete_permission(PermissionName.ORDERS):
+                delete_button = StyledButton("Delete", icon_path=IconPath.DELETE)
                 delete_button.clicked.connect(lambda _, i=item.id: self.delete_order(i))
                 actions_layout.addWidget(delete_button)
 

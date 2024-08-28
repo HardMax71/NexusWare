@@ -17,5 +17,6 @@
   "templates_path": "resources/templates",
   "translations_path": "resources/translations",
   "organization_domain": "nexusware.com",
-  "show_manual_after_login": false
+  "show_manual_after_login": false,
+  "start_tutorial": false
 }

@@ -1,11 +1,10 @@
 # /server/app/api/v1/endpoints/permissions.py
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from .... import crud, models
 from public_api import shared_schemas
+from .... import crud, models
 from ....api import deps
 
 router = APIRouter()
@@ -17,11 +16,10 @@ def create_permission(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_admin)
 ):
-    new_permission = crud.permission.create(db=db, obj_in=permission)
-    return shared_schemas.Permission.model_validate(new_permission)
+    return crud.permission.create(db=db, obj_in=permission)
 
 
-@router.get("/", response_model=List[shared_schemas.Permission])
+@router.get("/", response_model=list[shared_schemas.Permission])
 def read_permissions(
         skip: int = 0,
         limit: int = 100,
@@ -40,7 +38,7 @@ def read_permission(
     permission = crud.permission.get(db, id=permission_id)
     if not permission:
         raise HTTPException(status_code=404, detail="Permission not found")
-    return shared_schemas.Permission.model_validate(permission)
+    return permission
 
 
 @router.put("/{permission_id}", response_model=shared_schemas.Permission)
@@ -53,8 +51,7 @@ def update_permission(
     permission = crud.permission.get(db, id=permission_id)
     if not permission:
         raise HTTPException(status_code=404, detail="Permission not found")
-    updated_permission = crud.permission.update(db, db_obj=permission, obj_in=permission_in)
-    return shared_schemas.Permission.model_validate(updated_permission)
+    return crud.permission.update(db, db_obj=permission, obj_in=permission_in)
 
 
 @router.delete("/{permission_id}", status_code=204)

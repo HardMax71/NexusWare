@@ -5,7 +5,8 @@ from jose import jwt
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
-from public_api.permission_manager import PermissionManager
+from public_api.permissions import PermissionName, PermissionType
+from public_api.permissions.permission_manager import PermissionManager
 from public_api.shared_schemas import user as user_schemas
 from server.app import crud, models
 from server.app.core.config import settings
@@ -60,14 +61,14 @@ def get_permission_manager(
     return PermissionManager(permissions)
 
 
-def has_permission(name: str, action: str):
+def has_permission(name: PermissionName, action: PermissionType):
     def permission_checker(
             permission_manager: PermissionManager = Depends(get_permission_manager)
     ):
         if not permission_manager.has_permission(name, action):
             raise HTTPException(
                 status_code=403,
-                detail=f"Not enough permissions to {action} {name}"
+                detail=f"Not enough permissions to {action.value} {name.value}"
             )
         return True
 

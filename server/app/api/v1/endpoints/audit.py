@@ -1,6 +1,5 @@
 # /server/app/api/v1/endpoints/audit.py
 from datetime import datetime
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Path
 from sqlalchemy.orm import Session
@@ -21,7 +20,7 @@ def create_audit_log(
     return crud.audit_log.create(db=db, obj_in=log)
 
 
-@router.get("/logs", response_model=List[shared_schemas.AuditLogWithUser])
+@router.get("/logs", response_model=list[shared_schemas.AuditLogWithUser])
 def read_audit_logs(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
@@ -54,7 +53,7 @@ def get_audit_summary(
     return crud.audit_log.get_summary(db, date_from=date_from, date_to=date_to)
 
 
-@router.get("/logs/user/{user_id}", response_model=List[shared_schemas.AuditLog])
+@router.get("/logs/user/{user_id}", response_model=list[shared_schemas.AuditLog])
 def get_user_audit_logs(
         user_id: int = Path(..., title="The ID of the user to get audit logs for"),
         db: Session = Depends(deps.get_db),
@@ -66,7 +65,7 @@ def get_user_audit_logs(
     return crud.audit_log.get_multi_with_filter(db, skip=skip, limit=limit, filter_params=filter_params)
 
 
-@router.get("/logs/table/{table_name}", response_model=List[shared_schemas.AuditLog])
+@router.get("/logs/table/{table_name}", response_model=list[shared_schemas.AuditLog])
 def get_table_audit_logs(
         table_name: str = Path(..., title="The name of the table to get audit logs for"),
         db: Session = Depends(deps.get_db),
@@ -78,7 +77,7 @@ def get_table_audit_logs(
     return crud.audit_log.get_multi_with_filter(db, skip=skip, limit=limit, filter_params=filter_params)
 
 
-@router.get("/logs/record/{table_name}/{record_id}", response_model=List[shared_schemas.AuditLog])
+@router.get("/logs/record/{table_name}/{record_id}", response_model=list[shared_schemas.AuditLog])
 def get_record_audit_logs(
         table_name: str = Path(..., title="The name of the table"),
         record_id: int = Path(..., title="The ID of the record to get audit logs for"),
@@ -103,7 +102,7 @@ def export_audit_logs(
     return shared_schemas.AuditLogExport(logs=logs, export_timestamp=int(datetime.now().timestamp()))
 
 
-@router.get("/logs/actions", response_model=List[str])
+@router.get("/logs/actions", response_model=list[str])
 def get_audit_log_actions(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
@@ -111,7 +110,7 @@ def get_audit_log_actions(
     return crud.audit_log.get_distinct_actions(db)
 
 
-@router.get("/logs/tables", response_model=List[str])
+@router.get("/logs/tables", response_model=list[str])
 def get_audited_tables(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)

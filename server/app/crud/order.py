@@ -7,7 +7,7 @@ from public_api.shared_schemas import (
     OrderWithDetails as OrderWithDetailsSchema,
     OrderCreate, OrderUpdate, OrderItemCreate, OrderItemUpdate,
     OrderFilter, OrderSummary, ShippingInfo, BulkOrderImportData,
-    BulkOrderImportResult, OrderProcessingTimes
+    BulkOrderImportResult, OrderProcessingTimes, OrderStatus
 )
 from server.app.models import Order, OrderItem
 from .base import CRUDBase
@@ -94,14 +94,14 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
         )
 
     def cancel(self, db: Session, *, db_obj: Order) -> OrderSchema:
-        db_obj.status = "cancelled"
+        db_obj.status = OrderStatus.CANCELLED
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
         return OrderSchema.model_validate(db_obj)
 
     def ship(self, db: Session, *, db_obj: Order, shipping_info: ShippingInfo) -> OrderSchema:
-        db_obj.status = "Shipped"
+        db_obj.status = OrderStatus.SHIPPED
         db_obj.shipping_carrier = shipping_info.carrier
         db_obj.tracking_number = shipping_info.tracking_number
         db.add(db_obj)
@@ -144,7 +144,7 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
         return OrderSchema.model_validate(order)
 
     def get_backorders(self, db: Session) -> list[OrderSchema]:
-        backorders = db.query(self.model).filter(Order.status == "backorder").all()
+        backorders = db.query(self.model).filter(Order.status == OrderStatus.BACKORDER).all()
         return [OrderSchema.model_validate(order) for order in backorders]
 
     def bulk_import(self, db: Session, *, import_data: BulkOrderImportData) -> BulkOrderImportResult:
@@ -173,7 +173,7 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
             func.max(Order.ship_date - Order.order_date).label('max_time')
         ).filter(
             Order.order_date.between(start_date, end_date),
-            Order.status == 'Shipped'
+            Order.status == OrderStatus.SHIPPED
         ).first()
 
         return OrderProcessingTimes(
@@ -185,7 +185,7 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
             if processing_times.max_time else 0
         )
 
-    def update_items(self, db: Session, order_id: int, items: list[OrderItemUpdate]) -> Order:
+    def update_items(self, db: Session, order_id: int, items: list[OrderItemUpdate]) -> OrderSchema:
         db_order = db.query(Order).filter(Order.id == order_id).first()
         if not db_order:
             raise HTTPException(status_code=404, detail="Order not found")
@@ -210,7 +210,7 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
 
         db.commit()
         db.refresh(db_order)
-        return db_order
+        return OrderSchema.model_validate(db_order)
 
 
 class CRUDOrderItem(CRUDBase[OrderItem, OrderItemCreate, OrderItemUpdate]):

@@ -57,7 +57,20 @@ class GeneralSettingsWidget(QWidget):
         manual_layout.addWidget(self.manual_toggle)
         layout.addLayout(manual_layout)
 
+        # Show tutorial mode toggle
+        tutorial_layout = QHBoxLayout()
+        tutorial_label = StyledLabel("Show tutorial mode:")
+        self.tutorial_toggle = ToggleSwitch()
+        self.tutorial_toggle.setChecked(self.config_manager.get("start_tutorial", True))
+        self.tutorial_toggle.toggled.connect(self.on_show_tutorial_toggled)
+        tutorial_layout.addWidget(tutorial_label)
+        tutorial_layout.addWidget(self.tutorial_toggle)
+        layout.addLayout(tutorial_layout)
+
         layout.addStretch()
+
+    def on_show_tutorial_toggled(self, state):
+        self.config_manager.set("start_tutorial", state)
 
     def on_show_manual_toggled(self, state):
         self.config_manager.set("show_manual_after_login", state)

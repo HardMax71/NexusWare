@@ -36,7 +36,7 @@ QMenu::item:selected {
 
 /* Buttons */
 QPushButton {
-    background-color: #0078d4;
+    background-color: #3a9be5;
     color: white;
     border: none;
     padding: 8px 16px;
@@ -67,7 +67,7 @@ QLineEdit, QTextEdit, QPlainTextEdit {
 }
 
 QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus {
-    border: 1px solid #0078d4;
+    border: 1px solid #3a9be5;
 }
 
 /* Combo Box */
@@ -114,7 +114,7 @@ QTabBar::tab {
 }
 
 QTabBar::tab:selected {
-    background-color: #0078d4;
+    background-color: #3a9be5;
     color: white;
 }
 
@@ -235,7 +235,7 @@ QCalendarWidget QSpinBox {
 QCalendarWidget QAbstractItemView:enabled {
     color: #ffffff;
     background-color: #2d2d2d;
-    selection-background-color: #0078d4;
+    selection-background-color: #3a9be5;
     selection-color: #ffffff;
 }
 

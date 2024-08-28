@@ -1,5 +1,4 @@
 # /server/app/api/v1/endpoints/purchase_orders.py
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -20,7 +19,7 @@ def create_purchase_order(
     return crud.purchase_order.create(db=db, obj_in=purchase_order)
 
 
-@router.get("/", response_model=List[shared_schemas.PurchaseOrderWithDetails])
+@router.get("/", response_model=list[shared_schemas.PurchaseOrderWithDetails])
 def read_purchase_orders(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
@@ -71,7 +70,7 @@ def delete_purchase_order(
 @router.post("/{po_id}/receive", response_model=shared_schemas.PurchaseOrder)
 def receive_purchase_order(
         po_id: int,
-        received_items: List[shared_schemas.POItemReceive],
+        received_items: list[shared_schemas.POItemReceive],
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):

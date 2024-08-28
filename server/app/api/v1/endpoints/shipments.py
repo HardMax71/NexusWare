@@ -1,5 +1,4 @@
 # /server/app/api/v1/endpoints/shipments.py
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Body, Query
 from sqlalchemy.orm import Session
@@ -21,7 +20,7 @@ def create_shipment(
     return crud.shipment.create(db=db, obj_in=shipment)
 
 
-@router.get("/", response_model=List[shared_schemas.Shipment])
+@router.get("/", response_model=list[shared_schemas.Shipment])
 def read_shipments(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
@@ -32,7 +31,7 @@ def read_shipments(
     return crud.shipment.get_multi_with_filter(db, skip=skip, limit=limit, filter_params=filter_params)
 
 
-@router.get("/carrier_rates", response_model=List[shared_schemas.CarrierRate])
+@router.get("/carrier_rates", response_model=list[shared_schemas.CarrierRate])
 def get_carrier_rates(
         weight: float = Query(...),
         dimensions: str = Query(...),

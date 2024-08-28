@@ -1,43 +1,24 @@
 from PySide6.QtCore import Qt, QPropertyAnimation, Property, QEasingCurve, Signal
 from PySide6.QtGui import QPainter, QColor, QIcon
 from PySide6.QtWidgets import (
-    QPushButton, QLineEdit, QComboBox, QLabel, QWidget, QVBoxLayout, QGraphicsOpacityEffect, QFrame, QStyle
+    QPushButton, QLineEdit, QComboBox, QLabel, QWidget, QVBoxLayout, QGraphicsOpacityEffect, QFrame, QStyle,
+    QGraphicsDropShadowEffect
 )
+
+from desktop_app.src.ui.icon_path_enum import IconPath
 
 
 class StyledButton(QPushButton):
-    def __init__(self, text, parent=None, icon_path: str = None):
+    def __init__(self, text, parent=None, icon_path: IconPath = None):
         super().__init__(text, parent)
-        if icon_path:
-            # TODO: move from built-in pyside icons to custom icons
-            self.setIcon(QIcon(icon_path))  # temp fix before get icon for text will be removed
-        else:
-            self.setIcon(self.get_icon_for_text(text))
 
-        # If an icon is set, hide the text
-        if not self.icon().isNull():
+        if icon_path:  # hiding text, setting icon and tooltip
+            icon_path_value: str = icon_path.value
+            self.setIcon(QIcon(icon_path_value))
             self.setText("")
             self.setToolTip(text)  # Set tooltip to original text
-
-    def get_icon_for_text(self, text):  # https://www.pythonguis.com/faq/built-in-qicons-pyqt/
-        icon_map = {
-            "+": "SP_FileDialogNewFolder",
-            "View": "SP_FileDialogContentsView",
-            "Refresh": "SP_BrowserReload",
-            "Edit": "SP_FileDialogDetailedView",
-            "Delete": "SP_TrashIcon",
-            "Adjust": "SP_ArrowUp",
-            "Ship": "SP_DialogApplyButton",
-            "Search": "SP_FileDialogContentsView",
-            "Track": "SP_FileDialogInfoView",
-            "Label": "SP_FileIcon",
-            "Permissions": "SP_DialogHelpButton",
-            "Barcode": "SP_DriveDVDIcon",
-        }
-
-        if text in icon_map:
-            return self.style().standardIcon(getattr(QStyle, icon_map[text]))
-        return QIcon()
+        else:  # setting text if no icon
+            self.setText(text)
 
 
 class StyledLineEdit(QLineEdit):
@@ -167,27 +148,39 @@ class ToggleSwitch(QWidget):
         super().__init__(parent)
         self.setFixedSize(60, 30)
         self._checked = False
-        self._opacity = QGraphicsOpacityEffect(opacity=0.5)
+
+        # Opacity effect for smooth transitions
+        self._opacity = QGraphicsOpacityEffect()
+        self._opacity.setOpacity(0.8)
         self.setGraphicsEffect(self._opacity)
         self._animation = QPropertyAnimation(self._opacity, b"opacity", self)
         self._animation.setDuration(100)
+
+        # Shadow effect to make the thumb more visible
+        self._shadow_effect = QGraphicsDropShadowEffect(self)
+        self._shadow_effect.setBlurRadius(10)
+        self._shadow_effect.setOffset(0, 2)
+        self._shadow_effect.setColor(QColor(0, 0, 0, 150))
+        self.setGraphicsEffect(self._shadow_effect)
 
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
 
-        track_color = QColor(100, 100, 100) if not self._checked else QColor(0, 150, 0)
+        # Draw the track
+        track_color = QColor(180, 180, 180) if not self._checked else QColor(0, 150, 0)
         painter.setPen(Qt.NoPen)
         painter.setBrush(track_color)
         painter.drawRoundedRect(0, 5, 60, 20, 10, 10)
 
-        thumb_position = 5 if not self._checked else 35
+        # Draw the thumb
+        thumb_position = 2 if not self._checked else 29
         painter.setBrush(QColor(255, 255, 255))
-        painter.drawEllipse(thumb_position, 0, 30, 30)
+        painter.drawEllipse(thumb_position, 2, 26, 26)
 
     def mousePressEvent(self, event):
         self._checked = not self._checked
-        self._animation.setStartValue(0.5)
+        self._animation.setStartValue(0.8)
         self._animation.setEndValue(1.0)
         self._animation.start()
         self.update()
@@ -195,7 +188,7 @@ class ToggleSwitch(QWidget):
 
     def mouseReleaseEvent(self, event):
         self._animation.setStartValue(1.0)
-        self._animation.setEndValue(0.5)
+        self._animation.setEndValue(0.8)
         self._animation.start()
 
     def isChecked(self):

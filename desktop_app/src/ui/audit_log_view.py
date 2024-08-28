@@ -4,6 +4,7 @@ from PySide6.QtCore import QDate
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem, QDateEdit, QLabel
 
 from desktop_app.src.ui.components import StyledButton
+from desktop_app.src.ui.icon_path_enum import IconPath
 from public_api.api import APIClient, AuditAPI
 
 
@@ -21,7 +22,7 @@ class AuditLogView(QWidget):
         controls_layout = QHBoxLayout()
         self.start_date = QDateEdit(QDate.currentDate().addDays(-7))
         self.end_date = QDateEdit(QDate.currentDate())
-        self.refresh_button = StyledButton("Refresh")
+        self.refresh_button = StyledButton("Refresh", icon_path=IconPath.REFRESH)
         self.refresh_button.clicked.connect(self.refresh_logs)
         controls_layout.addWidget(QLabel("Start Date:"))
         controls_layout.addWidget(self.start_date)

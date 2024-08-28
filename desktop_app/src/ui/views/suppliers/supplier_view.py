@@ -4,9 +4,11 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, 
 
 from desktop_app.src.ui.components import StyledButton
 from public_api.api import SuppliersAPI, APIClient, UsersAPI
+from public_api.permissions import PermissionName
 from public_api.shared_schemas import Supplier
 from .supplier_details_dialog import SupplierDetailsDialog
 from .supplier_dialog import SupplierDialog
+from ...icon_path_enum import IconPath
 
 
 class SupplierView(QWidget):
@@ -38,7 +40,7 @@ class SupplierView(QWidget):
         self.search_input.textChanged.connect(self.filter_suppliers)
         controls_layout.addWidget(self.search_input)
 
-        self.refresh_button = StyledButton("Refresh")
+        self.refresh_button = StyledButton("Refresh", icon_path=IconPath.REFRESH)
         self.refresh_button.clicked.connect(self.refresh_suppliers)
         controls_layout.addWidget(self.refresh_button)
 
@@ -54,8 +56,8 @@ class SupplierView(QWidget):
         self.stacked_widget.addWidget(main_widget)
 
         # Floating Action Button for adding new suppliers
-        if self.permission_manager.has_write_permission("suppliers"):
-            self.fab = StyledButton("+")
+        if self.permission_manager.has_write_permission(PermissionName.SUPPLIERS):
+            self.fab = StyledButton("+", icon_path=IconPath.PLUS)
             self.fab.clicked.connect(self.add_supplier)
             layout.addWidget(self.fab)
 
@@ -80,17 +82,17 @@ class SupplierView(QWidget):
             actions_layout.setContentsMargins(0, 0, 0, 0)
             actions_layout.setSpacing(2)
 
-            view_button = StyledButton("View")
+            view_button = StyledButton("View", icon_path=IconPath.VIEW)
             view_button.clicked.connect(lambda _, s=supplier: self.view_supplier(s))
             actions_layout.addWidget(view_button)
 
-            if self.permission_manager.has_write_permission("suppliers"):
-                edit_button = StyledButton("Edit")
+            if self.permission_manager.has_write_permission(PermissionName.SUPPLIERS):
+                edit_button = StyledButton("Edit", icon_path=IconPath.EDIT)
                 edit_button.clicked.connect(lambda _, s=supplier: self.edit_supplier(s))
                 actions_layout.addWidget(edit_button)
 
-            if self.permission_manager.has_delete_permission("suppliers"):
-                delete_button = StyledButton("Delete")
+            if self.permission_manager.has_delete_permission(PermissionName.SUPPLIERS):
+                delete_button = StyledButton("Delete", icon_path=IconPath.DELETE)
                 delete_button.clicked.connect(lambda _, s=supplier: self.delete_supplier(s))
                 actions_layout.addWidget(delete_button)
 

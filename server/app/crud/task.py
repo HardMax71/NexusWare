@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from public_api.shared_schemas import TaskCreate, TaskUpdate, TaskFilter, TaskCommentCreate, TaskStatistics, \
     UserTaskSummary, \
-    Task as TaskSchema, TaskComment as TaskCommentSchema
+    Task as TaskSchema, TaskComment as TaskCommentSchema, TaskStatus, TaskPriority
 from server.app.models import Task, User, TaskComment
 from .base import CRUDBase
 
@@ -52,10 +52,10 @@ class CRUDTask(CRUDBase[Task, TaskCreate, TaskUpdate]):
 
     def get_statistics(self, db: Session) -> TaskStatistics:
         total_tasks = db.query(func.count(Task.id)).scalar()
-        completed_tasks = db.query(func.count(Task.id)).filter(Task.status == "completed").scalar()
+        completed_tasks = db.query(func.count(Task.id)).filter(Task.status == TaskStatus.COMPLETED).scalar()
         overdue_tasks = db.query(func.count(Task.id)).filter(Task.due_date < func.now(),
-                                                             Task.status != "completed").scalar()
-        high_priority_tasks = db.query(func.count(Task.id)).filter(Task.priority == "high").scalar()
+                                                             Task.status != TaskStatus.COMPLETED).scalar()
+        high_priority_tasks = db.query(func.count(Task.id)).filter(Task.priority == TaskPriority.HIGH).scalar()
 
         return TaskStatistics(
             total_tasks=total_tasks,
@@ -69,8 +69,8 @@ class CRUDTask(CRUDBase[Task, TaskCreate, TaskUpdate]):
             User.id,
             User.username,
             func.count(Task.id).label("assigned_tasks"),
-            func.sum(case((Task.status == "completed", 1), else_=0)).label("completed_tasks"),
-            func.sum(case((Task.due_date < func.now(), Task.status != "completed", 1),
+            func.sum(case((Task.status == TaskStatus.COMPLETED, 1), else_=0)).label("completed_tasks"),
+            func.sum(case((Task.due_date < func.now(), Task.status != TaskStatus.COMPLETED, 1),
                           else_=0)).label("overdue_tasks")
         ).outerjoin(Task, User.id == Task.assigned_to).group_by(User.id)
 

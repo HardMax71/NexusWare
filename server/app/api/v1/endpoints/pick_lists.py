@@ -1,7 +1,5 @@
 # /server/app/api/v1/endpoints/pick_lists.py
 
-from typing import List
-
 from fastapi import APIRouter, Depends, HTTPException, Path, Body, Query
 from sqlalchemy.orm import Session
 
@@ -21,7 +19,7 @@ def create_pick_list(
     return crud.pick_list.create_with_items(db=db, obj_in=pick_list)
 
 
-@router.get("/", response_model=List[shared_schemas.PickList])
+@router.get("/", response_model=list[shared_schemas.PickList])
 def read_pick_lists(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
