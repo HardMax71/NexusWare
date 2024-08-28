@@ -1,7 +1,8 @@
 from datetime import datetime
 
-from PySide6.QtWidgets import (QVBoxLayout, QTableWidget, QTableWidgetItem,
-                               QHeaderView, QDialog, QFormLayout, QDialogButtonBox, QLabel)
+from PySide6.QtWidgets import (QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
+                               QHeaderView, QDialog, QFormLayout, QDialogButtonBox, QLabel, QWidget, QGroupBox)
+from PySide6.QtCore import Qt
 
 from public_api.api import LocationsAPI
 from public_api.shared_schemas import ProductWithCategoryAndInventory
@@ -16,17 +17,37 @@ class ProductDetailsDialog(QDialog):
 
     def init_ui(self):
         self.setWindowTitle(f"Product Details - {self.product.name}")
-        self.setMinimumWidth(500)
-        layout = QVBoxLayout(self)
+        self.setMinimumWidth(800)
+        self.setMinimumHeight(400)
+        main_layout = QHBoxLayout(self)
 
-        info_layout = QFormLayout()
+        # Left side - Product Info and OK button
+        left_widget = QWidget()
+        left_layout = QVBoxLayout(left_widget)
+
+        # Create a group box for product data
+        product_group = QGroupBox("Product Data")
+        info_layout = QFormLayout(product_group)
         info_layout.addRow("SKU:", QLabel(self.product.sku))
         info_layout.addRow("Name:", QLabel(self.product.name))
         info_layout.addRow("Category:", QLabel(self.product.category.name if self.product.category else "N/A"))
         info_layout.addRow("Price:", QLabel(f"${self.product.price:.2f}"))
-        info_layout.addRow("Description:", QLabel(self.product.description or "N/A"))
 
-        layout.addLayout(info_layout)
+        description_label = QLabel(self.product.description or "N/A")
+        description_label.setWordWrap(True)
+        info_layout.addRow("Description:", description_label)
+
+        left_layout.addWidget(product_group)
+        left_layout.addStretch(1)
+
+        # OK button
+        button_box = QDialogButtonBox(QDialogButtonBox.Ok)
+        button_box.accepted.connect(self.accept)
+        left_layout.addWidget(button_box)
+
+        # Right side - Available Locations Table
+        right_widget = QWidget()
+        right_layout = QVBoxLayout(right_widget)
 
         inventory_table = QTableWidget()
         inventory_table.setColumnCount(3)
@@ -47,8 +68,13 @@ class ProductDetailsDialog(QDialog):
             inventory_table.setItem(row, 2, QTableWidgetItem(
                 datetime.fromtimestamp(item.last_updated).strftime("%Y-%m-%d %H:%M:%S")))
 
-        layout.addWidget(inventory_table)
+        right_layout.addWidget(QLabel("Available Locations"))
+        right_layout.addWidget(inventory_table)
 
-        button_box = QDialogButtonBox(QDialogButtonBox.Ok)
-        button_box.accepted.connect(self.accept)
-        layout.addWidget(button_box)
+        # Add left and right widgets to main layout
+        main_layout.addWidget(left_widget)
+        main_layout.addWidget(right_widget)
+
+        # Set layout proportions
+        main_layout.setStretch(0, 1)  # Left side
+        main_layout.setStretch(1, 2)  # Right side

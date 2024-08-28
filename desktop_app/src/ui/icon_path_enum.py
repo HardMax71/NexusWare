@@ -7,14 +7,17 @@ class IconPath(Enum):
     SAVE: str = "icons:save.png"
 
     EYE_VIEW: str = "icons:eye_view.png"
-
     VIEW: str = "icons:view.png"
+
     EDIT: str = "icons:edit.png"
     DELETE: str = "icons:delete.png"
     ADJUST: str = "icons:adjust.png"
     SHIP: str = "icons:ship.png"
     TRACK: str = "icons:track.png"
     LABEL: str = "icons:label.png"
+
+    YES: str = "icons:yes.png"
+    NO: str = "icons:no.png"
 
     OFFLINE: str = "icons:offline.png"
 

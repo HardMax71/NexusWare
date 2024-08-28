@@ -1,7 +1,8 @@
 from PySide6.QtCore import Qt, QPropertyAnimation, Property, QEasingCurve, Signal
 from PySide6.QtGui import QPainter, QColor, QIcon
 from PySide6.QtWidgets import (
-    QPushButton, QLineEdit, QComboBox, QLabel, QWidget, QVBoxLayout, QGraphicsOpacityEffect, QFrame, QStyle
+    QPushButton, QLineEdit, QComboBox, QLabel, QWidget, QVBoxLayout, QGraphicsOpacityEffect, QFrame, QStyle,
+    QGraphicsDropShadowEffect
 )
 
 from desktop_app.src.ui.icon_path_enum import IconPath
@@ -147,27 +148,39 @@ class ToggleSwitch(QWidget):
         super().__init__(parent)
         self.setFixedSize(60, 30)
         self._checked = False
-        self._opacity = QGraphicsOpacityEffect(opacity=0.5)
+
+        # Opacity effect for smooth transitions
+        self._opacity = QGraphicsOpacityEffect()
+        self._opacity.setOpacity(0.8)
         self.setGraphicsEffect(self._opacity)
         self._animation = QPropertyAnimation(self._opacity, b"opacity", self)
         self._animation.setDuration(100)
+
+        # Shadow effect to make the thumb more visible
+        self._shadow_effect = QGraphicsDropShadowEffect(self)
+        self._shadow_effect.setBlurRadius(10)
+        self._shadow_effect.setOffset(0, 2)
+        self._shadow_effect.setColor(QColor(0, 0, 0, 150))
+        self.setGraphicsEffect(self._shadow_effect)
 
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
 
-        track_color = QColor(100, 100, 100) if not self._checked else QColor(0, 150, 0)
+        # Draw the track
+        track_color = QColor(180, 180, 180) if not self._checked else QColor(0, 150, 0)
         painter.setPen(Qt.NoPen)
         painter.setBrush(track_color)
         painter.drawRoundedRect(0, 5, 60, 20, 10, 10)
 
-        thumb_position = 5 if not self._checked else 35
+        # Draw the thumb
+        thumb_position = 2 if not self._checked else 29
         painter.setBrush(QColor(255, 255, 255))
-        painter.drawEllipse(thumb_position, 0, 30, 30)
+        painter.drawEllipse(thumb_position, 2, 26, 26)
 
     def mousePressEvent(self, event):
         self._checked = not self._checked
-        self._animation.setStartValue(0.5)
+        self._animation.setStartValue(0.8)
         self._animation.setEndValue(1.0)
         self._animation.start()
         self.update()
@@ -175,7 +188,7 @@ class ToggleSwitch(QWidget):
 
     def mouseReleaseEvent(self, event):
         self._animation.setStartValue(1.0)
-        self._animation.setEndValue(0.5)
+        self._animation.setEndValue(0.8)
         self._animation.start()
 
     def isChecked(self):

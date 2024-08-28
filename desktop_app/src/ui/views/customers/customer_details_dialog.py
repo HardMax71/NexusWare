@@ -1,8 +1,8 @@
 from datetime import datetime
 
-from PySide6.QtWidgets import (QVBoxLayout, QTableWidget, QTableWidgetItem,
+from PySide6.QtWidgets import (QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
                                QHeaderView, QDialog, QFormLayout, QDialogButtonBox,
-                               QMessageBox, QLabel)
+                               QMessageBox, QLabel, QWidget, QGroupBox)
 
 from public_api.api import CustomersAPI
 from public_api.shared_schemas import Customer
@@ -17,24 +17,41 @@ class CustomerDetailsDialog(QDialog):
 
     def init_ui(self):
         self.setWindowTitle(f"Customer Details - {self.customer.name}")
-        self.setMinimumSize(550, 400)
-        layout = QVBoxLayout(self)
+        self.setMinimumSize(800, 400)
+        main_layout = QHBoxLayout(self)
 
-        form_layout = QFormLayout()
+        # Left side - Customer Info and OK button
+        left_widget = QWidget()
+        left_layout = QVBoxLayout(left_widget)
+
+        # Create a group box for customer data
+        customer_group = QGroupBox("Customer Data")
+        form_layout = QFormLayout(customer_group)
         form_layout.addRow("Name:", QLabel(self.customer.name))
         form_layout.addRow("Email:", QLabel(self.customer.email or "N/A"))
         form_layout.addRow("Phone:", QLabel(self.customer.phone or "N/A"))
-        form_layout.addRow("Address:", QLabel(self.customer.address or "N/A"))
 
-        layout.addLayout(form_layout)
+        address_label = QLabel(self.customer.address or "N/A")
+        address_label.setWordWrap(True)
+        form_layout.addRow("Address:", address_label)
 
-        # Customer Orders
+        left_layout.addWidget(customer_group)
+        left_layout.addStretch(1)
+
+        # OK button
+        button_box = QDialogButtonBox(QDialogButtonBox.Ok)
+        button_box.accepted.connect(self.accept)
+        left_layout.addWidget(button_box)
+
+        # Right side - Customer Orders Table
+        right_widget = QWidget()
+        right_layout = QVBoxLayout(right_widget)
+
         orders_table = QTableWidget()
         orders_table.setColumnCount(4)
         orders_table.setHorizontalHeaderLabels(["Order ID", "Date", "Total Amount", "Status"])
         header = orders_table.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.Stretch)
-        # header.setSectionResizeMode(0, QHeaderView.Stretch)
 
         try:
             orders = self.customers_api.get_customer_orders(self.customer.id)
@@ -48,9 +65,13 @@ class CustomerDetailsDialog(QDialog):
         except Exception as e:
             QMessageBox.warning(self, "Error", f"Failed to load customer orders: {str(e)}")
 
-        layout.addWidget(QLabel("Customer Orders:"))
-        layout.addWidget(orders_table)
+        right_layout.addWidget(QLabel("Customer Orders:"))
+        right_layout.addWidget(orders_table)
 
-        button_box = QDialogButtonBox(QDialogButtonBox.Ok)
-        button_box.accepted.connect(self.accept)
-        layout.addWidget(button_box)
+        # Add left and right widgets to main layout
+        main_layout.addWidget(left_widget)
+        main_layout.addWidget(right_widget)
+
+        # Set layout proportions
+        main_layout.setStretch(0, 1)  # Left side
+        main_layout.setStretch(1, 2)  # Right side

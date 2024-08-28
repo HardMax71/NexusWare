@@ -1,13 +1,14 @@
-from PySide6.QtCharts import QChart, QChartView, QPieSeries
+from PySide6.QtCharts import QChart, QChartView, QPieSeries, QValueAxis, QBarCategoryAxis, QBarSeries, QBarSet
 from PySide6.QtCore import Qt, Signal, QDate
 from PySide6.QtGui import QPainter
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
                                QHeaderView, QDialog, QLineEdit, QComboBox, QStackedWidget, QLabel,
-                               QMessageBox)
+                               QMessageBox, QScrollArea)
 
 from desktop_app.src.ui.components import StyledButton
 from public_api.api import APIClient, TasksAPI, UsersAPI
 from public_api.shared_schemas import TaskWithAssignee, TaskFilter, TaskStatus, TaskPriority
+from public_api.shared_schemas.task import TaskType
 from .task_dialog import TaskDialog
 from .tasks_details_dialog import TaskDetailsDialog
 from ...icon_path_enum import IconPath
@@ -63,13 +64,13 @@ class TaskView(QWidget):
         filter_layout.addWidget(self.search_input)
 
         self.status_combo = QComboBox()
-        self.status_combo.addItems(["All"] + [status.value for status in TaskStatus])
+        self.status_combo.addItems(["All"] + [status for status in TaskStatus])
         self.status_combo.currentTextChanged.connect(self.refresh_tasks)
         self.status_combo.setToolTip("Filter by task status")
         filter_layout.addWidget(self.status_combo)
 
         self.priority_combo = QComboBox()
-        self.priority_combo.addItems(["All"] + [priority.value for priority in TaskPriority])
+        self.priority_combo.addItems(["All"] + [priority for priority in TaskPriority])
         self.priority_combo.currentTextChanged.connect(self.refresh_tasks)
         self.priority_combo.setToolTip("Filter by task priority")
         filter_layout.addWidget(self.priority_combo)
@@ -82,15 +83,18 @@ class TaskView(QWidget):
 
         # Task Table
         self.task_table = QTableWidget()
-        self.task_table.setColumnCount(6)
+        self.task_table.setColumnCount(7)
         self.task_table.setHorizontalHeaderLabels(
-            ["Type", "Description", "Assigned To", "Due Date", "Priority", "Actions"])
-        self.task_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+            ["Type", "Description", "Assigned To", "Due Date", "Priority", "Status", "Actions"])
+        self.task_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         layout.addWidget(self.task_table)
 
         return widget
 
     def create_task_stats_widget(self):
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+
         widget = QWidget()
         layout = QVBoxLayout(widget)
 
@@ -99,17 +103,36 @@ class TaskView(QWidget):
         self.total_tasks_label = QLabel("Total Tasks: 0")
         self.completed_tasks_label = QLabel("Completed Tasks: 0")
         self.overdue_tasks_label = QLabel("Overdue Tasks: 0")
+        self.high_priority_tasks_label = QLabel("High Priority Tasks: 0")
         stats_layout.addWidget(self.total_tasks_label)
         stats_layout.addWidget(self.completed_tasks_label)
         stats_layout.addWidget(self.overdue_tasks_label)
+        stats_layout.addWidget(self.high_priority_tasks_label)
         layout.addLayout(stats_layout)
 
-        # Task Distribution Chart
-        self.chart_view = QChartView()
-        self.chart_view.setRenderHint(QPainter.Antialiasing)
-        layout.addWidget(self.chart_view)
+        # Task Distribution Pie Chart
+        layout.addWidget(QLabel("Task Distribution"))
+        self.distribution_chart_view = QChartView()
+        self.distribution_chart_view.setRenderHint(QPainter.RenderHint.Antialiasing)
+        self.distribution_chart_view.setMinimumHeight(300)
+        layout.addWidget(self.distribution_chart_view)
 
-        return widget
+        # Task Type Bar Chart
+        layout.addWidget(QLabel("Task Types"))
+        self.task_type_chart_view = QChartView()
+        self.task_type_chart_view.setRenderHint(QPainter.RenderHint.Antialiasing)
+        self.task_type_chart_view.setMinimumHeight(300)
+        layout.addWidget(self.task_type_chart_view)
+
+        # Task Priority Bar Chart
+        layout.addWidget(QLabel("Task Priorities"))
+        self.task_priority_chart_view = QChartView()
+        self.task_priority_chart_view.setRenderHint(QPainter.RenderHint.Antialiasing)
+        self.task_priority_chart_view.setMinimumHeight(300)
+        layout.addWidget(self.task_priority_chart_view)
+
+        scroll_area.setWidget(widget)
+        return scroll_area
 
     def toggle_view(self):
         current_index = self.stacked_widget.currentIndex()
@@ -131,14 +154,21 @@ class TaskView(QWidget):
 
     def update_task_table(self, tasks: list[TaskWithAssignee]):
         self.task_table.setRowCount(len(tasks))
+        self.task_table.setColumnCount(7)  # Increased column count to 7
+        self.task_table.setHorizontalHeaderLabels(
+            ["Type", "Description", "Assigned To", "Due Date", "Priority", "Status", "Actions"])
+
         for row, task in enumerate(tasks):
             self.task_table.setItem(row, 0, QTableWidgetItem(task.task_type.value))
             self.task_table.setItem(row, 1, QTableWidgetItem(task.description))
             assigned_user = next((user for user in self.users if user.id == task.assigned_to), None)
             self.task_table.setItem(row, 2,
                                     QTableWidgetItem(assigned_user.username if assigned_user else "No user assigned"))
-            self.task_table.setItem(row, 3, QTableWidgetItem(QDate.fromJulianDay(task.due_date).toString(Qt.ISODate)))
+            self.task_table.setItem(row, 3,
+                                    QTableWidgetItem(
+                                        QDate.fromJulianDay(task.due_date).toString(Qt.DateFormat.ISODate)))
             self.task_table.setItem(row, 4, QTableWidgetItem(task.priority.value))
+            self.task_table.setItem(row, 5, QTableWidgetItem(task.status.value))  # New column for status
 
             actions_widget = QWidget()
             actions_layout = QHBoxLayout(actions_widget)
@@ -157,7 +187,15 @@ class TaskView(QWidget):
             delete_button.clicked.connect(lambda _, t=task: self.delete_task(t))
             actions_layout.addWidget(delete_button)
 
-            self.task_table.setCellWidget(row, 5, actions_widget)
+            self.task_table.setCellWidget(row, 6, actions_widget)
+
+        # Adjust column widths
+        self.task_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.task_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)  # Type
+        self.task_table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)  # Due Date
+        self.task_table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)  # Priority
+        self.task_table.horizontalHeader().setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)  # Status
+        self.task_table.horizontalHeader().setSectionResizeMode(6, QHeaderView.ResizeMode.ResizeToContents)  # Actions
 
     def view_task(self, task: TaskWithAssignee):
         dialog = TaskDetailsDialog(task, self.users, parent=self)
@@ -176,13 +214,13 @@ class TaskView(QWidget):
 
     def add_task(self):
         dialog = TaskDialog(self.tasks_api, self.users, parent=self)
-        if dialog.exec_() == QDialog.Accepted:
+        if dialog.exec_() == QDialog.DialogCode.Accepted:
             self.refresh_tasks()
             self.task_updated.emit()
 
     def edit_task(self, task: TaskWithAssignee):
         dialog = TaskDialog(self.tasks_api, self.users, task_data=task, parent=self)
-        if dialog.exec_() == QDialog.Accepted:
+        if dialog.exec_() == QDialog.DialogCode.Accepted:
             self.refresh_tasks()
             self.task_updated.emit()
 
@@ -204,17 +242,86 @@ class TaskView(QWidget):
         self.total_tasks_label.setText(f"Total Tasks: {stats.total_tasks}")
         self.completed_tasks_label.setText(f"Completed Tasks: {stats.completed_tasks}")
         self.overdue_tasks_label.setText(f"Overdue Tasks: {stats.overdue_tasks}")
+        self.high_priority_tasks_label.setText(f"High Priority Tasks: {stats.high_priority_tasks}")
 
-        # Update chart
+        tasks = self.tasks_api.get_tasks()
+        self.update_distribution_chart()
+        self.update_task_type_chart()
+        self.update_task_priority_chart()
+
+    def update_distribution_chart(self):
         series = QPieSeries()
-        series.append("Completed", stats.completed_tasks)
-        series.append("Overdue", stats.overdue_tasks)
-        series.append("Other", stats.total_tasks - stats.completed_tasks - stats.overdue_tasks)
+
+        tasks = self.tasks_api.get_tasks()
+        status_counts = {status: 0 for status in TaskStatus}
+        for task in tasks:
+            status_counts[task.status] += 1
+
+        for status, count in status_counts.items():
+            series.append(status.value, count)
 
         chart = QChart()
         chart.addSeries(series)
         chart.setTitle("Task Distribution")
         chart.legend().setVisible(True)
-        chart.legend().setAlignment(Qt.AlignBottom)
+        chart.legend().setAlignment(Qt.AlignRight)
 
-        self.chart_view.setChart(chart)
+        self.distribution_chart_view.setChart(chart)
+
+    def update_task_type_chart(self):
+        tasks = self.tasks_api.get_tasks()
+        type_counts = {task_type: 0 for task_type in TaskType}
+        for task in tasks:
+            type_counts[task.task_type] += 1
+
+        series = QBarSeries()
+        bar_set = QBarSet("Task Types")
+        for count in type_counts.values():
+            bar_set.append(count)
+        series.append(bar_set)
+
+        chart = QChart()
+        chart.addSeries(series)
+        chart.setTitle("Task Types")
+
+        axis_x = QBarCategoryAxis()
+        axis_x.append([task_type for task_type in TaskType])
+        chart.addAxis(axis_x, Qt.AlignBottom)
+        series.attachAxis(axis_x)
+
+        axis_y = QValueAxis()
+        chart.addAxis(axis_y, Qt.AlignLeft)
+        series.attachAxis(axis_y)
+
+        chart.legend().setVisible(False)
+
+        self.task_type_chart_view.setChart(chart)
+
+    def update_task_priority_chart(self):
+        tasks = self.tasks_api.get_tasks()
+        priority_counts = {priority: 0 for priority in TaskPriority}
+        for task in tasks:
+            priority_counts[task.priority] += 1
+
+        series = QBarSeries()
+        bar_set = QBarSet("Task Priorities")
+        for count in priority_counts.values():
+            bar_set.append(count)
+        series.append(bar_set)
+
+        chart = QChart()
+        chart.addSeries(series)
+        chart.setTitle("Task Priorities")
+
+        axis_x = QBarCategoryAxis()
+        axis_x.append([priority for priority in TaskPriority])
+        chart.addAxis(axis_x, Qt.AlignBottom)
+        series.attachAxis(axis_x)
+
+        axis_y = QValueAxis()
+        chart.addAxis(axis_y, Qt.AlignLeft)
+        series.attachAxis(axis_y)
+
+        chart.legend().setVisible(False)
+
+        self.task_priority_chart_view.setChart(chart)
