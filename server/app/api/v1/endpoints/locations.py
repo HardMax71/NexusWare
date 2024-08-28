@@ -1,5 +1,4 @@
 # /server/app/api/v1/endpoints/locations.py
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -20,7 +19,7 @@ def create_location(
     return crud.location.create(db=db, obj_in=location)
 
 
-@router.get("/", response_model=List[shared_schemas.LocationWithInventory])
+@router.get("/", response_model=list[shared_schemas.LocationWithInventory])
 def read_locations(
         db: Session = Depends(deps.get_db),
         skip: int = 0,

@@ -1,5 +1,4 @@
 # /server/app/api/v1/endpoints/suppliers.py
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -20,7 +19,7 @@ def create_supplier(
     return crud.supplier.create(db=db, obj_in=supplier)
 
 
-@router.get("/", response_model=List[shared_schemas.Supplier])
+@router.get("/", response_model=list[shared_schemas.Supplier])
 def read_suppliers(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
@@ -70,7 +69,7 @@ def delete_supplier(
 
 
 
-@router.get("/{supplier_id}/purchase_orders", response_model=List[shared_schemas.PurchaseOrder])
+@router.get("/{supplier_id}/purchase_orders", response_model=list[shared_schemas.PurchaseOrder])
 def read_supplier_purchase_orders(
         supplier_id: int,
         db: Session = Depends(deps.get_db),

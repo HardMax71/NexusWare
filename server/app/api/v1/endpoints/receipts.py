@@ -1,5 +1,4 @@
 # /server/app/api/v1/endpoints/receipts.py
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Body
 from sqlalchemy.orm import Session
@@ -20,7 +19,7 @@ def create_receipt(
     return crud.receipt.create_with_items(db=db, obj_in=receipt)
 
 
-@router.get("/", response_model=List[shared_schemas.Receipt])
+@router.get("/", response_model=list[shared_schemas.Receipt])
 def read_receipts(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
@@ -31,7 +30,7 @@ def read_receipts(
     return crud.receipt.get_multi_with_filter(db, skip=skip, limit=limit, filter_params=filter_params)
 
 
-@router.get("/expected_today", response_model=List[shared_schemas.Receipt])
+@router.get("/expected_today", response_model=list[shared_schemas.Receipt])
 def get_expected_receipts_today(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)

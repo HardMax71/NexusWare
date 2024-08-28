@@ -1,14 +1,14 @@
 from enum import Enum
 
 
-class PermissionType(Enum):
+class PermissionType(str, Enum):
     READ = "read"
     WRITE = "write"
     EDIT = "edit"
     DELETE = "delete"
 
 
-class PermissionName(Enum):
+class PermissionName(str, Enum):
     ASSET = "Asset"
     ASSET_MAINTENANCE = "Asset Maintenance"
     DASHBOARD = "Dashboard"

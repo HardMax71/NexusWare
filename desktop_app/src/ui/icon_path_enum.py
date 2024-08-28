@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class IconPath(Enum):
+class IconPath(str, Enum):
     REFRESH: str = "icons:refresh.png"  # ":" stuff is a Qt resource path
     BARCODE: str = "icons:barcode.png"
     SAVE: str = "icons:save.png"

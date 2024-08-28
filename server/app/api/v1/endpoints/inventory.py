@@ -1,7 +1,5 @@
 # /server/app/api/v1/endpoints/inventory.py
 
-from typing import List, Dict
-
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
@@ -31,7 +29,7 @@ def read_inventory(
 ):
     items = crud.inventory.get_multi_with_products(db, skip=skip, limit=limit, filter_params=inventory_filter)
     total = len(items)
-    return {"items": items, "total": total}
+    return shared_schemas.InventoryList(items=items, total=total)
 
 
 @router.post("/transfer", response_model=shared_schemas.Inventory)
@@ -51,17 +49,17 @@ def get_inventory_report(
     return crud.inventory.get_inventory_report(db)
 
 
-@router.post("/cycle_count", response_model=List[shared_schemas.Inventory])
+@router.post("/cycle_count", response_model=list[shared_schemas.Inventory])
 def perform_cycle_count(
         location_id: int,
-        counted_items: List[shared_schemas.InventoryUpdate],
+        counted_items: list[shared_schemas.InventoryUpdate],
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.inventory.perform_cycle_count(db, location_id=location_id, counted_items=counted_items)
 
 
-@router.get("/low_stock", response_model=List[shared_schemas.ProductWithInventory])
+@router.get("/low_stock", response_model=list[shared_schemas.ProductWithInventory])
 def get_low_stock_items(
         threshold: int = Query(10, ge=0),
         db: Session = Depends(deps.get_db),
@@ -70,7 +68,7 @@ def get_low_stock_items(
     return crud.inventory.get_low_stock_items(db, threshold=threshold)
 
 
-@router.get("/out_of_stock", response_model=List[shared_schemas.Product])
+@router.get("/out_of_stock", response_model=list[shared_schemas.Product])
 def get_out_of_stock_items(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
@@ -78,7 +76,7 @@ def get_out_of_stock_items(
     return crud.inventory.get_out_of_stock_items(db)
 
 
-@router.post("/reorder", response_model=List[shared_schemas.Product])
+@router.post("/reorder", response_model=list[shared_schemas.Product])
 def create_reorder_list(
         threshold: int = Query(10, ge=0),
         db: Session = Depends(deps.get_db),
@@ -87,7 +85,7 @@ def create_reorder_list(
     return crud.inventory.get_low_stock_items(db, threshold=threshold)
 
 
-@router.get("/product_locations/{product_id}", response_model=List[shared_schemas.LocationWithInventory])
+@router.get("/product_locations/{product_id}", response_model=list[shared_schemas.LocationWithInventory])
 def get_product_locations(
         product_id: int,
         db: Session = Depends(deps.get_db),
@@ -96,16 +94,16 @@ def get_product_locations(
     return crud.inventory.get_product_locations(db, product_id=product_id)
 
 
-@router.post("/batch_update", response_model=List[shared_schemas.Inventory])
+@router.post("/batch_update", response_model=list[shared_schemas.Inventory])
 def batch_update_inventory(
-        updates: List[shared_schemas.InventoryUpdate],
+        updates: list[shared_schemas.InventoryUpdate],
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.inventory.batch_update(db, updates=updates)
 
 
-@router.get("/movement_history/{product_id}", response_model=List[shared_schemas.InventoryMovement])
+@router.get("/movement_history/{product_id}", response_model=list[shared_schemas.InventoryMovement])
 def get_inventory_movement_history(
         product_id: int,
         start_date: int = Query(None),
@@ -141,7 +139,7 @@ def perform_abc_analysis(
     return crud.inventory.perform_abc_analysis(db)
 
 
-@router.post("/optimize_locations", response_model=List[shared_schemas.InventoryLocationSuggestion])
+@router.post("/optimize_locations", response_model=list[shared_schemas.InventoryLocationSuggestion])
 def optimize_inventory_locations(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
@@ -149,7 +147,7 @@ def optimize_inventory_locations(
     return crud.inventory.optimize_locations(db)
 
 
-@router.get("/expiring_soon", response_model=List[shared_schemas.ProductWithInventory])
+@router.get("/expiring_soon", response_model=list[shared_schemas.ProductWithInventory])
 def get_expiring_soon_inventory(
         days: int = Query(30, description="Number of days to consider for expiration"),
         db: Session = Depends(deps.get_db),
@@ -175,7 +173,7 @@ def get_storage_utilization(
     return crud.inventory.get_storage_utilization(db)
 
 
-@router.get("/forecast/{product_id}", response_model=Dict)
+@router.get("/forecast/{product_id}", response_model=dict)
 def get_inventory_forecast(
         product_id: int,
         db: Session = Depends(deps.get_db),
@@ -184,7 +182,7 @@ def get_inventory_forecast(
     return crud.inventory.get_forecast_for_product_id(db, product_id=product_id)
 
 
-@router.get("/trend", response_model=Dict[str, List[shared_schemas.InventoryTrendItem]])
+@router.get("/trend", response_model=dict[str, list[shared_schemas.InventoryTrendItem]])
 def get_inventory_trend(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user),
@@ -196,7 +194,7 @@ def get_inventory_trend(
     return {"past": historical_items, "predictions": prediction_items}
 
 
-@router.get("/reorder_suggestions", response_model=List[Dict])
+@router.get("/reorder_suggestions", response_model=list[dict])
 def get_reorder_suggestions(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)

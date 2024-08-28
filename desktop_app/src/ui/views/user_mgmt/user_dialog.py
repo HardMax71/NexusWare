@@ -1,5 +1,6 @@
-from PySide6.QtWidgets import (QVBoxLayout, QDialog, QLineEdit, QMessageBox, QComboBox, QDialogButtonBox, QCheckBox,
-                               QFormLayout)
+from PySide6.QtGui import QIcon, QAction
+from PySide6.QtWidgets import (QVBoxLayout, QDialog, QLineEdit, QComboBox, QDialogButtonBox, QCheckBox,
+                               QFormLayout, QMessageBox)
 
 from public_api.api import UsersAPI, RolesAPI
 from public_api.shared_schemas import UserSanitized, UserCreate, UserUpdate
@@ -26,6 +27,13 @@ class UserDialog(QDialog):
         self.role_combo = QComboBox()
         self.is_active_checkbox = QCheckBox()
 
+        # Create and add the show password action
+        show_password_icon = QIcon("icons:eye_view.png")
+        self.show_password_action = QAction(show_password_icon, "Show password", self)
+        self.show_password_action.setCheckable(True)
+        self.password_input.addAction(self.show_password_action, QLineEdit.TrailingPosition)
+        self.show_password_action.toggled.connect(self.toggle_password_visibility)
+
         form_layout.addRow("Username:", self.username_input)
         form_layout.addRow("Email:", self.email_input)
         form_layout.addRow("Password:", self.password_input)
@@ -42,6 +50,11 @@ class UserDialog(QDialog):
         self.load_roles()
         if self.user:
             self.populate_data()
+
+    def toggle_password_visibility(self, show):
+        self.password_input.setEchoMode(QLineEdit.Normal if show else QLineEdit.Password)
+        icon = QIcon("icons:eye_hide.png" if show else "icons:eye_view.png")
+        self.show_password_action.setIcon(icon)
 
     def load_roles(self):
         all_roles = self.roles_api.get_all_roles()

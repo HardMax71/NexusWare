@@ -11,6 +11,7 @@ class OrderStatus(str, Enum):
     SHIPPED = "Shipped"
     DELIVERED = "Delivered"
     CANCELLED = "Cancelled"
+    BACKORDER = "Backorder"
 
 
 class OrderItemBase(BaseModel):

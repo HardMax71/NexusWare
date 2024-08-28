@@ -1,5 +1,4 @@
 # /server/app/api/v1/endpoints/notifications.py
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -11,7 +10,7 @@ from ....api import deps
 router = APIRouter()
 
 
-@router.get("/", response_model=List[Notification])
+@router.get("/", response_model=list[Notification])
 def get_notifications(
         skip: int = Query(0, ge=0),
         limit: int = Query(100, ge=1, le=100),
@@ -30,14 +29,14 @@ def create_notification(
     return crud.notification.create(db, obj_in=notification)
 
 
-@router.put("/read-all", response_model=List[Notification])
+@router.put("/read-all", response_model=list[Notification])
 def mark_all_notifications_as_read(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.notification.mark_all_as_read(db, current_user.id)
 
-@router.get("/unread", response_model=List[Notification])
+@router.get("/unread", response_model=list[Notification])
 def get_unread_notifications(
         skip: int = Query(0, ge=0),
         limit: int = Query(100, ge=1, le=100),

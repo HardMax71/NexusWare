@@ -6,7 +6,6 @@ from sqlalchemy.orm import Session
 
 from public_api import shared_schemas
 from public_api.permissions import PermissionName, PermissionType
-from public_api.shared_schemas import AssetMaintenanceFilter
 from .... import crud, models
 from ....api import deps
 
@@ -33,7 +32,7 @@ def read_assets(
 ):
     assets = crud.asset.get_multi_with_filter(db, skip=skip, limit=limit, filter_params=asset_filter)
     total = len(assets)
-    return {"assets": assets, "total": total}
+    return shared_schemas.AssetWithMaintenanceList(assets=assets, total=total)
 
 
 @router.get("/types", response_model=list[str])
@@ -127,7 +126,7 @@ def read_asset_maintenance_history(
         limit: int = 100,
         current_user: models.User = Depends(deps.has_permission(PermissionName.ASSET_MAINTENANCE, PermissionType.READ))
 ):
-    filter_params = AssetMaintenanceFilter(asset_id=asset_id)
+    filter_params = shared_schemas.AssetMaintenanceFilter(asset_id=asset_id)
     return crud.asset_maintenance.get_multi_with_filter(db, skip=skip, limit=limit, filter_params=filter_params)
 
 

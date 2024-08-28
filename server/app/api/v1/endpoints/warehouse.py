@@ -1,5 +1,4 @@
 # /server/app/api/v1/endpoints/warehouse.py
-from typing import List
 
 from fastapi import APIRouter, Depends, Path, Body
 from sqlalchemy.orm import Session
@@ -26,7 +25,7 @@ def get_warehouse_stats(
     return crud.whole_warehouse.get_stats(db)
 
 
-@router.get("/inventory/{location_id}", response_model=List[shared_schemas.LocationInventory])
+@router.get("/inventory/{location_id}", response_model=list[shared_schemas.LocationInventory])
 def get_location_inventory(
         location_id: int = Path(..., title="The ID of the location to get inventory for"),
         db: Session = Depends(deps.get_db),

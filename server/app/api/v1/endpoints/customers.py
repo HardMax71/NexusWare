@@ -1,5 +1,4 @@
 # /server/app/api/v1/endpoints/customers.py
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -20,7 +19,7 @@ def create_customer(
     return crud.customer.create(db=db, obj_in=customer)
 
 
-@router.get("/", response_model=List[shared_schemas.Customer])
+@router.get("/", response_model=list[shared_schemas.Customer])
 def read_customers(
         db: Session = Depends(deps.get_db),
         skip: int = 0,
@@ -68,7 +67,7 @@ def delete_customer(
     crud.customer.remove(db, id=customer_id)
 
 
-@router.get("/{customer_id}/orders", response_model=List[shared_schemas.Order])
+@router.get("/{customer_id}/orders", response_model=list[shared_schemas.Order])
 def read_customer_orders(
         customer_id: int,
         db: Session = Depends(deps.get_db),
