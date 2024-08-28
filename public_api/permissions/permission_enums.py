@@ -24,3 +24,4 @@ class PermissionName(str, Enum):
     NOTIFICATIONS = "Notifications"
     TASKS_MANAGEMENT = "Tasks Management"
     ADVANCED_SEARCH = "Advanced Search"
+    SIMULATION = "Simulation"

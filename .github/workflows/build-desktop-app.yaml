@@ -1,0 +1,77 @@
+name: Build Desktop App
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r desktop_app/requirements.txt
+        pip install pyinstaller
+    - name: Build with PyInstaller
+      run: |
+        cd desktop_app
+        pyinstaller --onefile --windowed main.py
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: NexusWare-Windows
+        path: desktop_app/dist/main.exe
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r desktop_app/requirements.txt
+        pip install pyinstaller
+    - name: Build with PyInstaller
+      run: |
+        cd desktop_app
+        pyinstaller --onefile --windowed main.py
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: NexusWare-macOS
+        path: desktop_app/dist/main
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r desktop_app/requirements.txt
+        pip install pyinstaller
+    - name: Build with PyInstaller
+      run: |
+        cd desktop_app
+        pyinstaller --onefile --windowed main.py
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: NexusWare-Linux
+        path: desktop_app/dist/main

@@ -55,7 +55,6 @@ across mobile, web, and desktop environments.
 | Barcode and Label Design    | -      | -   | ✅       |
 | Advanced Search and Filter  | -      | ✅   | ✅       |
 | System Diagnostics          | -      | -   | ✅       |
-| Simulation and Modeling     | -      | -   | ✅       |
 | Training Mode               | -      | -   | ✅       |
 | Customization Tools         | -      | -   | ✅       |
 

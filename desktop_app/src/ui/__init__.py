@@ -8,7 +8,6 @@ from .offline_mode import OfflineModeWidget
 from .report_generator import ReportGeneratorWidget
 from .search_filter import AdvancedSearchDialog
 from .settings.system_diagnostics import SystemDiagnosticsWidget
-from .simulation_view import SimulationView
 from .training_mode import TrainingModeManager
 from .views.auth import LoginDialog
 from .views.customers import CustomerDialog, CustomerDetailsDialog, CustomerView
@@ -36,7 +35,6 @@ __all__ = [
     "BatchProcessorWidget",
     "BarcodeDesignerWidget",
     "SystemDiagnosticsWidget",
-    "SimulationView",
     "AdvancedSearchDialog",
     "TrainingModeManager",
     "OfflineModeWidget",
