@@ -4,9 +4,8 @@ from public_api.shared_schemas import (
     UserPermissionUpdate, TwoFactorLogin
 )
 from .client import APIClient
-from ..permission_manager import PermissionManager
-from ..shared_schemas.user import UserPermission, RoleCreate, Role, RoleUpdate, PermissionCreate, Permission, \
-    PermissionUpdate
+from public_api.permissions.permission_manager import PermissionManager
+from ..shared_schemas.user import UserPermission
 
 
 class UsersAPI:

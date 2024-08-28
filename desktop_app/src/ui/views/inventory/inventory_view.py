@@ -6,6 +6,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, 
 
 from desktop_app.src.ui.components import StyledButton
 from public_api.api import InventoryAPI, APIClient, LocationsAPI, ProductsAPI, UsersAPI
+from public_api.permissions import PermissionName
 from public_api.shared_schemas import InventoryWithDetails, Inventory
 from .adjustment_dialog import AdjustmentDialog
 from .inventory_dialog import InventoryDialog
@@ -65,7 +66,7 @@ class InventoryView(QWidget):
         self.stacked_widget.addWidget(self.planning_widget)
 
         # Floating Action Button for adding new items
-        if self.permission_manager.has_write_permission("inventory"):
+        if self.permission_manager.has_write_permission(PermissionName.INVENTORY):
             self.fab = StyledButton("+", icon_path=IconPath.PLUS)
             self.fab.clicked.connect(self.add_item)
             layout.addWidget(self.fab)
@@ -98,7 +99,7 @@ class InventoryView(QWidget):
             actions_layout.setContentsMargins(0, 0, 0, 0)
             actions_layout.setSpacing(2)
 
-            if self.permission_manager.has_write_permission("inventory"):
+            if self.permission_manager.has_write_permission(PermissionName.INVENTORY):
                 edit_button = StyledButton("Edit", icon_path=IconPath.EDIT)
                 edit_button.clicked.connect(lambda _, i=item.id: self.edit_item(i))
                 actions_layout.addWidget(edit_button)
@@ -107,7 +108,7 @@ class InventoryView(QWidget):
                 adjust_button.clicked.connect(lambda _, i=item.id: self.adjust_item(i))
                 actions_layout.addWidget(adjust_button)
 
-            if self.permission_manager.has_delete_permission("inventory"):
+            if self.permission_manager.has_delete_permission(PermissionName.INVENTORY):
                 delete_button = StyledButton("Delete", icon_path=IconPath.DELETE)
                 delete_button.clicked.connect(lambda _, i=item.id: self.delete_item(i))
                 actions_layout.addWidget(delete_button)

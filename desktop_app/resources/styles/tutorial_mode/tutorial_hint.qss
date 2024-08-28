@@ -1,0 +1,44 @@
+/* QTutorialHint frame style */
+QTutorialHint {
+    background-color: #FFFACD;
+    border: 2px solid #FF8C00;
+    border-radius: 12px;
+    padding: 5px;
+}
+
+/* QLabel style within QTutorialHint */
+QTutorialHint QLabel {
+    color: #8B0000;
+    font-size: 14px;
+    padding: 4px;
+}
+
+/* Progress label style */
+QTutorialHint QLabel#progress_label {
+    background-color: #FFEBCD;
+    color: #8B0000;
+    font-weight: bold;
+    border-radius: 8px;
+    padding: 3px 5px;
+    margin-bottom: 5px;
+    font-size: 12px;
+    border: 1px solid #FF8C00;
+}
+
+/* QPushButton base style */
+QPushButton {
+    background-color: transparent;
+    border: none;
+    padding: 0px;
+    border-radius: 6px;
+}
+
+/* Hover state: slightly darker background to indicate hover */
+QPushButton:hover {
+    background-color: #FFD700;  /* Gold color for hover effect */
+}
+
+/* Pressed state: darker background to indicate button press */
+QPushButton:pressed {
+    background-color: #FFA500;  /* Orange color for pressed state */
+}

@@ -7,6 +7,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, 
 
 from desktop_app.src.ui.components import StyledButton
 from public_api.api import OrdersAPI, APIClient, CustomersAPI, ProductsAPI, ShipmentsAPI, CarriersAPI, UsersAPI
+from public_api.permissions import PermissionName
 from public_api.shared_schemas import OrderWithDetails, OrderFilter, OrderStatus
 from .order_details_dialog import OrderDetailsDialog
 from .order_dialog import OrderDialog
@@ -69,7 +70,7 @@ class OrderView(QWidget):
         self.stacked_widget.addWidget(main_widget)
 
         # Floating Action Button for adding new orders
-        if self.permission_manager.has_write_permission("orders"):
+        if self.permission_manager.has_write_permission(PermissionName.ORDERS):
             self.fab = StyledButton("+", icon_path=IconPath.PLUS)
             self.fab.clicked.connect(self.create_new_order)
             layout.addWidget(self.fab)
@@ -104,7 +105,7 @@ class OrderView(QWidget):
             view_button.clicked.connect(lambda _, i=item.id: self.view_order(i))
             actions_layout.addWidget(view_button)
 
-            if self.permission_manager.has_write_permission("orders"):
+            if self.permission_manager.has_write_permission(PermissionName.ORDERS):
                 edit_button = StyledButton("Edit", icon_path=IconPath.EDIT)
                 edit_button.clicked.connect(lambda _, i=item.id: self.edit_order(i))
                 actions_layout.addWidget(edit_button)
@@ -118,7 +119,7 @@ class OrderView(QWidget):
                     ship_button.setEnabled(False)
                     ship_button.setToolTip("Order already shipped")
 
-            if self.permission_manager.has_delete_permission("orders"):
+            if self.permission_manager.has_delete_permission(PermissionName.ORDERS):
                 delete_button = StyledButton("Delete", icon_path=IconPath.DELETE)
                 delete_button.clicked.connect(lambda _, i=item.id: self.delete_order(i))
                 actions_layout.addWidget(delete_button)

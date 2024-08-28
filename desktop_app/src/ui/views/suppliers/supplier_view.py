@@ -4,6 +4,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, 
 
 from desktop_app.src.ui.components import StyledButton
 from public_api.api import SuppliersAPI, APIClient, UsersAPI
+from public_api.permissions import PermissionName
 from public_api.shared_schemas import Supplier
 from .supplier_details_dialog import SupplierDetailsDialog
 from .supplier_dialog import SupplierDialog
@@ -55,7 +56,7 @@ class SupplierView(QWidget):
         self.stacked_widget.addWidget(main_widget)
 
         # Floating Action Button for adding new suppliers
-        if self.permission_manager.has_write_permission("suppliers"):
+        if self.permission_manager.has_write_permission(PermissionName.SUPPLIERS):
             self.fab = StyledButton("+", icon_path=IconPath.PLUS)
             self.fab.clicked.connect(self.add_supplier)
             layout.addWidget(self.fab)
@@ -85,12 +86,12 @@ class SupplierView(QWidget):
             view_button.clicked.connect(lambda _, s=supplier: self.view_supplier(s))
             actions_layout.addWidget(view_button)
 
-            if self.permission_manager.has_write_permission("suppliers"):
+            if self.permission_manager.has_write_permission(PermissionName.SUPPLIERS):
                 edit_button = StyledButton("Edit", icon_path=IconPath.EDIT)
                 edit_button.clicked.connect(lambda _, s=supplier: self.edit_supplier(s))
                 actions_layout.addWidget(edit_button)
 
-            if self.permission_manager.has_delete_permission("suppliers"):
+            if self.permission_manager.has_delete_permission(PermissionName.SUPPLIERS):
                 delete_button = StyledButton("Delete", icon_path=IconPath.DELETE)
                 delete_button.clicked.connect(lambda _, s=supplier: self.delete_supplier(s))
                 actions_layout.addWidget(delete_button)

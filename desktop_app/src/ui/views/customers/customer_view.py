@@ -4,6 +4,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, 
 
 from desktop_app.src.ui.components import StyledButton
 from public_api.api import CustomersAPI, APIClient, UsersAPI
+from public_api.permissions import PermissionName
 from public_api.shared_schemas import Customer
 from .customer_details_dialog import CustomerDetailsDialog
 from .customer_dialog import CustomerDialog
@@ -55,7 +56,7 @@ class CustomerView(QWidget):
         self.stacked_widget.addWidget(main_widget)
 
         # Floating Action Button for adding new customers
-        if self.permission_manager.has_write_permission("customers"):
+        if self.permission_manager.has_write_permission(PermissionName.CUSTOMERS):
             self.fab = StyledButton("+", icon_path=IconPath.PLUS)
             self.fab.clicked.connect(self.add_customer)
             layout.addWidget(self.fab)
@@ -84,12 +85,12 @@ class CustomerView(QWidget):
             view_button.clicked.connect(lambda _, c=customer: self.view_customer(c))
             actions_layout.addWidget(view_button)
 
-            if self.permission_manager.has_write_permission("customers"):
+            if self.permission_manager.has_write_permission(PermissionName.CUSTOMERS):
                 edit_button = StyledButton("Edit", icon_path=IconPath.EDIT)
                 edit_button.clicked.connect(lambda _, c=customer: self.edit_customer(c))
                 actions_layout.addWidget(edit_button)
 
-            if self.permission_manager.has_delete_permission("customers"):
+            if self.permission_manager.has_delete_permission(PermissionName.CUSTOMERS):
                 delete_button = StyledButton("Delete", icon_path=IconPath.DELETE)
                 delete_button.clicked.connect(lambda _, c=customer: self.delete_customer(c))
                 actions_layout.addWidget(delete_button)

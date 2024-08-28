@@ -6,6 +6,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, 
 from desktop_app.src.ui import BarcodeDesignerWidget
 from desktop_app.src.ui.components import StyledButton
 from public_api.api import ProductsAPI, APIClient, ProductCategoriesAPI, LocationsAPI, UsersAPI
+from public_api.permissions import PermissionName
 from public_api.shared_schemas.inventory import (ProductWithCategoryAndInventory, ProductFilter)
 from .product_details_dialog import ProductDetailsDialog
 from .product_dialog import ProductDialog
@@ -65,7 +66,7 @@ class ProductView(QWidget):
         self.stacked_widget.addWidget(main_widget)
 
         # Floating Action Button for adding new products
-        if self.permission_manager.has_write_permission("products"):
+        if self.permission_manager.has_write_permission(PermissionName.PRODUCTS):
             self.fab = StyledButton("+", icon_path=IconPath.PLUS)
             self.fab.clicked.connect(self.create_new_product)
             layout.addWidget(self.fab)
@@ -108,12 +109,12 @@ class ProductView(QWidget):
             barcode_button.clicked.connect(lambda _, i=item: self.generate_barcode(i))
             actions_layout.addWidget(barcode_button)
 
-            if self.permission_manager.has_write_permission("products"):
+            if self.permission_manager.has_write_permission(PermissionName.PRODUCTS):
                 edit_button = StyledButton("Edit", icon_path=IconPath.EDIT)
                 edit_button.clicked.connect(lambda _, i=item.id: self.edit_product(i))
                 actions_layout.addWidget(edit_button)
 
-            if self.permission_manager.has_delete_permission("products"):
+            if self.permission_manager.has_delete_permission(PermissionName.PRODUCTS):
                 delete_button = StyledButton("Delete", icon_path=IconPath.DELETE)
                 delete_button.clicked.connect(lambda _, i=item.id: self.delete_product(i))
                 actions_layout.addWidget(delete_button)

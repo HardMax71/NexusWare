@@ -1,0 +1,7 @@
+* {
+    background-color: #FFEFD5;  /* PapayaWhip for a softer highlight */
+    border: 2px solid #FF6347;  /* Tomato for a bolder border */
+    color: #D2691E;  /* Chocolate for a warm text color */
+    border-radius: 6px;
+    padding: 5px;
+}
