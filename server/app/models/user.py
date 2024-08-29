@@ -1,8 +1,11 @@
 # /server/app/models/user.py
 import time
+
 from sqlalchemy import Boolean, Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
+
 from .base import Base
+
 
 class User(Base):
     __tablename__ = "users"
@@ -25,6 +28,22 @@ class User(Base):
     task_comments = relationship("TaskComment", back_populates="user")
     audit_logs = relationship("AuditLog", back_populates="user")
     notifications = relationship("Notification", back_populates="user")
+    tokens = relationship("Token", back_populates="user")
+
+
+class Token(Base):
+    __tablename__ = "tokens"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    access_token = Column(String(255), unique=True, index=True)
+    refresh_token = Column(String(255), unique=True, index=True)
+    access_token_expires_at = Column(Integer)
+    refresh_token_expires_at = Column(Integer)
+    is_active = Column(Boolean, default=True)
+
+    user = relationship("User", back_populates="tokens")
+
 
 class Role(Base):
     __tablename__ = "roles"
@@ -35,6 +54,7 @@ class Role(Base):
     users = relationship("User", back_populates="role")
     role_permissions = relationship("RolePermission", back_populates="role")
 
+
 class Permission(Base):
     __tablename__ = "permissions"
 
@@ -42,6 +62,7 @@ class Permission(Base):
     name = Column(String(50), unique=True, nullable=False)
 
     role_permissions = relationship("RolePermission", back_populates="permission")
+
 
 class RolePermission(Base):
     __tablename__ = "role_permissions"

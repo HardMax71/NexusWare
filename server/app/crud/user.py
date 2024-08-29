@@ -5,9 +5,10 @@ from datetime import timedelta, datetime
 from sqlalchemy.orm import Session, joinedload
 
 from public_api.shared_schemas import user as user_schemas
-from server.app.core.security import get_password_hash, verify_password
-from server.app.models import User, Permission, Role, RolePermission
+from server.app.core.security import get_password_hash, verify_password, create_access_token, create_refresh_token
+from server.app.models import User, Permission, Role, RolePermission, Token
 from .base import CRUDBase
+from ..core.config import settings
 
 
 class CRUDUser(CRUDBase[User, user_schemas.UserCreate, user_schemas.UserUpdate]):
@@ -42,7 +43,7 @@ class CRUDUser(CRUDBase[User, user_schemas.UserCreate, user_schemas.UserUpdate])
 
     def update(self, db: Session, *, db_obj: User, obj_in: user_schemas.UserUpdate) -> user_schemas.UserSanitized:
         update_data = obj_in.model_dump(exclude_unset=True)
-        if update_data.get("password"):
+        if "password" in update_data:
             hashed_password = get_password_hash(update_data["password"])
             del update_data["password"]
             update_data["password"] = hashed_password
@@ -55,9 +56,8 @@ class CRUDUser(CRUDBase[User, user_schemas.UserCreate, user_schemas.UserUpdate])
         if not user or not verify_password(password, user.password):
             return None
 
-        # updating last login timestamp
-        current_time = int(time.time())
-        user.last_login = current_time
+        # Update last login timestamp
+        user.last_login = int(time.time())
         db.add(user)
         db.commit()
         db.refresh(user)
@@ -167,6 +167,52 @@ class CRUDUser(CRUDBase[User, user_schemas.UserCreate, user_schemas.UserUpdate])
 
     def get_all_roles(self, db: Session) -> list[Role]:
         return db.query(Role).all()
+
+    def create_user_tokens(self, db: Session, user_id: int) -> Token:
+        access_token = create_access_token(str(user_id))
+        refresh_token = create_refresh_token(str(user_id))
+
+        now = datetime.utcnow()
+        token = Token(
+            user_id=user_id,
+            access_token=access_token,
+            refresh_token=refresh_token,
+            access_token_expires_at=int((now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)).timestamp()),
+            refresh_token_expires_at=int((now + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)).timestamp()),
+            is_active=True
+        )
+        db.add(token)
+        db.commit()
+        db.refresh(token)
+        return token
+
+    def revoke_user_tokens(self, db: Session, user_id: int):
+        db.query(Token).filter(Token.user_id == user_id, Token.is_active == True).update({"is_active": False})
+        db.commit()
+
+    def get_user_by_token(self, db: Session, access_token: str) -> User | None:
+        token = db.query(Token).filter(Token.access_token == access_token, Token.is_active == True).first()
+        if token and token.access_token_expires_at > int(time.time()):
+            return token.user
+        return None
+
+    def refresh_tokens(self, db: Session, refresh_token: str) -> Token | None:
+        token = db.query(Token).filter(Token.refresh_token == refresh_token, Token.is_active == True).first()
+        if not token or token.refresh_token_expires_at < int(time.time()):
+            return None
+
+        # Revoke the old token
+        token.is_active = False
+        db.add(token)
+
+        # Create new tokens
+        new_token = self.create_user_tokens(db, token.user_id)
+        db.commit()
+
+        return new_token
+
+    def get_active_token(self, db: Session, jti: str) -> Token | None:
+        return db.query(Token).filter(Token.access_token.contains(jti), Token.is_active == True).first()
 
 
 user = CRUDUser(User)

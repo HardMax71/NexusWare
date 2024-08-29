@@ -20,6 +20,7 @@ from .role import role
 from .shipment import shipment, carrier
 from .supplier import supplier
 from .task import task
+from .token import token
 from .user import user
 from .warehouse import whole_warehouse
 from .yard import yard

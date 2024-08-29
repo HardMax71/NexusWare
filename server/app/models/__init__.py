@@ -16,6 +16,6 @@ from .receipt import Receipt, ReceiptItem
 from .shipment import Shipment
 from .supplier import Supplier
 from .task import Task, TaskComment
-from .user import User, Role, Permission, RolePermission
+from .user import User, Role, Permission, RolePermission, Token
 from .yard_location import YardLocation
 from .zone import Zone

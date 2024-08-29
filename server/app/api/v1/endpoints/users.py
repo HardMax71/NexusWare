@@ -1,13 +1,12 @@
 # /server/app/api/v1/endpoints/users.py
-from datetime import timedelta
+from datetime import datetime
 
 import pyotp
 from fastapi import APIRouter, Depends, HTTPException, Body, Query, status
 from fastapi.security import OAuth2PasswordRequestForm
-from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
-from public_api.shared_schemas import user as user_schemas, RefreshTokenRequest
+from public_api.shared_schemas import user as user_schemas
 from server.app import crud, models
 from server.app.api import deps
 from server.app.core import security
@@ -24,14 +23,17 @@ def login(
 ):
     user = crud.user.authenticate(db, email=form_data.username, password=form_data.password)
     if not user:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect email or password")
+        raise HTTPException(status_code=400, detail="Incorrect email or password")
     if not crud.user.is_active(user):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user")
+        raise HTTPException(status_code=400, detail="Inactive user")
 
-    if user.two_factor_auth_enabled:
-        return user_schemas.Token(access_token="2FA_REQUIRED", token_type="bearer", refresh_token="", expires_in=0)
-
-    return create_token_for_user(user)
+    token = crud.token.create_user_tokens(db, user.id)
+    return user_schemas.Token(
+        access_token=token.access_token,
+        refresh_token=token.refresh_token,
+        token_type="bearer",
+        expires_in=(token.access_token_expires_at - int(datetime.utcnow().timestamp()))
+    )
 
 
 @router.post("/login/2fa", response_model=user_schemas.Token)
@@ -51,10 +53,7 @@ def login_2fa(
 
 
 def create_token_for_user(user: models.User) -> user_schemas.Token:
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = security.create_access_token(
-        user.username, expires_delta=access_token_expires
-    )
+    access_token = security.create_access_token(user.username)
     refresh_token = security.create_refresh_token(user.username)
     return user_schemas.Token(
         access_token=access_token,
@@ -66,24 +65,31 @@ def create_token_for_user(user: models.User) -> user_schemas.Token:
 
 @router.post("/refresh-token", response_model=user_schemas.Token)
 def refresh_token(
-        refresh_data: RefreshTokenRequest,
+        db: Session = Depends(deps.get_db),
+        refresh_token: str = Body(..., embed=True)
+):
+    token = crud.token.get_by_refresh_token(db, refresh_token)
+    if not token or not token.is_active or token.refresh_token_expires_at < int(datetime.utcnow().timestamp()):
+        raise HTTPException(status_code=400, detail="Invalid or expired refresh token")
+
+    crud.token.revoke_token(db, token)
+    new_token = crud.token.create_user_tokens(db, token.user_id)
+
+    return user_schemas.Token(
+        access_token=new_token.access_token,
+        refresh_token=new_token.refresh_token,
+        token_type="bearer",
+        expires_in=(new_token.access_token_expires_at - int(datetime.utcnow().timestamp()))
+    )
+
+
+@router.post("/logout")
+def logout(
+        current_user: models.User = Depends(deps.get_current_user),
         db: Session = Depends(deps.get_db)
 ):
-    try:
-        payload = jwt.decode(
-            refresh_data.refresh_token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
-        )
-        username: str = payload.get("sub")
-        if username is None:
-            raise HTTPException(status_code=400, detail="Invalid refresh token")
-    except JWTError:
-        raise HTTPException(status_code=400, detail="Invalid refresh token")
-
-    user = crud.user.get_by_username(db, username=username)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    return create_token_for_user(user)
+    crud.token.revoke_all_user_tokens(db, current_user.id)
+    return {"detail": "Successfully logged out"}
 
 
 @router.post("/register", response_model=user_schemas.UserSanitized)
