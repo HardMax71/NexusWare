@@ -8,12 +8,10 @@ This is the desktop application component of the NexusWare Warehouse Management 
 - Advanced Reporting
 - Inventory Planning
 - 3D Warehouse Visualization
-- Batch Processing
 - Barcode and Label Design
 - Advanced Search and Filter
 - Data Analysis Tools
 - System Diagnostics
-- Simulation and Modeling
 - Training Mode
 - Customization Tools
 

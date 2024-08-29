@@ -1,14 +1,12 @@
+from desktop_app.src.ui.views.notifications.notification_center import NotificationCenter
 from .audit_log_view import AuditLogView
 from .barcode_designer import BarcodeDesignerWidget
-from .batch_processor import BatchProcessorWidget
 from .dashboard import DashboardWidget
 from .main_window import MainWindow
-from .notification_center import NotificationCenter
 from .offline_mode import OfflineModeWidget
 from .report_generator import ReportGeneratorWidget
 from .search_filter import AdvancedSearchDialog
 from .settings.system_diagnostics import SystemDiagnosticsWidget
-from .training_mode import TrainingModeManager
 from .views.auth import LoginDialog
 from .views.customers import CustomerDialog, CustomerDetailsDialog, CustomerView
 from .views.inventory.inventory_planning import InventoryPlanningWidget
@@ -32,11 +30,9 @@ __all__ = [
     "CustomerView",
     "ShipmentView",
     "ReportGeneratorWidget",
-    "BatchProcessorWidget",
     "BarcodeDesignerWidget",
     "SystemDiagnosticsWidget",
     "AdvancedSearchDialog",
-    "TrainingModeManager",
     "OfflineModeWidget",
     "UserManagementWidget",
     "AuditLogView",

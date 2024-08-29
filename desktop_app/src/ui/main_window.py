@@ -2,25 +2,25 @@ from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMainWindow, QTabWidget, QVBoxLayout, QWidget, QStatusBar, QMessageBox, QToolButton
 
+from desktop_app.src.ui.components import IconPath
 from desktop_app.src.ui.views.customers import CustomerView
-from desktop_app.src.ui.views.inventory.inventory_view import InventoryView
+from desktop_app.src.ui.views.inventory import InventoryView
+from desktop_app.src.ui.views.notifications import NotificationCenter
 from desktop_app.src.ui.views.orders import OrderView
 from desktop_app.src.ui.views.products import ProductView
 from desktop_app.src.ui.views.shipments import ShipmentView
 from desktop_app.src.ui.views.suppliers import SupplierView
 from desktop_app.src.ui.views.tasks import TaskView
-from desktop_app.src.ui.views.user_mgmt.user_mgmt_widget import UserManagementWidget
+from desktop_app.src.ui.views.user_mgmt import UserManagementWidget
 from desktop_app.src.utils import ConfigManager
 from public_api.api import APIClient
-from public_api.permissions import PermissionName
-from public_api.permissions.permission_manager import PermissionManager
+from public_api.permissions import PermissionName, PermissionManager
 from .components.dialogs import UserManualDialog, AboutDialog
 from .dashboard import DashboardWidget
-from .notification_center import NotificationCenter
 from .qtutorial import QTutorialManager
 from .report_generator import ReportGeneratorWidget
 from .search_filter import AdvancedSearchDialog
-from .settings.settings_dialog import SettingsDialog
+from .settings import SettingsDialog
 
 
 class MainWindow(QMainWindow):
@@ -34,7 +34,7 @@ class MainWindow(QMainWindow):
 
     def init_ui(self):
         self.setWindowTitle("NexusWare WMS")
-        self.setWindowIcon(QIcon("icons:app_icon.png"))
+        self.setWindowIcon(QIcon(IconPath.APP_ICON))
         self.setMinimumSize(1200, 800)
 
         central_widget = QWidget()
@@ -107,7 +107,7 @@ class MainWindow(QMainWindow):
 
     def add_notification_button(self, menu_bar):
         notification_button = QToolButton(self)
-        notification_button.setIcon(QIcon("icons:bell.png"))
+        notification_button.setIcon(QIcon(IconPath.BELL))
         notification_button.setIconSize(QSize(24, 24))
         notification_button.setToolButtonStyle(Qt.ToolButtonIconOnly)
         notification_button.clicked.connect(self.toggle_notification_center)
@@ -119,9 +119,9 @@ class MainWindow(QMainWindow):
     def update_notification_icon(self, button):
         unread_notifications = len(self.notification_center.notifications_api.get_unread_notifications())
         if unread_notifications > 0:
-            button.setIcon(QIcon("icons:bell_unread.png"))
+            button.setIcon(QIcon(IconPath.BELL_UNREAD))
         else:
-            button.setIcon(QIcon("icons:bell.png"))
+            button.setIcon(QIcon(IconPath.BELL))
 
     def toggle_notification_center(self):
         if not self.notification_center.isVisible():

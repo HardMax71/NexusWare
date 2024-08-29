@@ -10,7 +10,7 @@ from public_api.shared_schemas import Shipment, ShipmentFilter, ShipmentStatus
 from .shipment_details_dialog import ShipmentDetailsDialog
 from .shipment_dialog import ShipmentDialog
 from .shipment_tracking_dialog import ShipmentTrackingDialog
-from ...icon_path_enum import IconPath
+from desktop_app.src.ui.components.icon_path import IconPath
 
 
 class ShipmentView(QWidget):

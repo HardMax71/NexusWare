@@ -11,7 +11,7 @@ from public_api.shared_schemas import TaskWithAssignee, TaskFilter, TaskStatus, 
 from public_api.shared_schemas.task import TaskType
 from .task_dialog import TaskDialog
 from .tasks_details_dialog import TaskDetailsDialog
-from ...icon_path_enum import IconPath
+from desktop_app.src.ui.components.icon_path import IconPath
 
 
 class TaskView(QWidget):

@@ -11,7 +11,7 @@ from public_api.shared_schemas import InventoryWithDetails, Inventory
 from .adjustment_dialog import AdjustmentDialog
 from .inventory_dialog import InventoryDialog
 from .inventory_planning import InventoryPlanningWidget
-from ...icon_path_enum import IconPath
+from desktop_app.src.ui.components.icon_path import IconPath
 
 
 class InventoryView(QWidget):

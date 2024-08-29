@@ -57,7 +57,7 @@ class DetailedErrorDialog(QDialog):
             main_window.close()
 
         from desktop_app.src.ui import LoginDialog
-        login_dialog = LoginDialog(self.app_context.auth_service)
+        login_dialog = LoginDialog(self.app_context.users_api)
         if login_dialog.exec() == LoginDialog.Accepted:
             self.app_context.create_and_show_main_window()
         else:

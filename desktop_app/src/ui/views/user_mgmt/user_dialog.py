@@ -75,26 +75,23 @@ class UserDialog(QDialog):
         role_id = self.role_combo.currentData()
         is_active = self.is_active_checkbox.isChecked()
 
-        try:
-            if self.user:
-                user_update = UserUpdate(
-                    username=username,
-                    email=email,
-                    role_id=role_id,
-                    is_active=is_active
-                )
-                if password:
-                    user_update.password = password
-                self.users_api.update_user(self.user.id, user_update)
-            else:
-                user_create = UserCreate(
-                    username=username,
-                    email=email,
-                    password=password,
-                    role_id=role_id,
-                    is_active=is_active
-                )
-                self.users_api.create_user(user_create)
-            super().accept()
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to {'update' if self.user else 'create'} user: {str(e)}")
+        if self.user:
+            user_update = UserUpdate(
+                username=username,
+                email=email,
+                role_id=role_id,
+                is_active=is_active
+            )
+            if password:
+                user_update.password = password
+            self.users_api.update_user(self.user.id, user_update)
+        else:
+            user_create = UserCreate(
+                username=username,
+                email=email,
+                password=password,
+                role_id=role_id,
+                is_active=is_active
+            )
+            self.users_api.create_user(user_create)
+        super().accept()

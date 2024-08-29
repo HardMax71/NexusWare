@@ -10,7 +10,7 @@ from public_api.permissions import PermissionName
 from public_api.shared_schemas.inventory import (ProductWithCategoryAndInventory, ProductFilter)
 from .product_details_dialog import ProductDetailsDialog
 from .product_dialog import ProductDialog
-from ...icon_path_enum import IconPath
+from desktop_app.src.ui.components.icon_path import IconPath
 
 
 class ProductView(QWidget):

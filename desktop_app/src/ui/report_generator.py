@@ -5,10 +5,10 @@ from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QDateEdit, QLabel, QTableWidget,
                                QTableWidgetItem, QHeaderView, QScrollArea, QFileDialog, QMessageBox)
 
-from desktop_app.src.services.document_management.report_exporter import ReportExporter, format_report_data
+from desktop_app.src.services.reports_mgmt.report_exporter import ReportExporter, format_report_data
 from desktop_app.src.ui.components import StyledButton
 from public_api.api import ReportsAPI, APIClient
-from public_api.shared_schemas.reports import (InventorySummaryReport, OrderSummaryReport,
+from public_api.shared_schemas import (InventorySummaryReport, OrderSummaryReport,
                                                WarehousePerformanceReport, KPIDashboard)
 
 

@@ -8,7 +8,7 @@ from public_api.permissions import PermissionName
 from public_api.shared_schemas import Supplier
 from .supplier_details_dialog import SupplierDetailsDialog
 from .supplier_dialog import SupplierDialog
-from ...icon_path_enum import IconPath
+from desktop_app.src.ui.components.icon_path import IconPath
 
 
 class SupplierView(QWidget):

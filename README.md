@@ -51,7 +51,6 @@ across mobile, web, and desktop environments.
 | Advanced Reporting          | -      | -   | ✅       |
 | Inventory Planning          | -      | -   | ✅       |
 | 3D Warehouse Visualization  | -      | -   | ✅       |
-| Batch Processing            | -      | -   | ✅       |
 | Barcode and Label Design    | -      | -   | ✅       |
 | Advanced Search and Filter  | -      | ✅   | ✅       |
 | System Diagnostics          | -      | -   | ✅       |

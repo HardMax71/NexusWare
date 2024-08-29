@@ -8,7 +8,7 @@ from public_api.permissions import PermissionName
 from public_api.shared_schemas import UserSanitized, UserFilter
 from .role_permission_mgmt_dialog import RolePermissionManagementDialog
 from .user_dialog import UserDialog
-from ...icon_path_enum import IconPath
+from desktop_app.src.ui.components.icon_path import IconPath
 
 
 class UserManagementWidget(QWidget):

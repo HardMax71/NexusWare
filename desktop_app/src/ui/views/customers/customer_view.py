@@ -8,7 +8,7 @@ from public_api.permissions import PermissionName
 from public_api.shared_schemas import Customer
 from .customer_details_dialog import CustomerDetailsDialog
 from .customer_dialog import CustomerDialog
-from ...icon_path_enum import IconPath
+from desktop_app.src.ui.components.icon_path import IconPath
 
 
 class CustomerView(QWidget):

@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QListWidget, QTextEdit, QLabel
 
 from .components import StyledButton
-from .icon_path_enum import IconPath
+from desktop_app.src.ui.components.icon_path import IconPath
 
 
 class OfflineModeWidget(QWidget):

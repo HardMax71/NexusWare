@@ -5,16 +5,13 @@ from PySide6.QtGui import QIcon, QFont
 from PySide6.QtWidgets import QApplication, QMessageBox
 from requests import HTTPError
 
-from desktop_app.src.ui.components.error_dialog import global_exception_handler
-from public_api.api import APIClient
-from public_api.api import UsersAPI
-from services.authentication import AuthenticationService
-from services.offline_manager import OfflineManager
-from services.update_manager import UpdateManager
+from desktop_app.src.ui.components import IconPath
+from public_api.api import APIClient, UsersAPI
+from services import OfflineManager, UpdateManager
+from ui.components.dialogs.error_dialog import global_exception_handler
 from ui.main_window import MainWindow
 from ui.views.auth import LoginDialog
-from utils.config_manager import ConfigManager
-from utils.logger import setup_logger
+from utils import ConfigManager, setup_logger
 
 
 class AppContext:
@@ -24,7 +21,6 @@ class AppContext:
         self.api_client = APIClient(base_url=self.config_manager.get("api_base_url",
                                                                      "http://127.0.0.1:8000/api/v1"))
         self.users_api = UsersAPI(self.api_client)
-        self.auth_service = AuthenticationService(self.users_api)
         self.offline_manager = OfflineManager("offline_data.db")
         self.update_manager = UpdateManager(self.config_manager)
 
@@ -41,7 +37,7 @@ class AppContext:
         QDir.addSearchPath("translations", self.config_manager.get("translations_path",
                                                                    "resources/translations"))
 
-        app_icon = QIcon("icons:app_icon.png")
+        app_icon = QIcon(IconPath.APP_ICON)
         app.setWindowIcon(app_icon)
         self.apply_appearance_settings(app)
 
@@ -100,7 +96,7 @@ def main():
     if app_context.config_manager.get("auto_update", True) and app_context.update_manager.check_for_updates():
         app_context.update_manager.perform_update()
 
-    login_dialog = LoginDialog(app_context.auth_service)
+    login_dialog = LoginDialog(app_context.users_api)
     if login_dialog.exec() != LoginDialog.Accepted:
         sys.exit(0)
 

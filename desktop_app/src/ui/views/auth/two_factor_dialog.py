@@ -2,13 +2,13 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QDialog, QVBoxLayout, QLineEdit, QPushButton, QMessageBox, QLabel)
 from requests import HTTPError
 
-from desktop_app.src.services.authentication import AuthenticationService
+from public_api.api import UsersAPI
 
 
 class TwoFactorDialog(QDialog):
-    def __init__(self, auth_service: AuthenticationService, username: str, password: str, parent=None):
+    def __init__(self, users_api: UsersAPI, username: str, password: str, parent=None):
         super().__init__(parent)
-        self.auth_service = auth_service
+        self.users_api = users_api
         self.username = username
         self.password = password
         self.init_ui()
@@ -35,7 +35,7 @@ class TwoFactorDialog(QDialog):
     def verify_2fa(self):
         two_factor_code = self.two_factor_input.text()
         try:
-            token = self.auth_service.login_2fa(self.username, self.password, two_factor_code)
+            token = self.users_api.login_2fa(self.username, self.password, two_factor_code)
             if token:
                 self.accept()
             else:

@@ -4,7 +4,7 @@ from PySide6.QtCore import QDate
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem, QDateEdit, QLabel
 
 from desktop_app.src.ui.components import StyledButton
-from desktop_app.src.ui.icon_path_enum import IconPath
+from desktop_app.src.ui.components.icon_path import IconPath
 from public_api.api import APIClient, AuditAPI
 
 
