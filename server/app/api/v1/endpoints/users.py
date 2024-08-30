@@ -53,8 +53,8 @@ def login_2fa(
 
 
 def create_token_for_user(user: models.User) -> user_schemas.Token:
-    access_token = security.create_access_token(user.username)
-    refresh_token = security.create_refresh_token(user.username)
+    access_token = security.create_access_token(str(user.id))
+    refresh_token = security.create_refresh_token(str(user.id))
     return user_schemas.Token(
         access_token=access_token,
         refresh_token=refresh_token,
