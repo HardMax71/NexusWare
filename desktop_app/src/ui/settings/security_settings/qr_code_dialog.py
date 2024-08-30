@@ -1,17 +1,6 @@
-import json
-from io import BytesIO
-
-import pyotp
-import qrcode
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QPixmap
-from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QSpinBox, QMessageBox, QLineEdit,
-                               QDialog, QFormLayout, QPushButton, QLabel)
-from requests import HTTPError
-
-from desktop_app.src.ui.components import StyledLabel, StyledButton, ToggleSwitch
-from public_api.api import UsersAPI
-from public_api.shared_schemas import UserUpdate
+from PySide6.QtWidgets import (QVBoxLayout, QHBoxLayout, QLineEdit,
+                               QDialog, QPushButton, QLabel)
 
 
 class QRCodeDialog(QDialog):

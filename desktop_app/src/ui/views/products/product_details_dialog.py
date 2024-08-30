@@ -2,7 +2,6 @@ from datetime import datetime
 
 from PySide6.QtWidgets import (QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
                                QHeaderView, QDialog, QFormLayout, QDialogButtonBox, QLabel, QWidget, QGroupBox)
-from PySide6.QtCore import Qt
 
 from public_api.api import LocationsAPI
 from public_api.shared_schemas import ProductWithCategoryAndInventory

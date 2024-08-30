@@ -187,17 +187,17 @@ class CRUDUser(CRUDBase[User, user_schemas.UserCreate, user_schemas.UserUpdate])
         return token
 
     def revoke_user_tokens(self, db: Session, user_id: int):
-        db.query(Token).filter(Token.user_id == user_id, Token.is_active == True).update({"is_active": False})
+        db.query(Token).filter(Token.user_id == user_id, Token.is_active.is_(True)).update({"is_active": False})
         db.commit()
 
     def get_user_by_token(self, db: Session, access_token: str) -> User | None:
-        token = db.query(Token).filter(Token.access_token == access_token, Token.is_active == True).first()
+        token = db.query(Token).filter(Token.access_token == access_token, Token.is_active.is_(True)).first()
         if token and token.access_token_expires_at > int(time.time()):
             return token.user
         return None
 
     def refresh_tokens(self, db: Session, refresh_token: str) -> Token | None:
-        token = db.query(Token).filter(Token.refresh_token == refresh_token, Token.is_active == True).first()
+        token = db.query(Token).filter(Token.refresh_token == refresh_token, Token.is_active.is_(True)).first()
         if not token or token.refresh_token_expires_at < int(time.time()):
             return None
 
@@ -212,7 +212,7 @@ class CRUDUser(CRUDBase[User, user_schemas.UserCreate, user_schemas.UserUpdate])
         return new_token
 
     def get_active_token(self, db: Session, jti: str) -> Token | None:
-        return db.query(Token).filter(Token.access_token.contains(jti), Token.is_active == True).first()
+        return db.query(Token).filter(Token.access_token.contains(jti), Token.is_active.is_(True)).first()
 
 
 user = CRUDUser(User)

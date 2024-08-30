@@ -1,6 +1,6 @@
 from PySide6.QtGui import QIcon, QAction
 from PySide6.QtWidgets import (QVBoxLayout, QDialog, QLineEdit, QComboBox, QDialogButtonBox, QCheckBox,
-                               QFormLayout, QMessageBox)
+                               QFormLayout)
 
 from public_api.api import UsersAPI, RolesAPI
 from public_api.shared_schemas import UserSanitized, UserCreate, UserUpdate

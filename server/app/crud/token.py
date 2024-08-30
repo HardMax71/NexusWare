@@ -27,10 +27,10 @@ class CRUDToken:
         return token
 
     def get_by_access_token(self, db: Session, access_token: str) -> Token | None:
-        return db.query(Token).filter(Token.access_token == access_token, Token.is_active == True).first()
+        return db.query(Token).filter(Token.access_token == access_token, Token.is_active.is_(True)).first()
 
     def get_by_refresh_token(self, db: Session, refresh_token: str) -> Token | None:
-        return db.query(Token).filter(Token.refresh_token == refresh_token, Token.is_active == True).first()
+        return db.query(Token).filter(Token.refresh_token == refresh_token, Token.is_active.is_(True)).first()
 
     def revoke_all_user_tokens(self, db: Session, user_id: int) -> None:
         db.query(Token).filter(Token.user_id == user_id).update({"is_active": False})

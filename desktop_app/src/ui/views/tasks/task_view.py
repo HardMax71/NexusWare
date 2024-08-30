@@ -6,12 +6,12 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, 
                                QMessageBox, QScrollArea)
 
 from desktop_app.src.ui.components import StyledButton
+from desktop_app.src.ui.components.icon_path import IconPath
 from public_api.api import APIClient, TasksAPI, UsersAPI
 from public_api.shared_schemas import TaskWithAssignee, TaskFilter, TaskStatus, TaskPriority
 from public_api.shared_schemas.task import TaskType
 from .task_dialog import TaskDialog
 from .tasks_details_dialog import TaskDetailsDialog
-from desktop_app.src.ui.components.icon_path import IconPath
 
 
 class TaskView(QWidget):
@@ -244,7 +244,7 @@ class TaskView(QWidget):
         self.overdue_tasks_label.setText(f"Overdue Tasks: {stats.overdue_tasks}")
         self.high_priority_tasks_label.setText(f"High Priority Tasks: {stats.high_priority_tasks}")
 
-        tasks = self.tasks_api.get_tasks()
+        self.tasks_api.get_tasks()
         self.update_distribution_chart()
         self.update_task_type_chart()
         self.update_task_priority_chart()
