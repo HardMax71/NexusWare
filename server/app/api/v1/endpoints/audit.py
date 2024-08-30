@@ -31,6 +31,46 @@ def read_audit_logs(
     return crud.audit_log.get_multi_with_filter(db, skip=skip, limit=limit, filter_params=filter_params)
 
 
+@router.get("/logs/summary", response_model=shared_schemas.AuditSummary)
+def get_audit_summary(
+        db: Session = Depends(deps.get_db),
+        date_from: int = Query(None),
+        date_to: int = Query(None),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    if date_from and date_to and date_from > date_to:
+        raise HTTPException(status_code=422, detail="Invalid date range: start date is after end date")
+    return crud.audit_log.get_summary(db, date_from=date_from, date_to=date_to)
+
+
+@router.get("/logs/export", response_model=shared_schemas.AuditLogExport)
+def export_audit_logs(
+        db: Session = Depends(deps.get_db),
+        date_from: int = Query(None),
+        date_to: int = Query(None),
+        current_user: models.User = Depends(deps.get_current_admin)
+):
+    filter_params = shared_schemas.AuditLogFilter(date_from=date_from, date_to=date_to)
+    logs = crud.audit_log.get_multi_with_filter(db, filter_params=filter_params)
+    return shared_schemas.AuditLogExport(logs=logs, export_timestamp=int(datetime.now().timestamp()))
+
+
+@router.get("/logs/actions", response_model=list[str])
+def get_audit_log_actions(
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.audit_log.get_distinct_actions(db)
+
+
+@router.get("/logs/tables", response_model=list[str])
+def get_audited_tables(
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_active_user)
+):
+    return crud.audit_log.get_distinct_tables(db)
+
+
 @router.get("/logs/{log_id}", response_model=shared_schemas.AuditLogWithUser)
 def read_audit_log(
         log_id: int = Path(..., title="The ID of the audit log to get"),
@@ -41,16 +81,6 @@ def read_audit_log(
     if log is None:
         raise HTTPException(status_code=404, detail="Audit log not found")
     return log
-
-
-@router.get("/logs/summary", response_model=shared_schemas.AuditSummary)
-def get_audit_summary(
-        db: Session = Depends(deps.get_db),
-        date_from: int = Query(None),
-        date_to: int = Query(None),
-        current_user: models.User = Depends(deps.get_current_active_user)
-):
-    return crud.audit_log.get_summary(db, date_from=date_from, date_to=date_to)
 
 
 @router.get("/logs/user/{user_id}", response_model=list[shared_schemas.AuditLog])
@@ -88,31 +118,3 @@ def get_record_audit_logs(
 ):
     filter_params = shared_schemas.AuditLogFilter(table_name=table_name, record_id=record_id)
     return crud.audit_log.get_multi_with_filter(db, skip=skip, limit=limit, filter_params=filter_params)
-
-
-@router.get("/logs/export", response_model=shared_schemas.AuditLogExport)
-def export_audit_logs(
-        db: Session = Depends(deps.get_db),
-        date_from: int = Query(None),
-        date_to: int = Query(None),
-        current_user: models.User = Depends(deps.get_current_admin)
-):
-    filter_params = shared_schemas.AuditLogFilter(date_from=date_from, date_to=date_to)
-    logs = crud.audit_log.get_multi_with_filter(db, filter_params=filter_params)
-    return shared_schemas.AuditLogExport(logs=logs, export_timestamp=int(datetime.now().timestamp()))
-
-
-@router.get("/logs/actions", response_model=list[str])
-def get_audit_log_actions(
-        db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_user)
-):
-    return crud.audit_log.get_distinct_actions(db)
-
-
-@router.get("/logs/tables", response_model=list[str])
-def get_audited_tables(
-        db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_active_user)
-):
-    return crud.audit_log.get_distinct_tables(db)

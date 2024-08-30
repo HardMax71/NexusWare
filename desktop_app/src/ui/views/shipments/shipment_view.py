@@ -166,17 +166,11 @@ class ShipmentView(QWidget):
                 QMessageBox.critical(self, "Error", f"Failed to delete shipment: {str(e)}")
 
     def track_shipment(self, shipment: Shipment):
-        try:
-            tracking_info = self.shipments_api.track_shipment(shipment.id)
-            dialog = ShipmentTrackingDialog(tracking_info, parent=self)
-            dialog.exec_()
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to track shipment: {str(e)}")
+        tracking_info = self.shipments_api.track_shipment(shipment.id)
+        dialog = ShipmentTrackingDialog(tracking_info, parent=self)
+        dialog.exec_()
 
     def generate_label(self, shipment: Shipment):
-        try:
-            label = self.shipments_api.generate_shipping_label(shipment.id)
-            QMessageBox.information(self, "Success",
-                                    f"Shipping label generated successfully. Download URL: {label.label_download_url}")
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to generate shipping label: {str(e)}")
+        label = self.shipments_api.generate_shipping_label(shipment.id)
+        QMessageBox.information(self, "Success",
+                                f"Shipping label generated successfully. Download URL: {label.label_download_url}")

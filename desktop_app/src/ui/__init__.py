@@ -1,9 +1,8 @@
 from desktop_app.src.ui.views.notifications.notification_center import NotificationCenter
-from .audit_log_view import AuditLogView
+from desktop_app.src.ui.views.audit_logs.audit_log_view import AuditLogView
 from .barcode_designer import BarcodeDesignerWidget
 from .dashboard import DashboardWidget
 from .main_window import MainWindow
-from .offline_mode import OfflineModeWidget
 from .report_generator import ReportGeneratorWidget
 from .search_filter import AdvancedSearchDialog
 from .settings.system_diagnostics import SystemDiagnosticsWidget
@@ -33,7 +32,6 @@ __all__ = [
     "BarcodeDesignerWidget",
     "SystemDiagnosticsWidget",
     "AdvancedSearchDialog",
-    "OfflineModeWidget",
     "UserManagementWidget",
     "AuditLogView",
     "NotificationCenter",

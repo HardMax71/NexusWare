@@ -15,6 +15,7 @@ from desktop_app.src.ui.views.user_mgmt import UserManagementWidget
 from desktop_app.src.utils import ConfigManager
 from public_api.api import APIClient
 from public_api.permissions import PermissionName, PermissionManager
+from . import AuditLogView
 from .components.dialogs import UserManualDialog, AboutDialog
 from .dashboard import DashboardWidget
 from .qtutorial import QTutorialManager
@@ -71,6 +72,7 @@ class MainWindow(QMainWindow):
     def add_tabs_based_on_permissions(self):
         tab_classes = {
             PermissionName.DASHBOARD: DashboardWidget,
+            PermissionName.AUDIT_LOGS: AuditLogView,
             PermissionName.INVENTORY: InventoryView,
             PermissionName.ORDERS: OrderView,
             PermissionName.PRODUCTS: ProductView,

@@ -11,6 +11,7 @@ class PermissionType(str, Enum):
 class PermissionName(str, Enum):
     ASSET = "Asset"
     ASSET_MAINTENANCE = "Asset Maintenance"
+    AUDIT_LOGS = "Audit Logs"
     DASHBOARD = "Dashboard"
     INVENTORY = "Inventory"
     ORDERS = "Orders"
