@@ -4,7 +4,7 @@ from .barcode_designer import BarcodeDesignerWidget
 from .dashboard import DashboardWidget
 from .main_window import MainWindow
 from .report_generator import ReportGeneratorWidget
-from .search_filter import AdvancedSearchDialog
+from .advanced_search import AdvancedSearchDialog
 from .settings.system_diagnostics import SystemDiagnosticsWidget
 from .views.auth import LoginDialog
 from .views.customers import CustomerDialog, CustomerDetailsDialog, CustomerView

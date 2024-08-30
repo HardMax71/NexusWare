@@ -48,6 +48,7 @@ class CRUDProduct(CRUDBase[Product, ProductCreate, ProductUpdate]):
             min_price: float | None = None,
             max_price: float | None = None,
             in_stock: bool | None = None,
+            min_quantity: int | None = None,
             sort_by: str | None = None,
             sort_order: str | None = "asc",
             skip: int = 0,
@@ -82,6 +83,9 @@ class CRUDProduct(CRUDBase[Product, ProductCreate, ProductUpdate]):
                 query = query.join(Inventory).filter(Inventory.quantity > 0)
             else:
                 query = query.outerjoin(Inventory).group_by(Product.id).having(func.sum(Inventory.quantity) == 0)
+
+        if min_quantity is not None:
+            query = query.join(Inventory).group_by(Product.id).having(func.sum(Inventory.quantity) >= min_quantity)
 
         if sort_by:
             sort_column = getattr(Product, sort_by, None)

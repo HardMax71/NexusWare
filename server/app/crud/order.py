@@ -1,5 +1,7 @@
+from datetime import datetime
+
 from fastapi import HTTPException
-from sqlalchemy import func
+from sqlalchemy import func, or_, String
 from sqlalchemy.orm import Session, joinedload
 
 from public_api.shared_schemas import (
@@ -7,9 +9,9 @@ from public_api.shared_schemas import (
     OrderWithDetails as OrderWithDetailsSchema,
     OrderCreate, OrderUpdate, OrderItemCreate, OrderItemUpdate,
     OrderFilter, OrderSummary, ShippingInfo, BulkOrderImportData,
-    BulkOrderImportResult, OrderProcessingTimes, OrderStatus
+    BulkOrderImportResult, OrderProcessingTimes, OrderStatus, OrderWithDetails
 )
-from server.app.models import Order, OrderItem
+from server.app.models import Order, OrderItem, Customer
 from .base import CRUDBase
 
 
@@ -48,36 +50,66 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
         orders = query.offset(skip).limit(limit).all()
         return [OrderWithDetailsSchema.model_validate(x) for x in orders]
 
-    def advanced_search(self, db: Session, *, q: str = None, status: str = None, min_total: float = None,
-                        max_total: float = None, start_date: int = None, end_date: int = None,
-                        sort_by: str = None, sort_order: str = "asc") -> list[OrderSchema]:
-        query = db.query(self.model).options(joinedload(Order.customer))
+    def advanced_search(
+            self,
+            db: Session,
+            *,
+            q: str | None = None,
+            status: str | None = None,
+            min_total: float | None = None,
+            max_total: float | None = None,
+            start_date: int | None = None,
+            end_date: int | None = None,
+            customer_id: str | None = None,
+            sort_by: str | None = None,
+            sort_order: str | None = "asc",
+            skip: int = 0,
+            limit: int = 100
+    ) -> list[OrderWithDetails]:
+        query = db.query(Order).options(
+            joinedload(Order.customer),
+            joinedload(Order.order_items).joinedload(OrderItem.product)
+        )
+
+        # Apply filters
         if q:
-            query = query.filter(Order.customer_id.ilike(f"%{q}%"))
+            query = query.filter(
+                or_(
+                    Order.id.cast(String).ilike(f"%{q}%"),
+                    Order.customer.has(Customer.name.ilike(f"%{q}%")),
+                    Order.customer.has(Customer.email.ilike(f"%{q}%"))
+                )
+            )
+
         if status:
             query = query.filter(Order.status == status)
-        if min_total:
-            query = query.filter(Order.total_amount >= min_total)
-        if max_total:
-            query = query.filter(Order.total_amount <= max_total)
-        if start_date:
-            query = query.filter(Order.order_date >= start_date)
-        if end_date:
-            query = query.filter(Order.order_date <= end_date)
-        if sort_by:
-            if sort_by == "total_amount":
-                if sort_order == "asc":
-                    query = query.order_by(Order.total_amount.asc())
-                else:
-                    query = query.order_by(Order.total_amount.desc())
-            elif sort_by == "order_date":
-                if sort_order == "asc":
-                    query = query.order_by(Order.order_date.asc())
-                else:
-                    query = query.order_by(Order.order_date.desc())
 
-        orders = query.all()
-        return [OrderSchema.model_validate(order) for order in orders]
+        if min_total is not None:
+            query = query.filter(Order.total_amount >= min_total)
+
+        if max_total is not None:
+            query = query.filter(Order.total_amount <= max_total)
+
+        if start_date is not None:
+            query = query.filter(Order.order_date >= datetime.fromtimestamp(start_date))
+
+        if end_date is not None:
+            query = query.filter(Order.order_date <= datetime.fromtimestamp(end_date))
+
+        if customer_id:
+            query = query.filter(Order.customer_id == customer_id)
+
+        if sort_by:
+            sort_column = getattr(Order, sort_by, None)
+            if sort_column is not None:
+                if sort_order and sort_order.lower() == "desc":
+                    sort_column = sort_column.desc()
+                query = query.order_by(sort_column)
+
+        # Apply pagination
+        orders = query.offset(skip).limit(limit).all()
+
+        return [OrderWithDetails.model_validate(order) for order in orders]
 
     def get_summary(self, db: Session, date_from: int | None, date_to: int | None) -> OrderSummary:
         query = db.query(func.count(Order.id).label("total_orders"),
@@ -122,7 +154,7 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
         db.delete(item)
 
         if not order.order_items:
-            order.status = "cancelled"
+            order.status = OrderStatus.CANCELLED
 
         db.add(order)
         db.commit()

@@ -15,6 +15,7 @@ def search_products(
         min_price: float | None = Query(None),
         max_price: float | None = Query(None),
         in_stock: bool | None = Query(None),
+        min_quantity: int | None = Query(None),
         sort_by: str | None = Query(None),
         sort_order: str | None = Query("asc"),
         db: Session = Depends(deps.get_db),
@@ -22,7 +23,7 @@ def search_products(
 ):
     return crud.product.advanced_search(
         db, q=q, category_id=category_id, min_price=min_price,
-        max_price=max_price, in_stock=in_stock,
+        max_price=max_price, in_stock=in_stock, min_quantity=min_quantity,
         sort_by=sort_by, sort_order=sort_order
     )
 
@@ -35,6 +36,7 @@ def search_orders(
         max_total: float | None = Query(None),
         start_date: int | None = Query(None),
         end_date: int | None = Query(None),
+        customer_id: str | None = Query(None),
         sort_by: str | None = Query(None),
         sort_order: str | None = Query("asc"),
         db: Session = Depends(deps.get_db),
@@ -43,5 +45,6 @@ def search_orders(
     return crud.order.advanced_search(
         db, q=q, status=status, min_total=min_total,
         max_total=max_total, start_date=start_date,
-        end_date=end_date, sort_by=sort_by, sort_order=sort_order
+        end_date=end_date, customer_id=customer_id,
+        sort_by=sort_by, sort_order=sort_order
     )

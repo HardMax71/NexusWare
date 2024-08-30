@@ -20,7 +20,7 @@ from .components.dialogs import UserManualDialog, AboutDialog
 from .dashboard import DashboardWidget
 from .qtutorial import QTutorialManager
 from .report_generator import ReportGeneratorWidget
-from .search_filter import AdvancedSearchDialog
+from .advanced_search import AdvancedSearchDialog
 from .settings import SettingsDialog
 
 

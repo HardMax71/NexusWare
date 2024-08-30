@@ -12,7 +12,8 @@ class SearchAPI:
             category_id: int | None = None,
             min_price: float | None = None,
             max_price: float | None = None,
-            in_stock: str | bool = None,
+            in_stock: bool | None = None,
+            min_quantity: int | None = None,
             sort_by: str | None = None,
             sort_order: str | None = "asc"
     ) -> list[Product]:
@@ -22,6 +23,7 @@ class SearchAPI:
             "min_price": min_price,
             "max_price": max_price,
             "in_stock": in_stock,
+            "min_quantity": min_quantity,
             "sort_by": sort_by,
             "sort_order": sort_order
         }
@@ -36,6 +38,7 @@ class SearchAPI:
             max_total: float | None = None,
             start_date: int | None = None,
             end_date: int | None = None,
+            customer_id: int | None = None,
             sort_by: str | None = None,
             sort_order: str | None = "asc"
     ) -> list[Order]:
@@ -46,6 +49,7 @@ class SearchAPI:
             "max_total": max_total,
             "start_date": start_date,
             "end_date": end_date,
+            "customer_id": customer_id,
             "sort_by": sort_by,
             "sort_order": sort_order
         }
