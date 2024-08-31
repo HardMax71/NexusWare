@@ -4,7 +4,7 @@ from fastapi import APIRouter
 from app.api.v1.endpoints import (users, inventory, orders, warehouse, yard, assets, quality, tasks, audit, reports,
                                   search, \
                                   products, customers, purchase_orders, suppliers, po_items, locations, zones,
-                                  product_categories,
+                                  product_categories, chat,
                                   roles, permissions, pick_lists, receipts, shipments, carriers, notifications)
 
 api_router = APIRouter()
@@ -46,3 +46,5 @@ api_router.include_router(permissions.router, prefix="/permissions", tags=["perm
 api_router.include_router(product_categories.router, prefix="/product_categories", tags=["product_categories"])
 
 api_router.include_router(notifications.router, prefix="/notifications", tags=["notifications"])
+
+api_router.include_router(chat.router, prefix="/chat", tags=["chat"])

@@ -2,6 +2,7 @@
 from .asset import asset
 from .asset_maintenance import asset_maintenance
 from .audit import audit_log
+from .chat import chat
 from .customer import customer
 from .dock_appointment import dock_appointment
 from .inventory import inventory

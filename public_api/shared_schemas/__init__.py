@@ -12,6 +12,8 @@ from .asset import (
 from .audit import (AuditLogBase, AuditLogCreate,
                     AuditLog, AuditLogWithUser, AuditLogFilter,
                     AuditSummary, UserActivitySummary, AuditLogExport)
+# Chat shared_schemas
+from .chat import MessageCreate, MessageResponse, ChatCreate, ChatResponse, ChatListResponse, ChatMessageListResponse
 # Inventory shared_schemas
 from .inventory import (
     ProductCategoryBase, ProductCategoryCreate, ProductCategoryUpdate, ProductCategory,

@@ -103,11 +103,19 @@ class MainWindow(QMainWindow):
         if self.permission_manager.has_read_permission(PermissionName.ADVANCED_SEARCH):
             view_menu.addAction("Advanced Search", self.open_advanced_search)
 
+        chat_menu = menu_bar.addMenu("Chat")
+        chat_menu.addAction("Open Chat", self.open_chat_window)
+
         help_menu = menu_bar.addMenu("Help")
         help_menu.addAction("User Manual", self.open_user_manual)
         help_menu.addAction("About", self.show_about_dialog)
 
         self.add_notification_button(menu_bar)
+
+    def open_chat_window(self):
+        from src.ui.chat_window import ChatDialog
+        chat_dialog = ChatDialog(self.api_client, self)
+        chat_dialog.exec()
 
     def add_notification_button(self, menu_bar):
         notification_button = QToolButton(self)
