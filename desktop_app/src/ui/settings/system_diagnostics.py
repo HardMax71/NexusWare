@@ -5,7 +5,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QTextEdit, QProgressBar, QHB
 from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
 
-from desktop_app.src.ui.components import StyledButton, StyledLabel
+from src.ui.components import StyledButton, StyledLabel
 from public_api.api import APIClient
 
 

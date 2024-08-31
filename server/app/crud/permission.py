@@ -2,10 +2,10 @@
 
 from sqlalchemy.orm import Session
 
+from app.crud.base import CRUDBase
+from app.models import Permission
 from public_api.shared_schemas import PermissionCreate, PermissionUpdate, \
     Permission as PermissionSchema
-from server.app.models import Permission
-from .base import CRUDBase
 
 
 class CRUDPermission(CRUDBase[Permission, PermissionCreate, PermissionUpdate]):

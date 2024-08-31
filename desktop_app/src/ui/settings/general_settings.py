@@ -4,7 +4,7 @@ import sys
 from PySide6.QtCore import QCoreApplication, QSettings
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QMessageBox
 
-from desktop_app.src.ui.components import StyledLabel, StyledComboBox, ToggleSwitch
+from src.ui.components import StyledLabel, StyledComboBox, ToggleSwitch
 
 
 class GeneralSettingsWidget(QWidget):

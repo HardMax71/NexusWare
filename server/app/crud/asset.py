@@ -2,6 +2,8 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session, joinedload
 
+from app.crud.base import CRUDBase
+from app.models import Asset, AssetMaintenance, Location
 from public_api.shared_schemas import (
     Asset as AssetSchema,
     Location as LocationSchema,
@@ -10,8 +12,6 @@ from public_api.shared_schemas import (
     AssetUpdate,
     AssetFilter
 )
-from server.app.models import Asset, AssetMaintenance, Location
-from .base import CRUDBase
 
 
 class CRUDAsset(CRUDBase[Asset, AssetCreate, AssetUpdate]):

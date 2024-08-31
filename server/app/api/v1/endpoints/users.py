@@ -7,11 +7,11 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from public_api.shared_schemas import user as user_schemas
-from server.app import crud, models
-from server.app.api import deps
-from server.app.core import security
-from server.app.core.config import settings
-from server.app.core.email import send_reset_password_email
+from app import crud, models
+from app.api import deps
+from app.core import security
+from app.core.config import settings
+from app.core.email import send_reset_password_email
 
 router = APIRouter()
 
@@ -208,6 +208,16 @@ def create_user(
     user.password = security.get_password_hash(user.password)
     return crud.user.create(db=db, obj_in=user)
 
+@router.get("/search", response_model=list[user_schemas.UserSearchResult])
+def search_users(
+    query: str = Query(..., min_length=1),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user)
+):
+    users = crud.user.search(db, query=query, skip=skip, limit=limit)
+    return users
 
 @router.get("/{user_id}/permissions", response_model=user_schemas.UserWithPermissions)
 def get_user_permissions(

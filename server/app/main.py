@@ -1,9 +1,9 @@
 # /server/app/main.py
 from fastapi import FastAPI
 
-from server.app.api.v1.router import api_router
-from server.app.core.config import settings
-from server.app.db.database import engine, Base
+from app.api.v1.router import api_router
+from app.core.config import settings
+from app.db.database import engine, Base
 
 app = FastAPI(title=settings.PROJECT_NAME, version=settings.PROJECT_VERSION)
 

@@ -11,6 +11,10 @@ from sklearn.preprocessing import StandardScaler
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session, joinedload
 
+from app.crud.base import CRUDBase
+from app.models import (
+    Product, Inventory, Location, Zone, ProductCategory, InventoryMovement, InventoryAdjustment
+)
 from public_api.shared_schemas import (
     Product as ProductSchema,
     ProductWithInventory as ProductWithInventorySchema,
@@ -23,10 +27,6 @@ from public_api.shared_schemas import (
     StocktakeDiscrepancy, ABCCategory, StorageUtilization,
     BulkImportData, BulkImportResult, InventoryFilter, InventoryWithDetails, InventorySummary, InventoryTrendItem
 )
-from server.app.models import (
-    Product, Inventory, Location, Zone, ProductCategory, InventoryMovement, InventoryAdjustment
-)
-from .base import CRUDBase
 
 
 class CRUDInventory(CRUDBase[Inventory, InventoryCreate, InventoryUpdate]):

@@ -3,7 +3,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, Text
 from sqlalchemy.orm import relationship
 import time
 
-from .base import Base
+from app.models.base import Base
 
 
 class QualityCheck(Base):

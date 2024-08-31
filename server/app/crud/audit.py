@@ -1,10 +1,10 @@
 from sqlalchemy import func, desc
 from sqlalchemy.orm import Session
 
+from app.crud.base import CRUDBase
+from app.models import AuditLog, User
 from public_api.shared_schemas import AuditLog as AuditLogSchema, AuditLogCreate, AuditLogFilter, AuditSummary, \
     UserActivitySummary
-from server.app.models import AuditLog, User
-from .base import CRUDBase
 
 
 class CRUDAuditLog(CRUDBase[AuditLog, AuditLogCreate, AuditLogCreate]):

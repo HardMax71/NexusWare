@@ -1,7 +1,7 @@
 from datetime import timedelta, datetime
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-from server.app.models import Product, Inventory, Order, OrderItem, Task
+from app.models import Product, Inventory, Order, OrderItem, Task
 from public_api.shared_schemas import (
     InventorySummaryReport, InventoryItem, OrderSummaryReport, OrderSummary,
     WarehousePerformanceReport, WarehousePerformanceMetric, KPIDashboard, KPIMetric

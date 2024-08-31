@@ -1,5 +1,5 @@
-from desktop_app.src.ui.views.notifications.notification_center import NotificationCenter
-from desktop_app.src.ui.views.audit_logs.audit_log_view import AuditLogView
+from .views.notifications.notification_center import NotificationCenter
+from .views.audit_logs.audit_log_view import AuditLogView
 from .barcode_designer import BarcodeDesignerWidget
 from .dashboard import DashboardWidget
 from .main_window import MainWindow

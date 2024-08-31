@@ -3,14 +3,14 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, 
                                QHeaderView, QDialog, QLineEdit, QStackedWidget, QMessageBox, QComboBox,
                                QMainWindow)
 
-from desktop_app.src.ui import BarcodeDesignerWidget
-from desktop_app.src.ui.components import StyledButton
 from public_api.api import ProductsAPI, APIClient, ProductCategoriesAPI, LocationsAPI, UsersAPI
 from public_api.permissions import PermissionName
 from public_api.shared_schemas.inventory import (ProductWithCategoryAndInventory, ProductFilter)
-from .product_details_dialog import ProductDetailsDialog
-from .product_dialog import ProductDialog
-from desktop_app.src.ui.components.icon_path import IconPath
+from src.ui import BarcodeDesignerWidget
+from src.ui.components import StyledButton
+from src.ui.components.icon_path import IconPath
+from src.ui.views.products.product_details_dialog import ProductDetailsDialog
+from src.ui.views.products.product_dialog import ProductDialog
 
 
 class ProductView(QWidget):

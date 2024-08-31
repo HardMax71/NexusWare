@@ -2,6 +2,8 @@
 
 from sqlalchemy.orm import Session
 
+from app.crud.base import CRUDBase
+from app.models import PurchaseOrder, POItem, Supplier
 from public_api.shared_schemas import (
     PurchaseOrder as PurchaseOrderSchema,
     PurchaseOrderWithDetails as PurchaseOrderWithDetailsSchema,
@@ -9,8 +11,6 @@ from public_api.shared_schemas import (
     POItemCreate, POItemUpdate,
     PurchaseOrderFilter, POItemReceive, PurchaseOrderCreate, PurchaseOrderUpdate
 )
-from server.app.models import PurchaseOrder, POItem, Supplier
-from .base import CRUDBase
 
 
 class CRUDPurchaseOrder(CRUDBase[PurchaseOrder, PurchaseOrderCreate, PurchaseOrderUpdate]):

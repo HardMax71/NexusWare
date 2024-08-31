@@ -2,13 +2,13 @@
 
 from sqlalchemy.orm import Session
 
-from server.app.models import Customer
+from app.crud.base import CRUDBase
+from app.models import Customer
 from public_api.shared_schemas import (
     Customer as CustomerSchema,
     CustomerCreate, CustomerUpdate,
     CustomerFilter
 )
-from .base import CRUDBase
 
 
 class CRUDCustomer(CRUDBase[Customer, CustomerCreate, CustomerUpdate]):

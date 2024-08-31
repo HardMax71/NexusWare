@@ -32,3 +32,5 @@ class IconPath(str, Enum):
     SEARCH: str = "icons:search.png"
 
     PLUS: str = "icons:plus.png"
+
+    ATTACHMENT: str = "icons:attachment.png"

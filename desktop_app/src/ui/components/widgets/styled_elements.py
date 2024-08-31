@@ -4,7 +4,7 @@ from PySide6.QtWidgets import (
     QPushButton, QLineEdit, QComboBox, QLabel
 )
 
-from desktop_app.src.ui.components.icon_path import IconPath
+from src.ui.components.icon_path import IconPath
 
 
 class StyledButton(QPushButton):

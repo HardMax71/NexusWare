@@ -76,7 +76,8 @@ from .user import (
     RoleBase, RoleCreate, RoleUpdate, Role, UserBase, UserUpdate, UserSanitized,
     UserInDB, TwoFactorLogin, Token, Message, UserFilter, UserWithPermissions,
     AllRoles, AllPermissions, UserPermissionUpdate, UserCreate, RefreshTokenRequest,
-    RolePermission, RolePermissionCreate, RolePermissionUpdate, UserPermission
+    RolePermission, RolePermissionCreate, RolePermissionUpdate, UserPermission,
+    UserSearchResult
 )
 # Warehouse shared_schemas
 from .warehouse import (

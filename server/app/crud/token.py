@@ -3,9 +3,9 @@ from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
 
-from server.app.core.config import settings
-from server.app.core.security import create_access_token, create_refresh_token
-from server.app.models import Token
+from app.core.config import settings
+from app.core.security import create_access_token, create_refresh_token
+from app.models import Token
 
 
 class CRUDToken:

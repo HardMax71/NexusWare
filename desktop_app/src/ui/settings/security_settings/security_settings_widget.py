@@ -7,10 +7,10 @@ from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QSpinBox, QMessageBox, QDialog)
 from requests import HTTPError
 
-from desktop_app.src.ui.components import StyledLabel, StyledButton, ToggleSwitch
 from public_api.api import UsersAPI
 from public_api.shared_schemas import UserUpdate
-from . import QRCodeDialog, PasswordChangeDialog
+from src.ui.components import StyledLabel, StyledButton, ToggleSwitch
+from src.ui.settings.security_settings import QRCodeDialog, PasswordChangeDialog
 
 
 class SecuritySettingsWidget(QWidget):

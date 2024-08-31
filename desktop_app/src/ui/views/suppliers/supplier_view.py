@@ -2,13 +2,13 @@ from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
                                QHeaderView, QDialog, QLineEdit, QMessageBox, QStackedWidget)
 
-from desktop_app.src.ui.components import StyledButton
 from public_api.api import SuppliersAPI, APIClient, UsersAPI
 from public_api.permissions import PermissionName
 from public_api.shared_schemas import Supplier
-from .supplier_details_dialog import SupplierDetailsDialog
-from .supplier_dialog import SupplierDialog
-from desktop_app.src.ui.components.icon_path import IconPath
+from src.ui.components import StyledButton
+from src.ui.components.icon_path import IconPath
+from src.ui.views.suppliers.supplier_details_dialog import SupplierDetailsDialog
+from src.ui.views.suppliers.supplier_dialog import SupplierDialog
 
 
 class SupplierView(QWidget):

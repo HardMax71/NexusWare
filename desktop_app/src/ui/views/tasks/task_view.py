@@ -5,13 +5,13 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, 
                                QHeaderView, QDialog, QLineEdit, QComboBox, QStackedWidget, QLabel,
                                QMessageBox, QScrollArea)
 
-from desktop_app.src.ui.components import StyledButton
-from desktop_app.src.ui.components.icon_path import IconPath
 from public_api.api import APIClient, TasksAPI, UsersAPI
 from public_api.shared_schemas import TaskWithAssignee, TaskFilter, TaskStatus, TaskPriority
 from public_api.shared_schemas.task import TaskType
-from .task_dialog import TaskDialog
-from .tasks_details_dialog import TaskDetailsDialog
+from src.ui.components import StyledButton
+from src.ui.components.icon_path import IconPath
+from src.ui.views.tasks.task_dialog import TaskDialog
+from src.ui.views.tasks.tasks_details_dialog import TaskDetailsDialog
 
 
 class TaskView(QWidget):

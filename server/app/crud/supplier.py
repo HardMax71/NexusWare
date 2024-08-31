@@ -2,13 +2,13 @@
 
 from sqlalchemy.orm import Session
 
-from server.app.models import Supplier
+from app.crud.base import CRUDBase
+from app.models import Supplier
 from public_api.shared_schemas import (
     Supplier as SupplierSchema,
     SupplierCreate, SupplierUpdate,
     SupplierFilter
 )
-from .base import CRUDBase
 
 
 class CRUDSupplier(CRUDBase[Supplier, SupplierCreate, SupplierUpdate]):

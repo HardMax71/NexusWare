@@ -2,7 +2,7 @@
 from sqlalchemy import Column, Integer, String, Numeric, Text, ForeignKey
 from sqlalchemy.orm import relationship
 
-from .base import Base
+from app.models.base import Base
 
 
 class Product(Base):

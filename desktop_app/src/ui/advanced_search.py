@@ -6,8 +6,8 @@ from PySide6.QtWidgets import (QVBoxLayout, QHBoxLayout, QLineEdit, QComboBox, Q
                                QDialog, QLabel, QCheckBox, QDoubleSpinBox, QDateEdit,
                                QGroupBox, QGridLayout, QWidget, QSpinBox)
 
-from desktop_app.src.ui.components import StyledButton
-from desktop_app.src.ui.components.icon_path import IconPath
+from src.ui.components import StyledButton
+from src.ui.components.icon_path import IconPath
 from public_api.api import APIClient, SearchAPI, CategoriesAPI
 from public_api.shared_schemas.order import OrderStatus
 

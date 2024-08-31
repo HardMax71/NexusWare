@@ -4,13 +4,13 @@ from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
                                QHeaderView, QDialog, QLineEdit, QMessageBox, QStackedWidget, QComboBox)
 
-from desktop_app.src.ui.components import StyledButton
 from public_api.api import ShipmentsAPI, APIClient, OrdersAPI, CarriersAPI
 from public_api.shared_schemas import Shipment, ShipmentFilter, ShipmentStatus
-from .shipment_details_dialog import ShipmentDetailsDialog
-from .shipment_dialog import ShipmentDialog
-from .shipment_tracking_dialog import ShipmentTrackingDialog
-from desktop_app.src.ui.components.icon_path import IconPath
+from src.ui.components import StyledButton
+from src.ui.components.icon_path import IconPath
+from src.ui.views.shipments.shipment_details_dialog import ShipmentDetailsDialog
+from src.ui.views.shipments.shipment_dialog import ShipmentDialog
+from src.ui.views.shipments.shipment_tracking_dialog import ShipmentTrackingDialog
 
 
 class ShipmentView(QWidget):

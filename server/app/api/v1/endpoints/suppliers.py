@@ -3,9 +3,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from .... import crud, models
+from app import crud, models
+from app.api import deps
 from public_api import shared_schemas
-from ....api import deps
 
 router = APIRouter()
 
@@ -65,8 +65,6 @@ def delete_supplier(
     if supplier is None:
         raise HTTPException(status_code=404, detail="Supplier not found")
     crud.supplier.remove(db, id=supplier_id)
-
-
 
 
 @router.get("/{supplier_id}/purchase_orders", response_model=list[shared_schemas.PurchaseOrder])

@@ -7,6 +7,7 @@
   "start_on_startup": false,
   "theme": "light",
   "api_base_url": "http://127.0.0.1:8000/api/v1",
+  "chat_base_url": "http://127.0.0.1:8001/chat/v1",
   "api_test_url": "http://127.0.0.1:8000/",
   "shipengine_api_key": "TEST_API",
   "request_timeout": 10,

@@ -4,6 +4,8 @@ from fastapi import HTTPException
 from sqlalchemy import func, or_, String
 from sqlalchemy.orm import Session, joinedload
 
+from app.crud.base import CRUDBase
+from app.models import Order, OrderItem, Customer
 from public_api.shared_schemas import (
     Order as OrderSchema,
     OrderWithDetails as OrderWithDetailsSchema,
@@ -11,8 +13,6 @@ from public_api.shared_schemas import (
     OrderFilter, OrderSummary, ShippingInfo, BulkOrderImportData,
     BulkOrderImportResult, OrderProcessingTimes, OrderStatus, OrderWithDetails
 )
-from server.app.models import Order, OrderItem, Customer
-from .base import CRUDBase
 
 
 class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):

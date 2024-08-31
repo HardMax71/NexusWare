@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 
+from app.crud.base import CRUDBase
+from app.models.user import Role as RoleModel, RolePermission as RolePermissionModel
 from public_api.shared_schemas import RoleCreate, RoleUpdate
-from server.app.models.user import Role as RoleModel, RolePermission as RolePermissionModel
-from .base import CRUDBase
 
 
 class CRUDRole(CRUDBase[RoleModel, RoleCreate, RoleUpdate]):

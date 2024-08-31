@@ -2,14 +2,14 @@
 
 from sqlalchemy.orm import Session
 
+from app.crud.base import CRUDBase
+from app.models import AssetMaintenance
 from public_api.shared_schemas import (
     AssetMaintenance as AssetMaintenanceSchema,
     AssetMaintenanceCreate,
     AssetMaintenanceUpdate,
     AssetMaintenanceFilter
 )
-from server.app.models import AssetMaintenance
-from .base import CRUDBase
 
 
 class CRUDAssetMaintenance(CRUDBase[AssetMaintenance, AssetMaintenanceCreate, AssetMaintenanceUpdate]):

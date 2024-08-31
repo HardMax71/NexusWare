@@ -3,14 +3,12 @@
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session, joinedload
 
+from app.crud.base import CRUDBase
+from app.models import Product, Inventory
 from public_api.shared_schemas import (
     ProductCreate, ProductUpdate,
     ProductFilter, ProductWithCategoryAndInventory
 )
-from server.app.models import (
-    Product, Inventory
-)
-from .base import CRUDBase
 
 
 class CRUDProduct(CRUDBase[Product, ProductCreate, ProductUpdate]):

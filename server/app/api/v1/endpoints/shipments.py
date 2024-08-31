@@ -3,10 +3,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Path, Body, Query
 from sqlalchemy.orm import Session
 
-from public_api.shared_schemas import ShipmentWithDetails
-from .... import crud, models
+from app import crud, models
+from app.api import deps
 from public_api import shared_schemas
-from ....api import deps
+from public_api.shared_schemas import ShipmentWithDetails
 
 router = APIRouter()
 
@@ -106,6 +106,7 @@ def get_shipment_with_details(
         order=order,
         carrier=carrier
     )
+
 
 @router.post("/{shipment_id}/track", response_model=shared_schemas.ShipmentTracking)
 def track_shipment(

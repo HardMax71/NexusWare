@@ -1,9 +1,11 @@
 # /server/app/api/v1/router.py
 from fastapi import APIRouter
 
-from .endpoints import (users, inventory, orders, warehouse, yard, assets, quality, tasks, audit, reports, search, \
-                        products, customers, purchase_orders, suppliers, po_items, locations, zones, product_categories,
-                        roles, permissions, pick_lists, receipts, shipments, carriers, notifications)
+from app.api.v1.endpoints import (users, inventory, orders, warehouse, yard, assets, quality, tasks, audit, reports,
+                                  search, \
+                                  products, customers, purchase_orders, suppliers, po_items, locations, zones,
+                                  product_categories,
+                                  roles, permissions, pick_lists, receipts, shipments, carriers, notifications)
 
 api_router = APIRouter()
 

@@ -5,9 +5,9 @@ from PySide6.QtGui import QPainter
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem, QComboBox,
                                QPushButton, QHeaderView)
 
-from desktop_app.src.ui.components import StyledButton
 from public_api.api import ProductsAPI, InventoryAPI, APIClient
-from .warehouse_visualization_window import WarehouseVisualizationWindow
+from src.ui.components import StyledButton
+from src.ui.views.inventory.warehouse_visualization_window import WarehouseVisualizationWindow
 
 
 class InventoryPlanningWidget(QWidget):

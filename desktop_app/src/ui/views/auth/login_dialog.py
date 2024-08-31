@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (QDialog, QVBoxLayout, QLineEdit, QPushButton, QFo
 from requests import HTTPError
 
 from public_api.api import UsersAPI
-from .two_factor_dialog import TwoFactorDialog
+from src.ui.views.auth.two_factor_dialog import TwoFactorDialog
 
 
 class LoginDialog(QDialog):

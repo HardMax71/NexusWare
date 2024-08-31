@@ -1,11 +1,11 @@
 from PySide6.QtWidgets import QDialog, QTabWidget, QVBoxLayout, QDialogButtonBox
 
-from .advanced_settings import AdvancedSettingsWidget
-from .appearance_settings import AppearanceSettingsWidget
-from .general_settings import GeneralSettingsWidget
-from .network_settings import NetworkSettingsWidget
-from .security_settings import SecuritySettingsWidget
-from .system_diagnostics import SystemDiagnosticsWidget
+from src.ui.settings.advanced_settings import AdvancedSettingsWidget
+from src.ui.settings.appearance_settings import AppearanceSettingsWidget
+from src.ui.settings.general_settings import GeneralSettingsWidget
+from src.ui.settings.network_settings import NetworkSettingsWidget
+from src.ui.settings.security_settings import SecuritySettingsWidget
+from src.ui.settings.system_diagnostics import SystemDiagnosticsWidget
 
 
 class SettingsDialog(QDialog):

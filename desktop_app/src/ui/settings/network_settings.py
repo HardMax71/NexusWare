@@ -2,7 +2,7 @@ import requests
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QSpinBox, QMessageBox, QFrame, QToolButton, QStyle
 
-from desktop_app.src.ui.components import StyledLabel, StyledLineEdit, StyledButton
+from src.ui.components import StyledLabel, StyledLineEdit, StyledButton
 
 
 class NetworkSettingsWidget(QWidget):

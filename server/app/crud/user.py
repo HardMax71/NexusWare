@@ -4,11 +4,11 @@ from datetime import timedelta, datetime
 
 from sqlalchemy.orm import Session, joinedload
 
+from app.core.config import settings
+from app.core.security import get_password_hash, verify_password, create_access_token, create_refresh_token
+from app.crud.base import CRUDBase
+from app.models import User, Permission, Role, RolePermission, Token
 from public_api.shared_schemas import user as user_schemas
-from server.app.core.security import get_password_hash, verify_password, create_access_token, create_refresh_token
-from server.app.models import User, Permission, Role, RolePermission, Token
-from .base import CRUDBase
-from ..core.config import settings
 
 
 class CRUDUser(CRUDBase[User, user_schemas.UserCreate, user_schemas.UserUpdate]):
@@ -214,5 +214,10 @@ class CRUDUser(CRUDBase[User, user_schemas.UserCreate, user_schemas.UserUpdate])
     def get_active_token(self, db: Session, jti: str) -> Token | None:
         return db.query(Token).filter(Token.access_token.contains(jti), Token.is_active.is_(True)).first()
 
+    def search(self, db: Session, *, query: str, skip: int = 0, limit: int = 20) -> list[user_schemas.UserSearchResult]:
+        users = db.query(User.id, User.email).filter(
+            (User.username.ilike(f"%{query}%")) | (User.email.ilike(f"%{query}%"))
+        ).offset(skip).limit(limit).all()
+        return [user_schemas.UserSearchResult(id=user.id, email=user.email) for user in users]
 
 user = CRUDUser(User)

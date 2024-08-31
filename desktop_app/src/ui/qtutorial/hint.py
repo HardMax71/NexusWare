@@ -4,7 +4,7 @@ from PySide6.QtWidgets import (QLabel, QPushButton,
                                QVBoxLayout, QHBoxLayout,
                                QFrame)
 
-from .utils import load_stylesheet
+from src.ui.qtutorial.utils import load_stylesheet
 
 
 class QTutorialHint(QFrame):

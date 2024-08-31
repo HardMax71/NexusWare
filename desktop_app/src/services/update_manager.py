@@ -7,7 +7,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QMessageBox, QProgressDialog
 from packaging import version
 
-from desktop_app.src.utils import ConfigManager
+from src.utils import ConfigManager
 
 
 class UpdateManager:

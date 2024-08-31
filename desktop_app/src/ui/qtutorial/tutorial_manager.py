@@ -2,8 +2,8 @@ from PySide6.QtCore import QTimer
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QGraphicsDropShadowEffect
 
-from .hint import QTutorialHint
-from .utils import load_stylesheet
+from src.ui.qtutorial.hint import QTutorialHint
+from src.ui.qtutorial.utils import load_stylesheet
 
 
 class QTutorialManager:

@@ -5,7 +5,7 @@ from PySide6.QtGui import QIcon, QFont
 from PySide6.QtWidgets import QApplication, QMessageBox
 from requests import HTTPError
 
-from desktop_app.src.ui.components import IconPath
+from src.ui.components import IconPath
 from public_api.api import APIClient, UsersAPI
 from services import OfflineManager, UpdateManager
 from ui.components.dialogs.error_dialog import global_exception_handler

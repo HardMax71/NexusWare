@@ -3,7 +3,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout, QFrame
 )
 
-from .styled_elements import StyledLabel
+from src.ui.components.widgets.styled_elements import StyledLabel
 
 
 class CardWidget(QFrame):

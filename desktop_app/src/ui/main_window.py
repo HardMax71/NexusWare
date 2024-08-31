@@ -2,26 +2,26 @@ from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMainWindow, QTabWidget, QVBoxLayout, QWidget, QStatusBar, QMessageBox, QToolButton
 
-from desktop_app.src.ui.components import IconPath
-from desktop_app.src.ui.views.customers import CustomerView
-from desktop_app.src.ui.views.inventory import InventoryView
-from desktop_app.src.ui.views.notifications import NotificationCenter
-from desktop_app.src.ui.views.orders import OrderView
-from desktop_app.src.ui.views.products import ProductView
-from desktop_app.src.ui.views.shipments import ShipmentView
-from desktop_app.src.ui.views.suppliers import SupplierView
-from desktop_app.src.ui.views.tasks import TaskView
-from desktop_app.src.ui.views.user_mgmt import UserManagementWidget
-from desktop_app.src.utils import ConfigManager
 from public_api.api import APIClient
 from public_api.permissions import PermissionName, PermissionManager
-from . import AuditLogView
-from .components.dialogs import UserManualDialog, AboutDialog
-from .dashboard import DashboardWidget
-from .qtutorial import QTutorialManager
-from .report_generator import ReportGeneratorWidget
-from .advanced_search import AdvancedSearchDialog
-from .settings import SettingsDialog
+from src.ui import AuditLogView
+from src.ui.advanced_search import AdvancedSearchDialog
+from src.ui.components import IconPath
+from src.ui.components.dialogs import UserManualDialog, AboutDialog
+from src.ui.dashboard import DashboardWidget
+from src.ui.qtutorial import QTutorialManager
+from src.ui.report_generator import ReportGeneratorWidget
+from src.ui.settings import SettingsDialog
+from src.ui.views.customers import CustomerView
+from src.ui.views.inventory import InventoryView
+from src.ui.views.notifications import NotificationCenter
+from src.ui.views.orders import OrderView
+from src.ui.views.products import ProductView
+from src.ui.views.shipments import ShipmentView
+from src.ui.views.suppliers import SupplierView
+from src.ui.views.tasks import TaskView
+from src.ui.views.user_mgmt import UserManagementWidget
+from src.utils import ConfigManager
 
 
 class MainWindow(QMainWindow):
@@ -31,6 +31,8 @@ class MainWindow(QMainWindow):
         self.api_client = api_client
         self.config_manager = config_manager
         self.permission_manager = permission_manager
+        self.chat_base_url = self.config_manager.get("chat_base_url",
+                                                     "http://127.0.0.1:8001/chat/v1")
         self.init_ui()
 
     def init_ui(self):

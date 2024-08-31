@@ -3,7 +3,7 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout
 )
 
-from .styled_elements import StyledButton
+from src.ui.components.widgets.styled_elements import StyledButton
 
 
 class CollapsibleBox(QWidget):
