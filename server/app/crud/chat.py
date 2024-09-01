@@ -1,7 +1,7 @@
 from typing import List
 
 from sqlalchemy import or_, and_
-from sqlalchemy.orm import Session, relationship
+from sqlalchemy.orm import Session
 
 from app.models.chat import Chat, Message
 from public_api.shared_schemas import MessageCreate

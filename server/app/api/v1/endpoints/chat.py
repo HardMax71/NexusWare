@@ -21,16 +21,18 @@ def create_chat(
     db_chat = chat_crud.create_chat(db, current_user.id, chat.user2_id)
     return ChatResponse.model_validate(db_chat)
 
+
 @router.get("/{chat_id}", response_model=ChatResponse)
 def get_chat(
-    chat_id: int,
-    db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_user)
+        chat_id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: User = Depends(deps.get_current_active_user)
 ):
     chat = chat_crud.get_chat(db, chat_id, current_user.id)
     if not chat:
         raise HTTPException(status_code=404, detail="Chat not found")
     return ChatResponse.model_validate(chat)
+
 
 @router.get("/", response_model=ChatListResponse)
 def get_user_chats(
@@ -62,7 +64,7 @@ def create_message(
     chat = chat_crud.get_chat(db, chat_id, current_user.id)
     if not chat:
         raise HTTPException(status_code=404, detail="Chat not found")
-    db_message = chat_crud.create_message(db, chat_id, current_user.id, message)
+    chat_crud.create_message(db, chat_id, current_user.id, message)
     return ChatResponse.model_validate(chat)
 
 

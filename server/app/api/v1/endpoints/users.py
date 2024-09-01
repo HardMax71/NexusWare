@@ -184,7 +184,7 @@ def read_users(
         skip: int = Query(0),
         limit: int = Query(100),
         db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_admin)
+        current_user: models.User = Depends(deps.get_current_active_user)
 ):
     users = crud.user.get_multi_with_filters(
         db,
