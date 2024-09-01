@@ -2,14 +2,12 @@
 
 from sqlalchemy.orm import Session, joinedload
 
+from app.crud.base import CRUDBase
+from app.models import Location
 from public_api.shared_schemas import (
     LocationCreate,
     LocationUpdate, LocationWithInventory as LocationWithInventorySchema, LocationFilter
 )
-from server.app.models import (
-    Location
-)
-from .base import CRUDBase
 
 
 class CRUDLocation(CRUDBase[Location, LocationCreate, LocationUpdate]):

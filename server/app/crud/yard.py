@@ -7,7 +7,7 @@ from public_api.shared_schemas import (
     YardStats, YardUtilizationReport,
     CarrierPerformance, YardLocationCapacity
 )
-from server.app.models import YardLocation, DockAppointment, Carrier
+from app.models import YardLocation, DockAppointment, Carrier
 
 
 class CRUDYard:

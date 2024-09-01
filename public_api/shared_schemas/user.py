@@ -29,7 +29,6 @@ class RolePermissionBase(BaseModel):
     can_delete: bool = False
 
 
-
 class RolePermissionCreate(RolePermissionBase):
     pass
 
@@ -44,7 +43,6 @@ class RolePermission(RolePermissionBase):
     permission: Permission
 
     model_config = ConfigDict(from_attributes=True)
-
 
 
 class RoleBase(BaseModel):
@@ -66,8 +64,10 @@ class Role(RoleBase):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class RoleInDB(Role):
     pass
+
 
 class UserBase(BaseModel):
     username: str
@@ -99,6 +99,13 @@ class UserSanitized(UserBase):
     created_at: int
     last_login: int | None = None
     role: Role
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UserSearchResult(BaseModel):
+    id: int
+    email: EmailStr
 
     model_config = ConfigDict(from_attributes=True)
 

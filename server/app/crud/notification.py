@@ -1,10 +1,10 @@
 from sqlalchemy.orm import Session
 
+from app.crud.base import CRUDBase
+from app.models import Notification
 from public_api.shared_schemas import (
     NotificationCreate, NotificationUpdate, Notification as NotificationSchema
 )
-from server.app.models import Notification
-from .base import CRUDBase
 
 
 class CRUDNotification(CRUDBase[Notification, NotificationCreate, NotificationUpdate]):

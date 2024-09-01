@@ -1,12 +1,12 @@
 from sqlalchemy.orm import Session, joinedload
 
+from app.crud.base import CRUDBase
+from app.models import (
+    Zone
+)
 from public_api.shared_schemas import (
     ZoneCreate, ZoneUpdate, LocationFilter, ZoneWithLocations, WarehouseLayout
 )
-from server.app.models import (
-    Zone
-)
-from .base import CRUDBase
 
 
 class CRUDZone(CRUDBase[Zone, ZoneCreate, ZoneUpdate]):

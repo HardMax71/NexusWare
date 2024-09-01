@@ -3,10 +3,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session, joinedload
 
+from app import crud, models
+from app.api import deps
+from app.models import Product
 from public_api import shared_schemas
-from .... import crud, models
-from ....api import deps
-from ....models import Product
 
 router = APIRouter()
 

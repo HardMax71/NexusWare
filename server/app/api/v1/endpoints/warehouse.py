@@ -3,9 +3,9 @@
 from fastapi import APIRouter, Depends, Path, Body
 from sqlalchemy.orm import Session
 
-from .... import crud, models
+from app import crud, models
+from app.api import deps
 from public_api import shared_schemas
-from ....api import deps
 
 router = APIRouter()
 
@@ -16,6 +16,7 @@ def get_warehouse_layout(
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.zone.get_warehouse_layout(db)
+
 
 @router.get("/stats", response_model=shared_schemas.WarehouseStats)
 def get_warehouse_stats(
@@ -62,5 +63,3 @@ def adjust_inventory(
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.whole_warehouse.adjust_inventory(db, adjustment=adjustment)
-
-

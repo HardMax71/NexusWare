@@ -1,9 +1,10 @@
-from PySide6.QtCore import QTimer, QDir
+from PySide6.QtCore import QTimer
 from PySide6.QtGui import QColor
-from PySide6.QtWidgets import QGraphicsDropShadowEffect, QProgressBar
+from PySide6.QtWidgets import QGraphicsDropShadowEffect
 
-from .hint import QTutorialHint
-from .utils import load_stylesheet
+from src.ui.qtutorial.hint import QTutorialHint
+from src.ui.qtutorial.utils import load_stylesheet
+
 
 class QTutorialManager:
     def __init__(self, parent, tutorial_steps, show_step_number=True):
@@ -14,7 +15,6 @@ class QTutorialManager:
         self.original_stylesheet = self.parent.styleSheet()
         self.paused = False
         self.show_step_number = show_step_number
-
 
     def start_tutorial(self):
         QTimer.singleShot(500, self.show_tutorial_step)

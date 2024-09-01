@@ -2,6 +2,7 @@
 from .asset import asset
 from .asset_maintenance import asset_maintenance
 from .audit import audit_log
+from .chat import chat
 from .customer import customer
 from .dock_appointment import dock_appointment
 from .inventory import inventory
@@ -20,6 +21,7 @@ from .role import role
 from .shipment import shipment, carrier
 from .supplier import supplier
 from .task import task
+from .token import token
 from .user import user
 from .warehouse import whole_warehouse
 from .yard import yard

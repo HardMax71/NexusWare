@@ -1,7 +1,7 @@
 import json
 import sqlite3
 
-from desktop_app.src.utils import setup_logger
+from src.utils import setup_logger
 
 logger = setup_logger("offline_manager")
 

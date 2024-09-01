@@ -1,13 +1,13 @@
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from app.crud.base import CRUDBase
+from app.models import PickList, PickListItem
 from public_api.shared_schemas import (
     PickList as PickListSchema, PickListCreate, PickListUpdate,
     PickListItem as PickListItemSchema, PickListItemCreate, PickListItemUpdate,
     PickListFilter, PickingPerformance, OptimizedPickingRoute
 )
-from server.app.models import PickList, PickListItem
-from .base import CRUDBase
 
 
 class CRUDPickList(CRUDBase[PickList, PickListCreate, PickListUpdate]):

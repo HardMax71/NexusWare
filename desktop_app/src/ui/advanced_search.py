@@ -4,11 +4,11 @@ from datetime import datetime, time
 from PySide6.QtCore import Qt, QDate
 from PySide6.QtWidgets import (QVBoxLayout, QHBoxLayout, QLineEdit, QComboBox, QTableWidget, QTableWidgetItem,
                                QDialog, QLabel, QCheckBox, QDoubleSpinBox, QDateEdit,
-                               QGroupBox, QGridLayout, QWidget)
+                               QGroupBox, QGridLayout, QWidget, QSpinBox)
 
-from desktop_app.src.ui.components import StyledButton
-from desktop_app.src.ui.icon_path_enum import IconPath
-from public_api.api import APIClient, SearchAPI
+from src.ui.components import StyledButton
+from src.ui.components.icon_path import IconPath
+from public_api.api import APIClient, SearchAPI, CategoriesAPI
 from public_api.shared_schemas.order import OrderStatus
 
 
@@ -17,6 +17,7 @@ class AdvancedSearchDialog(QDialog):
         super().__init__(parent)
         self.api_client = api_client
         self.search_api = SearchAPI(api_client)
+        self.categories_api = CategoriesAPI(api_client)
         self.init_ui()
 
     def init_ui(self):
@@ -76,10 +77,16 @@ class AdvancedSearchDialog(QDialog):
 
         self.product_search_term = QLineEdit()
         self.product_category = QComboBox()
-        self.product_category.addItem("All Categories")
+        self.product_category = QComboBox()
+        self.product_category.addItem("All Categories", None)
+        self.load_categories()
         self.min_price = QDoubleSpinBox()
+        self.min_price.setRange(0, 1000000)
         self.max_price = QDoubleSpinBox()
+        self.max_price.setRange(0, 1000000)
         self.in_stock = QCheckBox("In Stock Only")
+        self.min_quantity = QSpinBox()
+        self.min_quantity.setRange(0, 1000000)
 
         layout.addWidget(QLabel("Search Term:"), 0, 0)
         layout.addWidget(self.product_search_term, 0, 1)
@@ -90,6 +97,8 @@ class AdvancedSearchDialog(QDialog):
         layout.addWidget(QLabel("Max Price:"), 3, 0)
         layout.addWidget(self.max_price, 3, 1)
         layout.addWidget(self.in_stock, 4, 0, 1, 2)
+        layout.addWidget(QLabel("Min Quantity:"), 5, 0)
+        layout.addWidget(self.min_quantity, 5, 1)
 
         group_box.setLayout(layout)
         self.search_options_layout.addWidget(group_box)
@@ -102,11 +111,14 @@ class AdvancedSearchDialog(QDialog):
         self.order_status = QComboBox()
         self.order_status.addItems(["All"] + [status.value for status in OrderStatus])
         self.min_total = QDoubleSpinBox()
+        self.min_total.setRange(0, 1000000)
         self.max_total = QDoubleSpinBox()
+        self.max_total.setRange(0, 1000000)
         self.start_date = QDateEdit()
         self.start_date.setDate(QDate.currentDate().addDays(-30))
         self.end_date = QDateEdit()
         self.end_date.setDate(QDate.currentDate())
+        self.customer_id = QLineEdit()
 
         layout.addWidget(QLabel("Search Term:"), 0, 0)
         layout.addWidget(self.order_search_term, 0, 1)
@@ -120,9 +132,16 @@ class AdvancedSearchDialog(QDialog):
         layout.addWidget(self.start_date, 4, 1)
         layout.addWidget(QLabel("End Date:"), 5, 0)
         layout.addWidget(self.end_date, 5, 1)
+        layout.addWidget(QLabel("Customer ID:"), 6, 0)
+        layout.addWidget(self.customer_id, 6, 1)
 
         group_box.setLayout(layout)
         self.search_options_layout.addWidget(group_box)
+
+    def load_categories(self):
+        categories = self.categories_api.get_categories()
+        for category in categories:
+            self.product_category.addItem(category.name, category.id)
 
     def perform_search(self):
         if self.search_type.currentText() == "Products":
@@ -135,10 +154,11 @@ class AdvancedSearchDialog(QDialog):
     def search_products(self):
         return self.search_api.search_products(
             q=self.product_search_term.text(),
-            category_id=self.product_category.currentIndex() if self.product_category.currentIndex() > 0 else None,
+            category_id=self.product_category.currentData(),
             min_price=self.min_price.value() if self.min_price.value() > 0 else None,
             max_price=self.max_price.value() if self.max_price.value() > 0 else None,
-            in_stock=self.in_stock.isChecked()
+            in_stock=self.in_stock.isChecked(),
+            min_quantity=self.min_quantity.value() if self.min_quantity.value() > 0 else None
         )
 
     def search_orders(self):
@@ -151,14 +171,16 @@ class AdvancedSearchDialog(QDialog):
             min_total=self.min_total.value() if self.min_total.value() > 0 else None,
             max_total=self.max_total.value() if self.max_total.value() > 0 else None,
             start_date=int(start_date.timestamp()),
-            end_date=int(end_date.timestamp())
+            end_date=int(end_date.timestamp()),
+            customer_id=self.customer_id.text() if self.customer_id.text() else None
         )
 
     def display_results(self, results):
         self.results_table.clear()
+        self.results_table.setRowCount(0)
+        self.results_table.setColumnCount(0)
+
         if not results:
-            self.results_table.setRowCount(0)
-            self.results_table.setColumnCount(0)
             return
 
         self.results_table.setRowCount(len(results))
@@ -171,7 +193,9 @@ class AdvancedSearchDialog(QDialog):
                     value = json.dumps(value, indent=2)
                 elif isinstance(value, datetime):
                     value = value.strftime("%Y-%m-%d %H:%M:%S")
-                self.results_table.setItem(row, col, QTableWidgetItem(str(value)))
+                table_item = QTableWidgetItem(str(value))
+                table_item.setFlags(table_item.flags() & ~Qt.ItemIsEditable)  # Make item read-only
+                self.results_table.setItem(row, col, table_item)
 
         self.results_table.resizeColumnsToContents()
 
@@ -183,4 +207,3 @@ class AdvancedSearchDialog(QDialog):
                 self.results_table.sortItems(logical_index, Qt.AscendingOrder)
         else:
             self.results_table.sortItems(logical_index, Qt.AscendingOrder)
-

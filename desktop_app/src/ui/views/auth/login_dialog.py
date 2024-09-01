@@ -4,14 +4,14 @@ from PySide6.QtWidgets import (QDialog, QVBoxLayout, QLineEdit, QPushButton, QFo
                                QInputDialog)
 from requests import HTTPError
 
-from desktop_app.src.services.authentication import AuthenticationService
-from .two_factor_dialog import TwoFactorDialog
+from public_api.api import UsersAPI
+from src.ui.views.auth.two_factor_dialog import TwoFactorDialog
 
 
 class LoginDialog(QDialog):
-    def __init__(self, auth_service: AuthenticationService, parent=None):
+    def __init__(self, users_api: UsersAPI, parent=None):
         super().__init__(parent)
-        self.auth_service = auth_service
+        self.users_api = users_api
         self.init_ui()
 
     def init_ui(self):
@@ -70,7 +70,7 @@ class LoginDialog(QDialog):
         username = self.username_input.text()
         password = self.password_input.text()
         try:
-            token = self.auth_service.login(username, password)
+            token = self.users_api.login(username, password)
             if token.access_token == "2FA_REQUIRED":
                 self.show_2fa_dialog(username, password)
             else:
@@ -79,7 +79,7 @@ class LoginDialog(QDialog):
             self.handle_error(e)
 
     def show_2fa_dialog(self, username, password):
-        two_factor_dialog = TwoFactorDialog(self.auth_service, username, password, self)
+        two_factor_dialog = TwoFactorDialog(self.users_api, username, password, self)
         if two_factor_dialog.exec() == QDialog.Accepted:
             self.accept()
 
@@ -87,7 +87,7 @@ class LoginDialog(QDialog):
         email, ok = QInputDialog.getText(self, "Reset Password", "Enter your email:")
         if ok and email:
             try:
-                message = self.auth_service.reset_password(email)
+                message = self.users_api.reset_password(email)
                 QMessageBox.information(self, "Password Reset", message.message)
             except HTTPError as e:
                 self.handle_error(e)

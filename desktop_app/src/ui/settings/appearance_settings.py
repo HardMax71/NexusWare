@@ -3,7 +3,7 @@ import os
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QFontComboBox, QMessageBox, QApplication
 
-from desktop_app.src.ui.components import StyledLabel, StyledComboBox
+from src.ui.components import StyledLabel, StyledComboBox
 
 
 class AppearanceSettingsWidget(QWidget):

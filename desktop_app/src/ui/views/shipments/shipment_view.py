@@ -4,13 +4,13 @@ from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
                                QHeaderView, QDialog, QLineEdit, QMessageBox, QStackedWidget, QComboBox)
 
-from desktop_app.src.ui.components import StyledButton
 from public_api.api import ShipmentsAPI, APIClient, OrdersAPI, CarriersAPI
 from public_api.shared_schemas import Shipment, ShipmentFilter, ShipmentStatus
-from .shipment_details_dialog import ShipmentDetailsDialog
-from .shipment_dialog import ShipmentDialog
-from .shipment_tracking_dialog import ShipmentTrackingDialog
-from ...icon_path_enum import IconPath
+from src.ui.components import StyledButton
+from src.ui.components.icon_path import IconPath
+from src.ui.views.shipments.shipment_details_dialog import ShipmentDetailsDialog
+from src.ui.views.shipments.shipment_dialog import ShipmentDialog
+from src.ui.views.shipments.shipment_tracking_dialog import ShipmentTrackingDialog
 
 
 class ShipmentView(QWidget):
@@ -166,17 +166,11 @@ class ShipmentView(QWidget):
                 QMessageBox.critical(self, "Error", f"Failed to delete shipment: {str(e)}")
 
     def track_shipment(self, shipment: Shipment):
-        try:
-            tracking_info = self.shipments_api.track_shipment(shipment.id)
-            dialog = ShipmentTrackingDialog(tracking_info, parent=self)
-            dialog.exec_()
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to track shipment: {str(e)}")
+        tracking_info = self.shipments_api.track_shipment(shipment.id)
+        dialog = ShipmentTrackingDialog(tracking_info, parent=self)
+        dialog.exec_()
 
     def generate_label(self, shipment: Shipment):
-        try:
-            label = self.shipments_api.generate_shipping_label(shipment.id)
-            QMessageBox.information(self, "Success",
-                                    f"Shipping label generated successfully. Download URL: {label.label_download_url}")
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to generate shipping label: {str(e)}")
+        label = self.shipments_api.generate_shipping_label(shipment.id)
+        QMessageBox.information(self, "Success",
+                                f"Shipping label generated successfully. Download URL: {label.label_download_url}")

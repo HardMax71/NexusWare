@@ -1,4 +1,10 @@
-from .custom_widgets import (
+from .dialogs import (
+    AboutDialog,
+    UserManualDialog,
+)
+from .dialogs.error_dialog import DetailedErrorDialog, global_exception_handler
+from .icon_path import IconPath
+from .widgets import (
     StyledButton,
     StyledLineEdit,
     StyledComboBox,
@@ -9,14 +15,6 @@ from .custom_widgets import (
     CardWidget,
     ToggleSwitch
 )
-from .dialogs import (
-    ConfirmDialog,
-    InputDialog,
-    ProgressDialog,
-    MessageBox,
-    FileDialog
-)
-from .error_dialog import DetailedErrorDialog, global_exception_handler
 
 __all__ = [
     "StyledButton",
@@ -28,10 +26,6 @@ __all__ = [
     "LoadingSpinner",
     "CardWidget",
     "ToggleSwitch",
-    "ConfirmDialog",
-    "InputDialog",
-    "ProgressDialog",
-    "MessageBox",
-    "FileDialog",
     "DetailedErrorDialog",
+    "IconPath",
 ]

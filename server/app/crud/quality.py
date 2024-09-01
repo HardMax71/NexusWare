@@ -1,6 +1,8 @@
 from sqlalchemy import func, case
 from sqlalchemy.orm import Session
 
+from app.crud.base import CRUDBase
+from app.models import QualityCheck, QualityStandard, QualityAlert, Product
 from public_api.shared_schemas import (
     QualityCheck as QualityCheckSchema,
     QualityCheckCreate, QualityCheckUpdate, QualityCheckFilter,
@@ -11,8 +13,6 @@ from public_api.shared_schemas import (
     QualityMetrics, ProductDefectRate, QualityCheckCommentCreate,
     QualityCheckComment as QualityCheckCommentSchema
 )
-from server.app.models import QualityCheck, QualityStandard, QualityAlert, Product
-from .base import CRUDBase
 
 
 class CRUDQualityCheck(CRUDBase[QualityCheck, QualityCheckCreate, QualityCheckUpdate]):

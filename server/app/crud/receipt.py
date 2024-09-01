@@ -3,15 +3,13 @@
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from server.app.models import (
-    Receipt, ReceiptItem
-)
+from app.crud.base import CRUDBase
+from app.models import Receipt, ReceiptItem
 from public_api.shared_schemas import (
     Receipt as ReceiptSchema, ReceiptCreate, ReceiptUpdate,
     ReceiptItem as ReceiptItemSchema, ReceiptItemCreate, ReceiptItemUpdate,
     ReceiptFilter, QualityCheckCreate
 )
-from .base import CRUDBase
 
 
 class CRUDReceipt(CRUDBase[Receipt, ReceiptCreate, ReceiptUpdate]):

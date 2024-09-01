@@ -1,12 +1,12 @@
 from sqlalchemy.orm import Session, selectinload
 
+from app.crud.base import CRUDBase
+from app.models import YardLocation
 from public_api.shared_schemas import (
     YardLocation as YardLocationSchema,
     YardLocationCreate, YardLocationUpdate,
     YardLocationFilter, YardLocationWithAppointments
 )
-from server.app.models import YardLocation
-from .base import CRUDBase
 
 
 class CRUDYardLocation(CRUDBase[YardLocation, YardLocationCreate, YardLocationUpdate]):

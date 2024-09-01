@@ -3,9 +3,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
+from app import crud, models
+from app.api import deps
 from public_api.shared_schemas import Notification, NotificationCreate, NotificationUpdate
-from .... import crud, models
-from ....api import deps
 
 router = APIRouter()
 
@@ -35,6 +35,7 @@ def mark_all_notifications_as_read(
         current_user: models.User = Depends(deps.get_current_active_user)
 ):
     return crud.notification.mark_all_as_read(db, current_user.id)
+
 
 @router.get("/unread", response_model=list[Notification])
 def get_unread_notifications(

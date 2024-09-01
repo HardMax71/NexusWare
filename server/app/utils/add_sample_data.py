@@ -3,9 +3,9 @@ import time
 import sqlalchemy as sa
 from sqlalchemy.orm import sessionmaker
 
-from server.app.core.config import settings
-from server.app.core.security import get_password_hash
-from server.app.models import (
+from app.core.config import settings
+from app.core.security import get_password_hash
+from app.models import (
     Asset, AssetMaintenance, AuditLog, Carrier, Customer, DockAppointment,
     Inventory, LocationInventory, InventoryMovement, InventoryAdjustment,
     Location, Order, OrderItem, PurchaseOrder, POItem, Product, ProductCategory,

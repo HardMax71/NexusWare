@@ -7,7 +7,7 @@ from PySide6.QtCore import Qt, QDateTime
 from PySide6.QtGui import QPainter, QColor
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel
 
-from desktop_app.src.ui.components import CardWidget
+from src.ui.components import CardWidget
 from public_api.api import APIClient, ReportsAPI, InventoryAPI, PickListsAPI
 
 

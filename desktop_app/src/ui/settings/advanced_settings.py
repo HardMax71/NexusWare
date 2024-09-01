@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QSpinBox
 
-from desktop_app.src.ui.components import StyledLabel, StyledButton, StyledComboBox
+from src.ui.components import StyledLabel, StyledButton, StyledComboBox
 
 
 class AdvancedSettingsWidget(QWidget):

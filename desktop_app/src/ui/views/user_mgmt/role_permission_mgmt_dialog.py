@@ -4,8 +4,8 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, 
                                QListWidget, QTabWidget, QPushButton)
 
 from public_api.api import RolesAPI
-from .permission_dialog import PermissionDialog
-from .role_dialog import RoleDialog
+from src.ui.views.user_mgmt.permission_dialog import PermissionDialog
+from src.ui.views.user_mgmt.role_dialog import RoleDialog
 
 
 class RolePermissionManagementDialog(QDialog):

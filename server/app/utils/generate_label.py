@@ -3,7 +3,7 @@
 import requests
 from fastapi import HTTPException
 
-from server.app.core.config import settings
+from app.core.config import settings
 
 
 def shipengine_api_call(endpoint, method="GET", data=None):

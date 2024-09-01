@@ -9,8 +9,8 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTextEdit, QCo
 from barcode import get_barcode_class
 from barcode.writer import ImageWriter
 
-from desktop_app.src.ui.components import StyledButton, StyledLabel
-from desktop_app.src.ui.icon_path_enum import IconPath
+from src.ui.components import StyledButton, StyledLabel
+from src.ui.components.icon_path import IconPath
 
 
 class BarcodeDesignerWidget(QWidget):

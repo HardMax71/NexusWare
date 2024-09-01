@@ -1,11 +1,11 @@
 from sqlalchemy import func, case
 from sqlalchemy.orm import Session
 
+from app.crud.base import CRUDBase
+from app.models import Task, User, TaskComment
 from public_api.shared_schemas import TaskCreate, TaskUpdate, TaskFilter, TaskCommentCreate, TaskStatistics, \
     UserTaskSummary, \
     Task as TaskSchema, TaskComment as TaskCommentSchema, TaskStatus, TaskPriority
-from server.app.models import Task, User, TaskComment
-from .base import CRUDBase
 
 
 class CRUDTask(CRUDBase[Task, TaskCreate, TaskUpdate]):

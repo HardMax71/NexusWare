@@ -1,10 +1,10 @@
 from PySide6.QtCore import Qt, QRect, QPoint
 from PySide6.QtGui import QColor, QPainter, QIcon
-from PySide6.QtWidgets import (QApplication, QLabel, QPushButton,
+from PySide6.QtWidgets import (QLabel, QPushButton,
                                QVBoxLayout, QHBoxLayout,
                                QFrame)
 
-from .utils import load_stylesheet
+from src.ui.qtutorial.utils import load_stylesheet
 
 
 class QTutorialHint(QFrame):

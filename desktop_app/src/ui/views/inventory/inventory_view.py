@@ -4,14 +4,14 @@ from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
                                QHeaderView, QDialog, QLineEdit, QStackedWidget, QMessageBox)
 
-from desktop_app.src.ui.components import StyledButton
 from public_api.api import InventoryAPI, APIClient, LocationsAPI, ProductsAPI, UsersAPI
 from public_api.permissions import PermissionName
 from public_api.shared_schemas import InventoryWithDetails, Inventory
-from .adjustment_dialog import AdjustmentDialog
-from .inventory_dialog import InventoryDialog
-from .inventory_planning import InventoryPlanningWidget
-from ...icon_path_enum import IconPath
+from src.ui.components import StyledButton
+from src.ui.components.icon_path import IconPath
+from src.ui.views.inventory.adjustment_dialog import AdjustmentDialog
+from src.ui.views.inventory.inventory_dialog import InventoryDialog
+from src.ui.views.inventory.inventory_planning import InventoryPlanningWidget
 
 
 class InventoryView(QWidget):

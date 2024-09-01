@@ -2,14 +2,14 @@ from datetime import timedelta
 
 from sqlalchemy.orm import Session
 
+from app.crud.base import CRUDBase
+from app.models import DockAppointment
 from public_api.shared_schemas import (
     DockAppointment as DockAppointmentSchema,
     DockAppointmentCreate, DockAppointmentUpdate,
     DockAppointmentFilter,
     AppointmentConflict
 )
-from server.app.models import DockAppointment
-from .base import CRUDBase
 
 
 class CRUDDockAppointment(CRUDBase[DockAppointment, DockAppointmentCreate, DockAppointmentUpdate]):

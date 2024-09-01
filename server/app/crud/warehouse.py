@@ -4,7 +4,7 @@ from fastapi import HTTPException
 from sqlalchemy import func, and_
 from sqlalchemy.orm import Session
 
-from server.app.models import (
+from app.models import (
     PickList, Receipt, Shipment, LocationInventory, InventoryMovement, InventoryAdjustment
 )
 from public_api.shared_schemas import (

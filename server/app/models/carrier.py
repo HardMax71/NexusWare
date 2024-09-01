@@ -1,7 +1,7 @@
 # /server/app/models/carrier.py
 from sqlalchemy import Column, Integer, String, Text
 
-from .base import Base
+from app.models.base import Base
 
 
 class Carrier(Base):

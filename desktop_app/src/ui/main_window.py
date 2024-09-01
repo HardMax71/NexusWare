@@ -2,25 +2,26 @@ from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMainWindow, QTabWidget, QVBoxLayout, QWidget, QStatusBar, QMessageBox, QToolButton
 
-from desktop_app.src.ui.views.customers import CustomerView
-from desktop_app.src.ui.views.inventory.inventory_view import InventoryView
-from desktop_app.src.ui.views.orders import OrderView
-from desktop_app.src.ui.views.products import ProductView
-from desktop_app.src.ui.views.shipments import ShipmentView
-from desktop_app.src.ui.views.suppliers import SupplierView
-from desktop_app.src.ui.views.tasks import TaskView
-from desktop_app.src.ui.views.user_mgmt.user_mgmt_widget import UserManagementWidget
-from desktop_app.src.utils import ConfigManager
 from public_api.api import APIClient
-from public_api.permissions import PermissionName
-from public_api.permissions.permission_manager import PermissionManager
-from .components.dialogs import UserManualDialog, AboutDialog
-from .dashboard import DashboardWidget
-from .notification_center import NotificationCenter
-from .qtutorial import QTutorialManager
-from .report_generator import ReportGeneratorWidget
-from .search_filter import AdvancedSearchDialog
-from .settings.settings_dialog import SettingsDialog
+from public_api.permissions import PermissionName, PermissionManager
+from src.ui import AuditLogView
+from src.ui.advanced_search import AdvancedSearchDialog
+from src.ui.components import IconPath
+from src.ui.components.dialogs import UserManualDialog, AboutDialog
+from src.ui.dashboard import DashboardWidget
+from src.ui.qtutorial import QTutorialManager
+from src.ui.report_generator import ReportGeneratorWidget
+from src.ui.settings import SettingsDialog
+from src.ui.views.customers import CustomerView
+from src.ui.views.inventory import InventoryView
+from src.ui.views.notifications import NotificationCenter
+from src.ui.views.orders import OrderView
+from src.ui.views.products import ProductView
+from src.ui.views.shipments import ShipmentView
+from src.ui.views.suppliers import SupplierView
+from src.ui.views.tasks import TaskView
+from src.ui.views.user_mgmt import UserManagementWidget
+from src.utils import ConfigManager
 
 
 class MainWindow(QMainWindow):
@@ -30,11 +31,13 @@ class MainWindow(QMainWindow):
         self.api_client = api_client
         self.config_manager = config_manager
         self.permission_manager = permission_manager
+        self.chat_base_url = self.config_manager.get("chat_base_url",
+                                                     "http://127.0.0.1:8001/chat/v1")
         self.init_ui()
 
     def init_ui(self):
         self.setWindowTitle("NexusWare WMS")
-        self.setWindowIcon(QIcon("icons:app_icon.png"))
+        self.setWindowIcon(QIcon(IconPath.APP_ICON))
         self.setMinimumSize(1200, 800)
 
         central_widget = QWidget()
@@ -71,6 +74,7 @@ class MainWindow(QMainWindow):
     def add_tabs_based_on_permissions(self):
         tab_classes = {
             PermissionName.DASHBOARD: DashboardWidget,
+            PermissionName.AUDIT_LOGS: AuditLogView,
             PermissionName.INVENTORY: InventoryView,
             PermissionName.ORDERS: OrderView,
             PermissionName.PRODUCTS: ProductView,
@@ -99,15 +103,23 @@ class MainWindow(QMainWindow):
         if self.permission_manager.has_read_permission(PermissionName.ADVANCED_SEARCH):
             view_menu.addAction("Advanced Search", self.open_advanced_search)
 
+        chat_menu = menu_bar.addMenu("Chat")
+        chat_menu.addAction("Open Chat", self.open_chat_window)
+
         help_menu = menu_bar.addMenu("Help")
         help_menu.addAction("User Manual", self.open_user_manual)
         help_menu.addAction("About", self.show_about_dialog)
 
         self.add_notification_button(menu_bar)
 
+    def open_chat_window(self):
+        from src.ui.chat_window import ChatDialog
+        chat_dialog = ChatDialog(self.api_client, self)
+        chat_dialog.exec()
+
     def add_notification_button(self, menu_bar):
         notification_button = QToolButton(self)
-        notification_button.setIcon(QIcon("icons:bell.png"))
+        notification_button.setIcon(QIcon(IconPath.BELL))
         notification_button.setIconSize(QSize(24, 24))
         notification_button.setToolButtonStyle(Qt.ToolButtonIconOnly)
         notification_button.clicked.connect(self.toggle_notification_center)
@@ -119,9 +131,9 @@ class MainWindow(QMainWindow):
     def update_notification_icon(self, button):
         unread_notifications = len(self.notification_center.notifications_api.get_unread_notifications())
         if unread_notifications > 0:
-            button.setIcon(QIcon("icons:bell_unread.png"))
+            button.setIcon(QIcon(IconPath.BELL_UNREAD))
         else:
-            button.setIcon(QIcon("icons:bell.png"))
+            button.setIcon(QIcon(IconPath.BELL))
 
     def toggle_notification_center(self):
         if not self.notification_center.isVisible():
