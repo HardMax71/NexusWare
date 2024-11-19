@@ -18,7 +18,8 @@ across mobile, web, and desktop environments.
 > Although initial development idea was to use Flet lib, it was decided to split the project into separate projects
 > for each platform.
 
-## Feature Roadmap
+<details>
+<summary>Feature roadmap</summary>
 
 | Feature                     | Mobile | Web | Desktop |
 |-----------------------------|--------|-----|---------|
@@ -57,14 +58,81 @@ across mobile, web, and desktop environments.
 | Training Mode               | -      | -   | ✅       |
 | Customization Tools         | -      | -   | ✅       |
 
+</details>
+
+## Technology Stack
+
+- **Backend:** ✅
+  - Python (FastAPI)
+  - SQLite
+  - Docker
+
+- **Desktop App:** ✅
+  - Python
+  - Qt Framework (PySide6)
+  - SQLite (local database)
+
+- **Mobile App:** TBD/TBA
+
+- **Web Interface:** TBD/TBA
+
 ## Architecture
 
 For a detailed description of the system architecture, please refer to the [ARCHITECTURE.md](docs/ARCHITECTURE.md) file.
 
 ## Getting Started
 
-(Instructions for setting up development environment, installing dependencies, and running the application will be added
-here.)
+### Prerequisites
+
+- Python 3.8+
+- Docker and Docker Compose
+
+<details>
+<summary>How to start?</summary>
+
+1. Clone the repository:
+```bash
+git clone https://github.com/HardMax71/NexusWare.git
+cd NexusWare
+```
+
+2. Start the server using Docker Compose:
+
+```bash
+docker-compose up --build
+```
+
+3. For desktop app:
+
+```bash
+# Create and activate virtual environment
+python -m venv venv
+
+# Activate virtual environment
+# On Windows:
+venv\Scripts\activate
+# On macOS/Linux:
+source venv/bin/activate
+
+# Navigate to desktop app directory
+cd desktop_app
+
+# Install requirements
+pip install -r requirements.txt
+
+# Run the application
+python main.py
+
+# To deactivate virtual environment when done
+deactivate
+```
+
+>![NOTE]
+> Creds for admin user are:
+> - **E-Mail:** admin@example.com
+> - **Password:** admin
+
+</details>
 
 ## Contributing
 
