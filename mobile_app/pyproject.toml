@@ -1,0 +1,26 @@
+[tool.briefcase]
+project_name = "NexusWare Mobile"
+bundle = "com.example.nexusware"
+version = "0.1.0"
+url = "https://example.com/nexusware"
+license.file = "LICENSE"
+author = "Your Name"
+author_email = "your.email@example.com"
+
+[tool.briefcase.app.nexusware]
+formal_name = "NexusWare Mobile"
+description = "NexusWare Mobile Application"
+sources = ['src/nexusware']
+requires = [
+    'toga>=0.3.0',
+]
+
+[tool.briefcase.app.nexusware.macOS]
+requires = [
+    'toga-cocoa>=0.3.0',
+]
+
+[tool.briefcase.app.nexusware.ios]
+requires = [
+    'toga-iOS>=0.3.0',
+]
