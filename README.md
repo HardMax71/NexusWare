@@ -73,6 +73,8 @@ across mobile, web, and desktop environments.
   - SQLite (local database)
 
 - **Mobile App:** TBD/TBA
+  - Toga Framework (Python)
+  
 
 - **Web Interface:** TBD/TBA
 
