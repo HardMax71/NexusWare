@@ -2,7 +2,7 @@ from public_api.shared_schemas import (
     Shipment, ShipmentCreate, ShipmentUpdate, ShipmentFilter,
     CarrierRate, ShippingLabel, ShipmentTracking, ShipmentWithDetails
 )
-from .client import APIClient
+from public_api.api.client import APIClient
 
 
 class ShipmentsAPI:

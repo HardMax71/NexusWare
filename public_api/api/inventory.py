@@ -1,3 +1,4 @@
+from public_api.api.client import APIClient
 from public_api.shared_schemas import (
     InventoryCreate, InventoryUpdate, Inventory, InventoryList, InventoryFilter,
     InventoryTransfer, InventoryReport, ProductWithInventory, Product,
@@ -5,7 +6,6 @@ from public_api.shared_schemas import (
     StocktakeResult, ABCAnalysisResult, InventoryLocationSuggestion,
     BulkImportData, BulkImportResult, StorageUtilization, InventoryAdjustment
 )
-from .client import APIClient
 
 
 class InventoryAPI:

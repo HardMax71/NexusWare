@@ -1,9 +1,9 @@
+from public_api.api.client import APIClient
 from public_api.shared_schemas import (
     OrderCreate, OrderUpdate, Order, OrderWithDetails, OrderFilter,
     OrderSummary, ShippingInfo, OrderItemCreate, BulkOrderImportData,
     BulkOrderImportResult, OrderProcessingTimes
 )
-from .client import APIClient
 
 
 class OrdersAPI:

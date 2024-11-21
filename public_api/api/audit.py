@@ -1,8 +1,8 @@
+from public_api.api.client import APIClient
 from public_api.shared_schemas import (
     AuditLogCreate, AuditLog, AuditLogWithUser, AuditLogFilter,
     AuditSummary, AuditLogExport
 )
-from .client import APIClient
 
 
 class AuditAPI:

@@ -1,10 +1,10 @@
+from public_api.api.client import APIClient
 from public_api.shared_schemas import (
     AssetCreate, AssetUpdate, Asset, AssetWithMaintenance, AssetFilter,
     AssetMaintenanceCreate, AssetMaintenanceUpdate, AssetMaintenance,
     AssetMaintenanceFilter, AssetWithMaintenanceList, AssetTransfer,
     Location
 )
-from .client import APIClient
 
 
 class AssetsAPI:

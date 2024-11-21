@@ -1,7 +1,7 @@
+from public_api.api.client import APIClient
 from public_api.shared_schemas import (
     CustomerCreate, CustomerUpdate, Customer, CustomerFilter, Order
 )
-from .client import APIClient
 
 
 class CustomersAPI:

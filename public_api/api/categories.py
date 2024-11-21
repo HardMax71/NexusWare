@@ -1,8 +1,10 @@
 # public_api/api/categories.py
 
 from typing import List
+
+from public_api.api.client import APIClient
 from public_api.shared_schemas import ProductCategory, ProductCategoryCreate, ProductCategoryUpdate
-from .client import APIClient
+
 
 class CategoriesAPI:
     def __init__(self, client: APIClient):

@@ -1,8 +1,8 @@
+from public_api.api.client import APIClient
 from public_api.shared_schemas import (
     PickListCreate, PickListUpdate, PickList, PickListFilter,
     OptimizedPickingRoute, PickingPerformance
 )
-from .client import APIClient
 
 
 class PickListsAPI:

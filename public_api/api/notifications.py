@@ -2,7 +2,7 @@
 from typing import List
 
 from public_api.shared_schemas import Notification, NotificationCreate, NotificationUpdate
-from .client import APIClient
+from public_api.api.client import APIClient
 
 
 class NotificationsAPI:

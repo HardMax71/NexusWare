@@ -2,10 +2,10 @@
 
 from typing import List
 
+from public_api.api.client import APIClient
 from public_api.shared_schemas import (
     Role, RoleCreate, RoleUpdate, Permission, PermissionCreate, PermissionUpdate, AllPermissions
 )
-from .client import APIClient
 
 
 class RolesAPI:

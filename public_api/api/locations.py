@@ -1,7 +1,7 @@
 from public_api.shared_schemas.inventory import (
     LocationCreate, LocationUpdate, Location, LocationWithInventory, LocationFilter
 )
-from .client import APIClient
+from public_api.api.client import APIClient
 
 
 class LocationsAPI:

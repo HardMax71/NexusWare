@@ -1,11 +1,11 @@
+from public_api.api.client import APIClient
+from public_api.permissions.permission_manager import PermissionManager
 from public_api.shared_schemas import (
     UserCreate, UserUpdate, UserSanitized, Token,
     Message, UserFilter, AllPermissions, AllRoles, UserWithPermissions,
     UserPermissionUpdate, TwoFactorLogin
 )
-from .client import APIClient
-from public_api.permissions.permission_manager import PermissionManager
-from ..shared_schemas.user import UserPermission
+from public_api.shared_schemas.user import UserPermission
 
 
 class UsersAPI:

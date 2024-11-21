@@ -1,7 +1,7 @@
 from public_api.shared_schemas import (
     Supplier, SupplierCreate, SupplierUpdate, SupplierFilter, PurchaseOrder
 )
-from .client import APIClient
+from public_api.api.client import APIClient
 
 
 class SuppliersAPI:

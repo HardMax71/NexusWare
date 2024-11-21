@@ -1,7 +1,7 @@
 from typing import List
 
+from public_api.api.client import APIClient
 from public_api.shared_schemas.inventory import ProductCategoryCreate, ProductCategoryUpdate, ProductCategory
-from .client import APIClient
 
 
 class ProductCategoriesAPI:

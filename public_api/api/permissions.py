@@ -1,7 +1,7 @@
 from typing import List
 
+from public_api.api.client import APIClient
 from public_api.shared_schemas import PermissionCreate, PermissionUpdate, Permission
-from .client import APIClient
 
 
 class PermissionsAPI:

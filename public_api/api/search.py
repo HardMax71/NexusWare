@@ -1,5 +1,5 @@
 from public_api.shared_schemas import Product, Order
-from .client import APIClient
+from public_api.api.client import APIClient
 
 
 class SearchAPI:

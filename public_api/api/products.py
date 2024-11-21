@@ -1,8 +1,8 @@
+from public_api.api.client import APIClient
 from public_api.shared_schemas.inventory import (
     ProductCreate, ProductUpdate, Product, ProductWithCategoryAndInventory,
     ProductFilter, BarcodeData
 )
-from .client import APIClient
 
 
 class ProductsAPI:

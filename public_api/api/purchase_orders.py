@@ -1,8 +1,8 @@
+from public_api.api.client import APIClient
 from public_api.shared_schemas import (
     PurchaseOrderCreate, PurchaseOrderUpdate, PurchaseOrder,
     PurchaseOrderWithDetails, PurchaseOrderFilter, POItemReceive
 )
-from .client import APIClient
 
 
 class PurchaseOrdersAPI:

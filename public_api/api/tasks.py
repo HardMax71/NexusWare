@@ -2,7 +2,7 @@ from public_api.shared_schemas import (
     Task, TaskCreate, TaskUpdate, TaskWithAssignee, TaskFilter, TaskStatistics,
     UserTaskSummary, TaskComment, TaskCommentCreate
 )
-from .client import APIClient
+from public_api.api.client import APIClient
 
 
 class TasksAPI:

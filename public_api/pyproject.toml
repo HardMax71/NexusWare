@@ -1,0 +1,21 @@
+# public_api/pyproject.toml
+[tool.poetry]
+name = "nexusware-public-api"
+version = "1.0.0"
+description = "NexusWare Public API Client"
+authors = ["Max Azatian"]
+packages = [
+    { include = "api" },
+    { include = "shared_schemas" },
+    { include = "permissions" }
+]
+
+[tool.poetry.dependencies]
+python = ">=3.8"
+pydantic = "^2.0.0"
+aiohttp = "^3.8.0"
+email-validator = "^2.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

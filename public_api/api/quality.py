@@ -1,10 +1,10 @@
+from public_api.api.client import APIClient
 from public_api.shared_schemas.quality import (
     QualityCheckCreate, QualityCheckUpdate, QualityCheckWithProduct, QualityCheckFilter,
     QualityMetrics, QualityStandardCreate, QualityStandardUpdate, QualityStandard,
     QualityAlertCreate, QualityAlertUpdate, QualityAlert, ProductDefectRate,
     QualityCheckComment, QualityCheckCommentCreate, QualityCheckSummary
 )
-from .client import APIClient
 
 
 class QualityAPI:
